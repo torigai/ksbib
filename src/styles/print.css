@@ -1,0 +1,24 @@
+    body {  
+      height: 29.7cm;
+      width: 21cm;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 11pt; 
+      font-family: Arial, Helvetica, Sans-Serif; 
+      font-style: normal; 
+      font-weight: normal;
+    }
+    div.article {
+      page-break-after: always;
+    }
+    div.printer {
+        float: right;
+        }
+        @media screen {
+          .forscreen { display:block; }
+          .forprinter { display:none; }
+        }
+        @media print {
+          .forscreen { display:none; }
+          .forprinter { display:block; }
+        }
