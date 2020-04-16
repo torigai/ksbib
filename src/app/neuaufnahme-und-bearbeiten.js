@@ -8,7 +8,7 @@
             // create bFrm and fill up "standorte" select field and "id" field
             await cBFrmObj();
             cStandorteOptions(document.getElementById("standort"));
-            bFrm.elements[0].value = await getMaxID() + 1;
+            bFrm.elements[0].value = await getMaxID(1);
         }
     )
 
@@ -29,6 +29,7 @@
             document.getElementById("outFld"), 
             document.getElementById("bOKBtn")
         );
+        bFrm.elements[1].focus();
         bFrm.defaultSelectedIndex = bFrm.elements[1].selectedIndex;
         bFrm.noIn = bFrm.elements.length - 2;
         bFrm.onenter = function (event) {
@@ -370,6 +371,7 @@
                             return bookConformed;
                         }  
                         data = conformAndValidateBook(b);
+                        console.log(data);
                 }
                 if (err.length !== 0) {
                     let firstError = err[0].split("*");
@@ -380,9 +382,8 @@
                 } else {
                     (async () => 
                     {
-                        await sqlNewBook(data);
+                        await sqlNewBook(data).then();
                         bFrm.reset();
-                        bFrm.elements[0].value = await getMaxID() + 1;
                     })();
                     return true;
                 }
@@ -442,22 +443,184 @@
             parent.insertBefore(row, parent.children[rowIndex]);
             return true;
         }
-        /*
-            if (zeitschriftname DOES NOT EXISTS) { 
-                if (zeischriftkuerzelExistiert) {
-                    document.getElementByName("zeitschriftkuerzel").style.display = "";
-                    return false;    
-                } else {
-                    appendKuerzelInput();       
-                    return true; 
-                }
-            } else { 
-                if (zeitschriftkuerzelExistiert) {
-                    document.getElementByName("zeitschriftkuerzel").style.display = "none";
-                    return false;
-                } else {
-                    return false;
-                }
+    }
+
+    /*
+        SQL
+    */
+
+    function sqlNewBook (data)
+    {
+        let i, sql = [], sqr = [], autorenArr = []; 
+
+        sqr[0] = `SELECT MAX(id) AS id FROM buch`;
+        sqr[1] = `SELECT id AS jahrid FROM jahr WHERE jahr = ?`;
+        sqr[2] = `INSERT OR IGNORE INTO ort (id, ort) VALUES (NULL, ?)`;
+        sqr[3] = `INSERT INTO objekt (id, medium, standort, preis, band, status) 
+            VALUES (?, 1, ?, ?, ?, 0)`;
+        sqr[4] = `INSERT INTO relobjtyp 
+            (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr)
+            VALUES (?, 0, ?, 0, ?, ?, ?, ?)`;
+        sqr[5] = `INSERT OR IGNORE INTO verlag (id, verlag) VALUES (NULL, ?)`;
+
+        sql[0] = `INSERT OR IGNORE INTO stichwort (id, stichwort) VALUES (NULL, ?)`;
+        sql[1] = `INSERT INTO relstichwort (objektid, stichwortid) VALUES (?, ?)`;
+        sql[2] = `INSERT OR IGNORE INTO autor (id, name, vorname) VALUES (NULL, ?, ?)`;
+        sql[3] = `INSERT INTO relautor (objektid, zeitschriftid, buchid, aufsatzid, autorid, autornr)
+            VALUES (?, 0, ?, 0, ?, ?)`;
+        sql[4] = `INSERT OR IGNORE INTO titel (id, titel) VALUES (NULL, ?)`;
+        sql[5] = `INSERT INTO reltitel (objektid, zeitschriftid, buchid, aufsatzid, titelid, titeltyp, titelnr) 
+            VALUES (?, 0, ?, 0, ?, 0, ?)`;
+
+        function stichwortInsertions ()
+        {
+            for (i=0; i < data.stichworte.length; i++) { 
+                ((i) => { 
+                db.run(sql[0], [data.stichworte[i]], 
+                    function (err)
+                    {
+                        if (err) {return console.log(err.message);} 
+                        db.get(`SELECT id FROM stichwort WHERE stichwort = ?`, [data.stichworte[i]], 
+                            function (err, row) 
+                            {
+                                if (err) {return console.log(err.message);}
+                                db.run(sql[1], [data.id, row.id], function (err) {console.log(err.message)});
+                                return true;
+                            }
+                        );
+                    }
+                );
+                })(i);
+            }   
+        }
+        function autorInsertions (bid)
+        {
+            for (i=0; i < data.autoren.length; i++) { 
+                ((i) => {
+                db.run(sql[2], [data.autoren[i].split(",").map(strtrim)[0], data.autoren[i].split(",").map(strtrim)[1]], 
+                    function (err)
+                    {
+                        if (err) {return console.log(err.message);} 
+                        autorenArr = data.autoren[i].split(",").map(strtrim);
+                        db.get(`SELECT id FROM autor WHERE name = ? AND vorname = ?`, [autorenArr[0], autorenArr[1]], 
+                            function (err, row) 
+                            {
+                                if (err) {return console.log(err.message);}
+                                db.run(sql[3], [data.id, bid, row.id, i+1], function (err) 
+                                {
+                                    if (err) {console.log(err.message)}
+                                });
+                                return true;
+                            }
+                        );
+                    }
+                );
+                })(i);
+            }   
+        }
+        function titelInsertions (bid)
+        {
+            for (i=0; i < data.titel.length; i++) { 
+            ((i) => {
+                db.run(sql[4], [data.titel[i]], function (err)
+                {
+                    if (err) {return console.log(err.message);} 
+                    db.get(`SELECT id FROM titel WHERE titel = ?`, [data.titel[i]], 
+                        function (err, row) 
+                        {
+                            if (err) {console.log(err.message);}
+                            db.run(sql[5], [data.id, bid, row.id, i+1], function (err) 
+                                {
+                                    if (err) {console.log(err.message);}
+                                }
+                            );
+                        }
+                    );
+                });
+            })(i);
             }
-        */
+        }
+
+        db.get(sqr[0], [], function (err, row)
+        {
+            //console.log("1");
+            if (err) {console.log(err.message);}
+            let buchid = row.id + 1;
+
+            if (data.ort !== null) {
+                db.run(sqr[2], [data.ort], (err) => 
+                    {
+                        if (err) {
+                            console.log(err.message);
+                        } 
+                        //console.log("1.1");
+                    } );
+            }
+            db.run(sqr[3], [data.id, data.standort, data.preis, data.band], (err) => 
+                {
+                    if (err) {console.log(err.message);} 
+                    //console.log("1.2");
+                } );
+            //let j;
+            for (i=0; i<data.sachgebietsnr.length; i++) {
+                ((i) => 
+                {
+            //        j = i + 2;
+                    db.run(`INSERT INTO relsachgebiet (objektid, sachgebietid) VALUES (?, ?)`, 
+                        [data.id, data.sachgebietsnr[i]], (err) => 
+                        {
+                            if (err) {console.log(err.message);} 
+                        //    console.log("1."+j);
+                        });
+                })(i);
+            }
+
+            db.get(sqr[1], [data.jahr], function (err, row)
+            {
+                //console.log("2");
+                if (err) {console.log(err.message); return false}
+                let jahrid = (row === undefined) ? null : row.jahrid;
+
+                db.run(sqr[4], [data.id, buchid, data.autortyp, data.hinweis, data.seiten, jahrid], (err) => 
+                    {
+                        if (err) {console.log(err.message);} 
+                        //console.log("2.1");
+                    });
+                if (data.stichworte !== null) {stichwortInsertions();}
+                if (data.autoren !== null) {autorInsertions(buchid);}
+                titelInsertions(buchid); // data.titel is never null
+                db.run(sqr[5], [data.verlag], function (err)
+                {
+                    //console.log("3");
+                    if (err) {console.log(err.message);}
+                    db.get(`SELECT id AS verlagid FROM verlag WHERE verlag = ?`, [data.verlag], function (err, row)
+                    {
+                       // console.log("4");
+                        if (err) {console.log(err.message);}
+                        let verlagid = (row === undefined) ? null : row.verlagid;
+
+                        db.get(`SELECT id AS ortid FROM ort WHERE ort = ?`, [data.ort], function (err, row)
+                        {
+                        //    console.log("5");
+                            if (err) {console.log(err.message);}
+                            let ortid = (row === undefined) ? null : row.ortid;
+                            
+                            db.run(`INSERT INTO buch (id, auflage, ort, verlag, isbn) 
+                                VALUES (?, ?, ?, ?, ?)`, [buchid, data.auflage, ortid, verlagid, data.isbn], function (err) 
+                            {
+                                if (err) {console.log(err.message);}
+                            /*    console.log("6");
+                                db.get(`SELECT * FROM media_view WHERE objektid = ?`, [data.id], function (err, row)
+                                {
+                                    if (err) {console.log(err.message);}
+                                    console.log(row);
+                                });
+                            */
+                            });
+                        });
+                    });
+                });
+                
+            });
+        });
     }

@@ -117,8 +117,8 @@
                     <input type='text' id ='titel' size='15' class="txt">
                 </div>
                 <div class='rTableCell'>
-                    <label for="verlag"> Anmerkung </label><br>
-                    <input type='text' id ='verlag' size='15' class="txt">
+                    <label for="hinweis"> Anmerkung </label><br>
+                    <input type='text' id ='hinweis' size='15' class="txt">
                 </div>
             </div>
         </div>
@@ -273,6 +273,7 @@
                 stichwort : elements[9],
                 hinweis : elements[10]
             }
+            console.log(data);
             function conformAndValidateDSearchFrm(data) 
             {
                 err = [];
@@ -291,11 +292,11 @@
                 };
                 //Bedingung an die Zeitspanne:
                 if ( dataConformed.t1 !== false && dataConformed.t2 !== false ) {
-                    if ( (dataConformed.t1 !== "" && dataConformed.t2 == "") || (dataConformed.t2 !== "" && dataConformed.t1 == "") || (dataConformed.t2 - dataConformed.t1 < 0) ) {
+                    if ( (dataConformed.t1 !== null && dataConformed.t2 == null) || (dataConformed.t2 !== null && dataConformed.t1 == null) || (dataConformed.t2 - dataConformed.t1 < 0) ) {
                         err[err.length] = "timespan" + "*" + message[2];
                         return false;         
                     } 
-                    if (dataConformed.jahr !== false && dataConformed.jahr !== "" && dataConformed.t1 !== "") {
+                    if (dataConformed.jahr !== false && dataConformed.jahr !== null && dataConformed.t1 !== null) {
                         err[err.length] = "year" + "*" + message[1]("die Eingabe eines Erscheinungsjahres ODER eine Zeitspanne");
                         return false;
                     }
@@ -303,8 +304,12 @@
                 return dataConformed;
             }
             data = conformAndValidateDSearchFrm(data); // typeof data = object
+            console.log(data);
             if (err.length !== 0) {
                 let firstError = err[0].split("*");
+                console.log(err);
+                console.log(firstError);
+                console.log(elements[firstError]);
                 if (firstError[0] == "timespan") {
                     elements[3].style.color = warnColor;
                     elements[4].style.color = warnColor;
@@ -524,13 +529,14 @@ async function dsearchDBRequest (data, limit, offset)
     let tablesToJoin = "";
     let constraint = [];
 
-    if (data.autor1 !== "" && data.autor2 === "") {
+    console.log(data);
+    if (data.autor1 !== null && data.autor2 === null) {
         constraint.push("(autor LIKE '%" + data.autor1 + "%')");
     }
-    if (data.autor2 !== "" && data.autor1 === "") {
+    if (data.autor2 !== null && data.autor1 === null) {
         constraint.push("(autor LIKE '%" + data.autor2 + "%')");
     }
-    if (data.autor1 !== "" && data.autor2 !== "") {
+    if (data.autor1 !== null && data.autor2 !== null) {
         tablesToJoin += "LEFT OUTER JOIN ( \
             SELECT objektid, zeitschriftid, buchid, aufsatzid, \
             autornr, name ||', '|| vorname as autor2 \
@@ -539,12 +545,12 @@ async function dsearchDBRequest (data, limit, offset)
             ) USING (objektid, zeitschriftid, buchid, aufsatzid)";
         constraint.push("(autor LIKE '%" + data.autor1 + "%' AND autor2 LIKE '%" + data.autor2 + "%')");
     }
-    if (data.jahr !== "") {
+    if (data.jahr !== null) {
         constraint.push("(jahr = " + data.jahr + ")");
-    } else if (data.t1 !== "" && data.t2 !== "") {
+    } else if (data.t1 !== null && data.t2 !== null) {
         constraint.push("(jahr >= " + data.t1 + " AND jahr <= " + data.t2 + ")");
     }
-    if (data.verlag !== "") {
+    if (data.verlag !== null) {
         tablesToJoin += "LEFT OUTER JOIN ( \
             SELECT id, v AS verlag FROM buch \
                 LEFT OUTER JOIN ( \
@@ -553,20 +559,20 @@ async function dsearchDBRequest (data, limit, offset)
             ) ON id = buchid";
         constraint.push("(verlag LIKE '%" + data.verlag + "%')");
     }
-    if (data.sgn !== "") {
+    if (data.sgn !== null) {
         constraint.push("(sgn = '" + data.sgn + "')");
     }
-    if (data.stichwort.length > 0) {
+    if (data.stichwort !== null && data.stichwort.length > 0) {
         tablesToJoin += "LEFT OUTER JOIN ( \
             SELECT objektid, stichwort FROM relStichwort \
             INNER JOIN stichwort id ON id = stichwortID\
             ) USING (objektid)";
         constraint.push("(stichwort LIKE '%" + data.stichwort[0] + "%')");
     }
-    if (data.hinweis !== "") {
+    if (data.hinweis !== null) {
         constraint.push("(hinweis LIKE '%" + data.hinweis + "%')");
     }
-    if (data.titel !== "") {
+    if (data.titel !== null) {
         constraint.push("(titel LIKE '%" + data.titel + "%')");
     }
     if (data.standort !== "") {
@@ -576,6 +582,7 @@ async function dsearchDBRequest (data, limit, offset)
     }
 
     constraint = constraint.join(" AND ");
+    //console.log(sqlDetailedSearchID(tablesToJoin, constraint, limit, offset));
     matchingIDs = await sqr(sqlDetailedSearchID(tablesToJoin, constraint, limit, offset), [], matchingIDs);
 
     matchingIDs = matchingIDs.map((item) => {return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid].toString(); }).filter(onlyUnique).map((item) => {return item.split(",").map(Number)});

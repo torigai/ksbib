@@ -64,11 +64,11 @@ async function cStandorteOptions (link)
     }
 }
 
-async function getMaxID () 
+async function getMaxID (plus) 
 {
     let x = [];
     x = await sqr("SELECT MAX(id) AS id FROM objekt", [], x);
-    return x[0].id;
+    return (x[0].id + plus);
 }
 
 
@@ -135,141 +135,7 @@ function sqlCollectionBelongingToArticle (idArr)
     ORDER BY titeltyp, titelnr, autortyp, autornr ASC`;
 }
 
-async function sqlNewBook (data)
-{
-    let i, sql = [], autorenArr = [], test = [], result = []; 
-    let buchid = [], jahrid = [], stichwortid = [], titelid = [], autorid = [], verlagid = [], ortid = [];
-    function runSQL (sql)
-    {
-        let p = new Promise( (reject, resolve) =>
-        {   
-            resolve(sql.map(item => db.run(item, [],callbackSQL)));
-            reject("promise rejected");
-        });
-        return p;
-    }
 
-    buchid = await sqr(`SELECT MAX(id) AS id FROM buch`, [], buchid);
-    jahrid = await sqr(`SELECT id AS jahrid FROM jahr WHERE jahr = ?`, [data.jahr], jahrid);
-    buchid = buchid[0].id + 1;
-
-
-    sql.push(`INSERT OR IGNORE INTO ort (id, ort) VALUES (NULL, '${data.ort}')`);
-    sql.push(`INSERT INTO objekt (id, medium, standort, preis, band, status) 
-            VALUES (${data.id}, 1, ${data.standort}, ${data.preis}, ${data.band}, 0)`);
-    sql.push(`INSERT INTO relobjtyp 
-            (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr)
-            VALUES (${data.id}, 0, ${buchid}, 0, ${data.autortyp}, '${data.hinweis}', '${data.seiten}', ${jahrid[0].jahrid})`);
-    sql.push(`INSERT OR IGNORE INTO verlag (id, verlag) VALUES (NULL, '${data.verlag}')`);
-    for (i = 0; i < data.sachgebietsnr.length; i++) {
-        sql.push(`INSERT INTO relsachgebiet (objektid, sachgebietid) VALUES (${data.id}, ${data.sachgebietsnr[i]})`);
-    }
-
-    await runSQL(sql).catch( (err) => {console.log(err)});
-
-    sql = [];
-
-    sql[0] = `INSERT OR IGNORE INTO stichwort (id, stichwort) VALUES (NULL, ?)`;
-    sql[1] = `INSERT INTO relstichwort (objektid, stichwortid) VALUES (${data.id}, ?)`;
-    sql[2] = `INSERT OR IGNORE INTO autor (id, name, vorname) VALUES (NULL, ?, ?)`;
-    sql[3] = `INSERT INTO relautor (objektid, zeitschriftid, buchid, aufsatzid, autorid, autornr)
-                VALUES (${data.id}, 0, ${buchid}, 0, ?, ?)`;
-    sql[4] = `INSERT OR IGNORE INTO titel (id, titel) VALUES (NULL, ?)`;
-    sql[5] = `INSERT INTO reltitel (objektid, zeitschriftid, buchid, aufsatzid, titelid, titeltyp, titelnr) 
-                VALUES (${data.id}, 0,  ${buchid}, 0, ?, 0, ?)`;
-
-    function stichwortInsertions ()
-    {
-        for (i=0; i < data.stichworte.length; i++) { 
-            ((i) => { 
-            db.run(sql[0], [data.stichworte[i]], 
-                function (err)
-                {
-                    if (err) {return console.log(err.message);} 
-                    db.get(`SELECT id FROM stichwort WHERE stichwort = ?`, [data.stichworte[i]], 
-                        function (err, row) 
-                        {
-                            if (err) {return console.log(err.message);}
-                            db.run(sql[1], [row.id], function (err) {console.log(err.message)});
-                            return true;
-                        }
-                    );
-                }
-            );
-            })(i);
-        }   
-    }
-    function autorInsertions ()
-    {
-        for (i=0; i < data.autoren.length; i++) { 
-            ((i) => {
-            db.run(sql[2], [data.autoren[i].split(",").map(strtrim)[0], data.autoren[i].split(",").map(strtrim)[1]], 
-                function (err)
-                {
-                    if (err) {return console.log(err.message);} 
-                    autorenArr = data.autoren[i].split(",").map(strtrim);
-                    db.get(`SELECT id FROM autor WHERE name = ? AND vorname = ?`, [autorenArr[0], autorenArr[1]], 
-                        function (err, row) 
-                        {
-                            if (err) {return console.log(err.message);}
-                            db.run(sql[3], [row.id, i+1], function (err) {console.log(err.message)});
-                            return true;
-                        }
-                    );
-                }
-            );
-            })(i);
-        }   
-    }
-    function titelInsertions ()
-    {
-        for (i=0; i < data.titel.length; i++) { 
-            ((i) => {
-            db.run(sql[4], [data.titel[i]], function (err)
-                {
-                    if (err) {return console.log(err.message);} 
-                    db.get(`SELECT id FROM titel WHERE titel = ?`, [data.titel[i]], 
-                        function (err, row) 
-                        {
-                            if (err) {return console.log(err.message);}
-                            db.run(sql[5], [row.id, i+1], function (err) {console.log(err.message)});
-                            return true;    
-                        }
-                    );
-                }
-            );
-            })(i);
-        }
-    }
-
-    await stichwortInsertions();
-    await autorInsertions();
-    await titelInsertions();
-
-    db.get(`SELECT id AS verlagid FROM verlag WHERE verlag = ?`, [data.verlag], function (err, row)
-    {
-        if (err) {console.log(err.message);}
-        let verlagid = row.verlagid;
-        db.get(`SELECT id AS ortid FROM ort WHERE ort = ?`, [data.ort], function (err, row)
-        {
-            if (err) {console.log(err.message);}
-            let ortid = row.ortid;
-            db.run(`INSERT INTO buch (id, auflage, ort, verlag, isbn) 
-                VALUES (${buchid}, ${data.auflage}, ?, ?, ${data.isbn})`, [ortid, verlagid], function (err) 
-                {
-                    if (err) {console.log(err.message);}
-                    /*
-                    db.get(`SELECT * FROM media_view WHERE objektid = ?`, [data.id], function (err, row)
-                    {
-                        if (err) {console.log(err.message);}
-                        console.log(row);
-                    })
-                    */
-                }
-            );
-        })
-    });
-}
 
 /*
 

@@ -98,7 +98,7 @@ input[type="text"]:focus:valid {
   border-color: #D1C2C3;
 }
 input[type="button"]:focus:valid {
-  border-color: red;
+  border-color: #D1C2C3;
   border-radius: 6px;
 }
 

@@ -58,6 +58,9 @@ function conformAndValidateYear (el, i, j)
         err[err.length] = i + "*" + message[0]("einen Wert");
         return false;
     }
+    if (j == false && jahr == "") {
+        return null;
+    }
     if (jahr !== "" && jahreszahlPattern.test(jahr) == false) {
         err[err.length] = i + "*" + message[2];
         return false;
@@ -116,6 +119,9 @@ function conformAndValidateZeitschrift (el, i, j)
         err[err.length] = i + "*" + message[2];
         return false;
     }
+    if (j == false && journal == "") {
+        return null;
+    }
     if (j == true && journal == "") {
         err[err.length] = i + "*" + message[0]("einen Namen");
         return false;
@@ -131,7 +137,7 @@ function conformAndValidateAuthor (el, i, j)
         return false;
     }
     if (j == false && name == "") {
-        return name;
+        return null;
     }
     if (namenPattern.test(name) == false) {
         err[err.length] = i + "*" + message[2];
@@ -143,6 +149,9 @@ function conformAndValidateAuthor (el, i, j)
 function conformAndValidateAuthorArr (el, i, j)
 {
     let autorenarr = [];
+    if (j == false && el.value.match(/[a-zöäüß]/i) == null) {
+        return null;
+    }
     if (j == true && el.value.match(/[a-zöäüß]/i) == null) {
         err[err.length] = i + "*" + message[0]("einen Autornamen");
         return false;
@@ -226,6 +235,9 @@ function conformAndValidateComment (el, i, j)
         err[err.length] = i + "*" + message[0]("eine Anmerkung");
         return false;
     }
+    if (j == false && comment == "") {
+        return null;
+    }
     if (comment.length > 1000) {
         err[err.length] = i + "*" + message[1]("1000 Zeichen");
         return false;
@@ -272,6 +284,9 @@ function conformAndValidateKeywords (el, i, j)
         err[err.length] = i + "*" + message[0]("ein Stichwort");
         return false;
     }
+    if (j == false && strtrim(el.value) == "") {
+        return null;
+    }
     if (keywordarr.length > 20 ) {
         err[err.length] = i + "*" + message[0]("20 Stichwörter");
         return false;
@@ -298,6 +313,9 @@ function conformAndValidateStr (el, i, j, l)
         err[err.length] = i + "*" + message[0]("einen Wert");
         return false;
     }
+    if (j == false && strtrim(el.value) == "") {
+        return null;
+    }
     if (textPattern.test(strtrim(el.value)) == false) {
         err[err.length] = i + "*" + message[2];
         return false;
@@ -316,6 +334,9 @@ function conformAndValidateISBN (el, i, j)
         err[err.length] = i + "*" + message[0]("einen Wert");
         return false;
     }
+    if (j == false && isbn == "") {
+        return null;
+    }
     if (isbn !== "" && isbnPattern.test(isbn) == false) {
         err[err.length] = i + "*" + message[1]("10 oder 13 Stellen und Ziffern größer oder gleich Null");
         return false;
@@ -329,6 +350,9 @@ function conformAndValidateSgn (el, i, j)
     if (j == true && sgn == "") {
         err[err.length] = i + "*" + message[0]("einen Wert");
         return false;
+    }
+    if (j == false && sgn == "") {
+        return null;
     }
     if (sgn.length > 10 || textPattern.test(sgn) == false) {
         err[err.length] = i + "*" + message[2];
