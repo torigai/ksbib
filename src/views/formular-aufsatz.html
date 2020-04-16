@@ -1,0 +1,123 @@
+<!--
+
+aufsatz ohne referenz
+{
+	objekt.ID
+	standort
+	autoren				(autortyp = 0)
+	titel + untertitel	(titeltyp = 1 : aufsatztitel/track)
+	jahr
+	ort
+	seiten
+	hinweis
+	stichworte
+}
+
+-->
+
+
+<form id="bFrm" class="center">
+    <div class='rTable' style="width: 400px">
+        <div class='rTableBody'>
+            <div class='rTableRow'>
+                <div class="rTableCell left">
+                	<label>ID</label><br>
+                	<input type="text" class="txt" name="id" value="1" size="4" readonly="readonly">
+                </div>
+                <div class="rTableCell left">
+                    <label for="standort"> Standort </label><br>
+                    <select id='standort'>
+                        <option value="" selected="selected" style="color: gray">Bitte wählen</option>
+                        <option value="0" >n.A.</option>
+                    </select>
+                </div>
+            </div>
+            <div class='rTableRow'>
+                <div class="rTableCell left">
+                	<label onclick="window.alert(
+                        'Bitte gib die Autornamen folgendermaßen ein: Müller, Hans F. \nVor jeder weiteren AutorIn drücke \'Enter\'.'
+                    )">Autoren *</label><br>
+                	<textarea class='textareanowrap' name='autoren' rows='5' cols="22" >Kubler, George</textarea>
+                </div>
+            </div>
+        </div>
+	</div>
+	<div class='rTable' style="width: 400px">
+        <div class='rTableBody'>        
+            <div class='rTableRow'>
+            	<div class="rTableCell left">
+            	<label onclick="window.alert(
+                    'Bitte gib den Titel zuerst ein. Falls es einen Untertitel gibt, drücke \'Enter\'. Jede durch \'Enter\' neu begonnene Zeile wird als (weiterer) Untertitel interpretiert.'
+                )"Titel und Untertitel *</label><br>
+                <textarea class='textareanowrap' name='titel' rows='5' cols="49">Die Form der Zeit</textarea>
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class='rTable' style="width: 400px">
+        <div class='rTableBody'>
+            <div class='rTableRow'>
+                <div class="rTableCell left">
+                	<label>Jahr</label><br>
+                	<input type="text" class="txt" name="jahr" value="1993" size="4">
+                </div>
+                <div class="rTableCell left">
+                	<label>Ort</label><br>
+                	<input type="text" class="txt" name="ort" value="Frankfurt a.M." size="15">
+                </div>
+            </div>
+            <div class='rTableRow'>
+                <div class="rTableCell left">
+                	<label>Seiten</label><br>
+                	<input type="text" class="txt" name="seiten" value="" size="10">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class='rTable' style="width: 400px">
+        <div class='rTableBody'>        
+            <div class='rTableRow'>
+                <div class="rTableCell left">
+                	<label onclick = "window.alert('Bitte zwischen den Sachgebietsnummern \'Enter\' drücken. Die Liste der Sachgebiete kannst Du mit dem Link erreichen (s.u.)')">Sachgebietsnr *</label><br>
+                	<textarea class='textareanowrap' name='sachgebietsnr' rows="5" cols='15'>0</textarea>
+                </div>
+                <div class="rTableCell left">
+                	<br>
+                	<textarea class='textareahidden' name='sachgebiete' rows='5' cols='15' readonly="readonly">Architektur</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class='rTable' style="width: 400px">
+        <div class='rTableBody'>        
+            <div class='rTableRow'>
+            	<div class="rTableCell left">
+            	<label>Anmerkung</label><br>
+                <textarea class='textareanowrap' name='hinweis' rows='5' cols="49">Anmerkung zur Geschichte der Dinge</textarea>
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class='rTable' style="width: 400px">
+        <div class='rTableBody'>        
+            <div class='rTableRow'>
+            	<div class="rTableCell left">
+            	<label onclick="window.alert('Bitte zwischen jedem Stichwort \'Enter\' drücken')">Stichworte *</label><br>
+                <textarea class='textareanowrap' name='stichworte' rows='5' cols="10">Dinge</textarea>
+            </div>
+            </div>
+        </div>
+    </div>
+
+        <div id="bFrmWarnFld" class="warning center">
+        </div>
+
+    <div>
+        <input type="button" class="btn" id="bOKBtn" value="Speichern">
+        <input type="button" class="btn" value="Abbrechen">
+    </div>
+</form>
+
+<div class="info center" style="width: 400px">
+    	Hier geht es zur Liste der <a href="drucken-sachgebiete.html" target="_blank">Sachgebiete</a>
+</div>

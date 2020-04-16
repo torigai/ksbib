@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ksbib | Sonstiges</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
+    <script src="../app/main.js"></script>
+</head>         
+
+
+<body>
+
+<header>
+    <h1 id="headerTitel">Sonstiges</h1>
+</header>
+
+<nav>
+    <ul class="dropdown">
+        <li><a href="index.html">Medien</a></li>
+        <div class="dropdown-content">
+            <li><a href="sachgebietssuche.html">Sachgebietssuche</a></li>
+            <li><a href="neuaufnahme.html">Hinzufügen</a></li>
+            <li><a href="bearbeiten.html">Bearbeiten</a></li>
+            <li><a href="entfernen.html">Entfernen</a></li>
+        </div>
+    </ul>
+    <ul class="dropdown">
+        <li><a href="sonstiges.html">Sonstiges</a></li>
+        <div class="dropdown-content">
+            <li><a href="standorte.html">Standorte</a></li>
+            <li><a href="sachgebiete.html">Sachgebiete</a></li>
+        </div>
+    </ul>
+</nav>
+
+<article>
+
+    <h1>Standorte und Sachgebiete verwalten</h1>
+    <div class="info">
+    <p>
+        Jedem Medium sind ein Standort und eine Standortsignatur zugewiesen. 
+        Beispielsweise "Wohnzimmer Süden Regal 2" mit Signatur "WZ-S-2". 
+        Die Standorte und Standortsignaturen musst Du jedoch selbst eintragen. 
+        Dies kannst Du hier tun:
+        <p>
+            <a href="standorte.html">Standorte</a>
+        </p>
+        Aus der automatisch generierten ID und der Standortsignatur wird
+        eine Signatur für Dein Medium erzeugt. Zum Beispiel wird das Buch mit der
+        ID 412, das in Deinem Wohnzimmer im zweiten Regal auf der Sonnenseite
+        steht, die Signatur "WZ-S-2 412" haben.
+    </p>
+    <p>
+        Die Sachgebiete sind in Ober- und Untersachgebiete aufgeteilt. In der Logik der
+        Datenbank werden Obersachgebiete gemäß der Folge {0, 100, 200, 300, ...} indiziert.
+        Ein Obersachgebiet kann dann 99 Untersachgebiete haben. Zum Beispiel könnte ein 
+        Obersachgebiet "Architektur" mit Index 0 ein Untersachgebiet "Theorie" mit Index 1 
+        und ein Untersachgebiet "Geschichte" mit Index 2 haben. Die Indizierung wird
+        automatisch vorgenommen, aber die Sachgebiete musst Du selbst eintragen:
+        <p>
+            <a href="sachgebiete.html">Sachgebiete</a>
+        </p>
+    </p>
+    </div>
+
+</article>
+
+</body>
+
+<footer>
+    &copy; Kirsten Vogeler - Alle Rechte vorbehalten
+</footer>
+
+</html>

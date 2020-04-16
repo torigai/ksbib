@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ksbib | Medien Löschen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
+    <script src="../app/main.js"></script>
+    <script src="../app/mkmv.js"></script>
+    <script src="../app/validation.js"></script>
+</head>         
+
+
+<body onunload="selFrm.reset();">
+
+<header>
+    <h1 id="headerTitel">Medien Löschen</h1>
+</header>
+
+<nav>
+    <ul class="dropdown">
+        <li><a href="index.html">Medien</a></li>
+        <div class="dropdown-content">
+            <li><a href="sachgebietssuche.html">Sachgebietssuche</a></li>
+            <li><a href="neuaufnahme.html">Hinzufügen</a></li>
+            <li><a href="bearbeiten.html">Bearbeiten</a></li>
+            <li><a href="entfernen.html">Entfernen</a></li>
+        </div>
+    </ul>
+    <ul class="dropdown">
+        <li><a href="sonstiges.html">Sonstiges</a></li>
+        <div class="dropdown-content">
+            <li><a href="standorte.html">Standorte</a></li>
+            <li><a href="sachgebiete.html">Sachgebiete</a></li>
+        </div>
+    </ul>
+</nav>
+
+<article>
+
+    <form id='selFrm' class="center">
+        <div class='rTable'>
+        <div class='rTableBody'>
+            <div class='rTableRow'>
+                <div class="rTableCell">
+                    <label for="selStr">ID</label>
+                </div>
+                <div class='rTableCell'>
+                    <input type="text" id="selStr" class="txt" size="5" autofocus>
+                </div>
+                <div class='rTableCell'>
+                    <input type="button" id="selOKBtn" class="btn" value="OK">
+                </div>
+                <div class='rTableCell'>
+                    Medium ID <a href="index.html">suchen</a>
+                </div>
+            </div>
+        </div>
+        </div>
+        <div id="selFrmWarnFld" class="warning center"></div>
+    </form>
+
+    <form id="delFrm">
+        <div id="outFld" class="info" style="max-width: 600px">
+            <p>
+                Achieser / Glasmann: Theorie d. Lin. Operat. im Hilbertraum. 1954, 369 Seiten
+            </p>
+            <p>
+                Signatur: AC-006 <br>
+                Aufnahmedatum: 1999-07-29 <br>
+                Standort: Leihbib Reine Math <br>
+            </p>
+            <p>
+                Sachgebiete: <br>
+                4625 – HILBERT-RAEUME
+            </p>
+        </div>
+        <div class="center">
+            <input type="button" name="delFrmOKBtn" value="Löschen" class="btn">
+        </div>
+    </form>
+
+
+    <p>
+        Bitte gib die ID des Mediums ein, das Du löschen möchtest. Die ID ist der Zähler in
+        der Signatur, z.B. "400" bei dem Medium mit Signatur "CD-2 400". Falls Du
+        die ID nicht kennst, kannst Du das Medium <a href="index.html">suchen</a>.
+    </p>
+        
+
+</article>
+
+<script>
+    /*
+        FORMULARE
+    */
+
+    let aktion = "bearbeiten";
+    let selFrm = new cformular(document.getElementById("selFrm"), document.getElementById("selFrmWarnFld"), document.getElementById("outFld"), document.getElementById("selOKBtn"));
+    selFrm.newSbmt(
+        function () 
+        {
+            typeOfMedium = "Aufsatz";
+            switch (typeOfMedium) {
+                case "Zeitschrift" : xhr("formular-zeitschrift.html", selFrm.res); break;
+                case "Artikel" : xhr("formular-artikel.html", selFrm.res); break;
+                case "Aufsatz" : xhr("formular-aufsatz.html", selFrm.res); break;
+                case "Buchaufsatz" : xhr("formular-buchaufsatz.html", selFrm.res); break;
+                default : xhr("formular-buch.html", selFrm.res);    //Buch
+            }
+        })
+    selFrm.sbmtBtn.addEventListener("click", selFrm.sbmt);
+    selFrm.onenter = function (event) 
+    {
+        function checkKey (event) {
+            if (event.keyCode == 13 || event.which == 13) {
+                selFrm.sbmtBtn.click();
+            } else {return;}
+        }
+        selFrm.textFld[0].addEventListener("keypress", checkKey);
+    }
+    selFrm.onenter();
+
+    
+
+
+
+//TO DO: onfocusout -> die Sachgebietsnamen zu den eingegebenen sachgebietsnummern anzeigen
+     
+</script>
+
+</body>
+
+<footer>
+</footer>
+</html>
