@@ -94,8 +94,12 @@ nav .dropdown:hover .dropdown-content {
 input, select {
 		font-family: "console", veranda, sans-serif;
 }
-input:focus:valid {
+input[type="text"]:focus:valid {
   border-color: #D1C2C3;
+}
+input[type="button"]:focus:valid {
+  border-color: red;
+  border-radius: 6px;
 }
 
 .textareanowrap {
@@ -156,6 +160,9 @@ select { background-color: #f8f8ff; }
 	/*background-color: #454243;*/
 	background-color: #e6e6e6;
 	/*color: white; */
+}
+.btn:focus {
+	border: 0;
 }
 .plain {
 	background: transparent;
