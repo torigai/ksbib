@@ -15,10 +15,22 @@ function openDB (linkToDB) {
 }
 */
 
+/*
 function callbackSQL (err) 
 {
     if (err) { console.log(err.message); } 
     else { return true; } 
+}
+*/
+function rollback (err)
+{
+    if (err) {
+        document.getElementById('bFrmWarnFld').innerHTML = "ERROR: Der Datensatz konnte nicht gespeichert werden, \
+        bitte kontaktiere kirsten.a@posteo.de";
+        console.log(err.message);
+        return db.run(`ROLLBACK`);
+    }
+    return true;
 }
 
 
@@ -75,6 +87,32 @@ async function getMaxID (plus)
 /*
     SQL
 */
+
+let sql = [];
+sql[0] = `SELECT MAX(id) AS id FROM buch`;
+sql[1] = `SELECT id AS jahrid FROM jahr WHERE jahr = ?`;
+sql[2] = `INSERT OR IGNORE INTO ort (id, ort) VALUES (NULL, ?)`;
+sql[3] = `INSERT INTO objekt (id, medium, standort, preis, band, status) 
+    VALUES (?, ?, ?, ?, ?, ?)`;
+sql[4] = `INSERT INTO relobjtyp 
+    (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+sql[5] = `INSERT OR IGNORE INTO verlag (id, verlag) VALUES (NULL, ?)`;
+sql[6] = `INSERT OR IGNORE INTO stichwort (id, stichwort) VALUES (NULL, ?)`;
+sql[7] = `INSERT INTO relstichwort (objektid, stichwortid) VALUES (?, ?)`;
+sql[8] = `INSERT OR IGNORE INTO autor (id, name, vorname) VALUES (NULL, ?, ?)`;
+sql[9] = `INSERT INTO relautor (objektid, zeitschriftid, buchid, aufsatzid, autorid, autornr)
+    VALUES (?, ?, ?, ?, ?, ?)`;
+sql[10] = `INSERT OR IGNORE INTO titel (id, titel) VALUES (NULL, ?)`;
+sql[11] = `INSERT INTO reltitel (objektid, zeitschriftid, buchid, aufsatzid, titelid, titeltyp, titelnr) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)`;
+sql[12] = `SELECT id FROM stichwort WHERE stichwort = ?`;
+sql[13] = `SELECT id FROM autor WHERE name = ? AND vorname = ?`;
+sql[14] = `SELECT id FROM titel WHERE titel = ?`;
+sql[15] = `INSERT INTO relsachgebiet (objektid, sachgebietid) VALUES (?, ?)`;
+sql[16] = `SELECT id AS verlagid FROM verlag WHERE verlag = ?`;
+sql[17] = `SELECT id AS ortid FROM ort WHERE ort = ?`;
+sql[18] = `INSERT INTO buch (id, auflage, ort, verlag, isbn) VALUES (?, ?, ?, ?, ?)`;
 
 
 function sqlTitelID (titel, limit, offset) 
@@ -134,6 +172,8 @@ function sqlCollectionBelongingToArticle (idArr)
     WHERE objektid = '${id}' AND zeitschriftid = '${zeitschriftid}' AND buchid = '${buchid}' AND aufsatzid = '${aufsatzid}'
     ORDER BY titeltyp, titelnr, autortyp, autornr ASC`;
 }
+
+
 
 
 
