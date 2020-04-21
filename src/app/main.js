@@ -71,7 +71,7 @@ function cformular (varFormular, varWarnfield, varOutputfield, varSubmitBtn)
     DATEN OBJEKT
 */
 
-function buch (id, standort, autoren, autortyp, titel, jahr, ort, verlag, auflage, band, seiten, isbn, preis, sachgebietsnr, hinweis, stichworte)
+function buch (id, standort, autoren, autortyp, titel, jahr, ort, verlag, auflage, band, seiten, isbn, preis, sachgebietsnr, hinweis, stichworte, status)
 {
     this.id = id;
     this.standort = standort;
@@ -89,6 +89,7 @@ function buch (id, standort, autoren, autortyp, titel, jahr, ort, verlag, auflag
     this.sachgebietsnr = sachgebietsnr;
     this.hinweis = hinweis;
     this.stichworte = stichworte;
+    this.status = status;
 }
 function buchaufsatz (id, standort, autoren, titel, jahr, ort, verlag, auflage, band, seiten, isbn, preis, sachgebietsnr, hinweis, stichworte, hrg, buchtitel)
 {

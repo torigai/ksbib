@@ -345,7 +345,8 @@
                             elements[12],   //preis
                             elements[13],   //sgnr
                             elements[15],    //hinweis
-                            elements[16]    //stichworte
+                            elements[16],    //stichworte
+                            elements[17],   //status
                         );
                         function conformAndValidateBook(book) 
                         {
@@ -366,7 +367,8 @@
                                 preis: conformAndValidateCosts(book.preis, 12, false),
                                 sachgebietsnr: conformAndValidateSgnr(book.sachgebietsnr, 13, false),
                                 hinweis: conformAndValidateComment(book.hinweis, 15, false),
-                                stichworte: conformAndValidateKeywords(book.stichworte, 16, false)
+                                stichworte: conformAndValidateKeywords(book.stichworte, 16, false),
+                                status: book.status.value
                             };
                             return bookConformed;
                         }  
@@ -533,7 +535,7 @@
             if (data.ort !== null) {
                 db.run(sql[2], [data.ort], rollback);
             }
-            db.run(sql[3], [data.id, 1, data.standort, data.preis, data.band, 0], rollback);
+            db.run(sql[3], [data.id, 1, data.standort, data.preis, data.band, data.status], rollback);
             for (i=0; i<data.sachgebietsnr.length; i++) {
                 ((i) => 
                 {
@@ -576,3 +578,10 @@
             });
         })});
     }
+
+/*
+
+TODO
+    - css: textfield wrapping
+    - sachgebiete und sachgebietsnummern
+*/

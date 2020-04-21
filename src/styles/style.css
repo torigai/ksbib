@@ -107,6 +107,12 @@ input[type="button"]:focus:valid {
   white-space: pre;
   overflow-x: auto;
 }
+.textareawrap {
+  resize: none;
+  overflow: hidden;
+  text-overflow: clip;
+  overflow-wrap: break-word;	
+}
 .textareahidden {
   background-color: transparent;
   border: none;
