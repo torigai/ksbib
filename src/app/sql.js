@@ -25,12 +25,12 @@ function callbackSQL (err)
 function rollback (err)
 {
     if (err) {
-        document.getElementById('bFrmWarnFld').innerHTML = "ERROR: Der Datensatz konnte nicht gespeichert werden, \
-        bitte kontaktiere kirsten.a@posteo.de";
         console.log(err.message);
-        return db.run(`ROLLBACK`);
+        db.run(`ROLLBACK`);
+        return "ERROR: Der Datensatz konnte nicht gespeichert werden, \
+        bitte kontaktiere kirsten.a@posteo.de";
     }
-    return true;
+    return "";
 }
 
 
@@ -146,7 +146,7 @@ function sqlSearchForMediumData (idArr)
     let aufsatzid = idArr[3];
     return `SELECT objektid, zeitschriftid, buchid, aufsatzid, 
     jahr, preis, band, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, 
-    standortsgn, medium, band, zeitschrift, zeitschriftNr, hinweis 
+    standortsgn, medium, band, zeitschrift, zeitschriftNr, hinweis, status
     FROM media_view
     WHERE objektid = '${id}' AND zeitschriftid = '${zeitschriftid}' AND buchid = '${buchid}' AND aufsatzid = '${aufsatzid}'
     ORDER BY objektid, zeitschriftid, buchid, aufsatzid, titeltyp, titelnr, autortyp, autornr ASC`;

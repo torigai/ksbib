@@ -102,7 +102,7 @@
                 <div class='rTableCell'>
                     <label for="standort"> Standort </label><br>
                     <select id='standort'>
-                        <option value="" selected="selected" style="color: gray">Bitte wählen</option>
+                        <option value="" selected="selected" style="color: gray"></option>
                         <option value="0">n.A.</option>
                     </select>
                 </div>
@@ -120,6 +120,17 @@
                     <label for="hinweis"> Anmerkung </label><br>
                     <input type='text' id ='hinweis' size='15' class="txt">
                 </div>
+            </div>
+            <div class="rTableRow">
+                <div class='rTableCell'>
+                    <label for="status"> Status </label><br>
+                    <select id='status'>
+                        <option value="" selected="selected" style="color: gray"></option>
+                        <option value="0">vorhanden</option>
+                        <option value="1">abhanden</option>
+                        <option value="2">verliehen</option>
+                    </select>
+                </div>    
             </div>
         </div>
     </div>
@@ -192,6 +203,7 @@
                 qsearchFrm.warnFld.innerHTML = firstError[1];
                 return false;
             } else {
+                qsearchFrm.outFld.innerHTML = "";
                 ( async () =>
                 {
                     let limit = 100;
@@ -271,9 +283,9 @@
                 standort : elements[7],
                 sgn : elements[8],
                 stichwort : elements[9],
-                hinweis : elements[10]
+                hinweis : elements[10],
+                status : elements[11]
             }
-            console.log(data);
             function conformAndValidateDSearchFrm(data) 
             {
                 err = [];
@@ -288,9 +300,22 @@
                     standort: data.standort.value,
                     sgn: conformAndValidateSgn(data.sgn, 8, false),
                     stichwort: conformAndValidateKeywords (data.stichwort, 9, false),
-                    hinweis: conformAndValidateComment (data.hinweis, 10, false)
+                    hinweis: conformAndValidateComment (data.hinweis, 10, false),
+                    status: data.status.value
                 };
                 //Bedingung an die Zeitspanne:
+                function checkIfNull ()
+                {
+                    delete dataConformed.standort;
+                    delete dataConformed.status;
+                    return Object.values(dataConformed).every(o => o === null);
+                }
+                if (dataConformed.standort == "" && dataConformed.status == "") {
+                    let r = checkIfNull();
+                    if (r) {
+                        err[err.length] = "<null>" + "*" + "Bitte gib einen Suchbegriff ein";
+                    }
+                }
                 if ( dataConformed.t1 !== false && dataConformed.t2 !== false ) {
                     if ( (dataConformed.t1 !== null && dataConformed.t2 == null) || (dataConformed.t2 !== null && dataConformed.t1 == null) || (dataConformed.t2 - dataConformed.t1 < 0) ) {
                         err[err.length] = "timespan" + "*" + message[2];
@@ -303,13 +328,10 @@
                 }
                 return dataConformed;
             }
+        
             data = conformAndValidateDSearchFrm(data); // typeof data = object
-            console.log(data);
             if (err.length !== 0) {
                 let firstError = err[0].split("*");
-                console.log(err);
-                console.log(firstError);
-                console.log(elements[firstError]);
                 if (firstError[0] == "timespan") {
                     elements[3].style.color = warnColor;
                     elements[4].style.color = warnColor;
@@ -319,13 +341,18 @@
                     elements[4].style.color = warnColor;
                     elements[2].select();
                 } else {
-                    elements[firstError[0]].style.color = warnColor;
-                    elements[firstError[0]].select();
+                    if (firstError[0] == "<null>") {
+                        elements[0].select();
+                    } else {
+                        elements[firstError[0]].style.color = warnColor;
+                        elements[firstError[0]].select();
+                    }
                 }
                 dsearchFrm.warnFld.innerHTML = firstError[1];
                 return false;
             } else {
                 dsearchFrm.warnFld.innerHTML = "";
+                qsearchFrm.outFld.innerHTML = "";
                 (async () =>
                 {
                     let limit = 100;
@@ -442,7 +469,16 @@ async function resultArray (matchingIDs)
     {
         let i, titelUndVerweise, medientyp;
         let autortyp = (object.autortyp === 0) ? "" : " (Hrg.)";
-        let autoren = (object.autor !== null) ? object.autor + autortyp : "";
+        let autoren;
+        if (object.autor !== null) { 
+            // In media_view wird (Name = "Müller" Vorname = "") als "Müller, " gespeichert
+            // Das "," soll in diesem Fall nicht angezeigt werden
+            autoren = strtrim(object.autor).endsWith(",") ? 
+                strtrim(object.autor).slice(0, object.autor.indexOf(",")) + autortyp : 
+                object.autor + autortyp; 
+        } else {
+            autoren = "";
+        }
         let id = object.objektid;
         let standort = object.standortsgn;
         let jahr = object.jahr;
@@ -450,13 +486,15 @@ async function resultArray (matchingIDs)
         let band = (object.band !== null) ? ", Band " + object.band : ""; 
         let seiten = (object.seiten !== null) ? ", S. " + object.seiten : "";
         let nr = (object.zeitschriftNr !== null) ? " Nr. " + object.zeitschriftNr : "";
-        let hinweis = "<p><i>Hinweis</i>: " + object.hinweis + "</p>";
+        let hinweis = (object.hinweis !== null) ? "<p><i>Hinweis</i>: " + object.hinweis + "</p>" : "";
+        let status = object.status;
 
         if (object.buchid !== 0 && object.aufsatzid === 0) {    // Buch   
             titelUndVerweise = object.titel + band + preis + hinweis;
             medientyp = "Buch";
         }
         if (object.buchid !== 0 && object.aufsatzid !== 0) {     // Buchaufsatz
+            console.log("parents exist");
             i = parents.indexOf(parents.find( ({objektid}) => objektid === object.objektid ));   
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
             titelUndVerweise = object.titel + " <i> In: " + parents[i].autor + 
@@ -474,16 +512,29 @@ async function resultArray (matchingIDs)
             titelUndVerweise = object.titel + " <i>" + object.zeitschrift + nr + seiten + "</i>" + hinweis;
             medientyp = "Artikel";
         }
-        return [id, autoren, titelUndVerweise, jahr, medientyp, standort];
+        return [id, autoren, titelUndVerweise, jahr, medientyp, standort, status];
     }
-
+    
+    let promises = [];
     for (i = 0; i < matchingIDs.length; i++) { 
-        // Read out Data for matching IDs and collect parentsIDs for articles in books
-        result = await sqr(sqlSearchForMediumData(matchingIDs[i]), [], result);
-        if (result[i].buchid !== 0  && result[i].aufsatzid !== 0) {  
-            partentsIDs = parentsIDs.push([result[i].objektid, 0, result[i].buchid, 0]);
-        }
+        promises.push(new Promise (function(resolve, reject)
+        {
+            db.all(sqlSearchForMediumData(matchingIDs[i]), [], function (err, rows)
+            {
+                if (err) {reject(err)}
+                rows.forEach((row) => 
+                { 
+                    result.push(row);
+                    if (row.buchid !== 0  && row.aufsatzid !== 0) {  
+                       parentsIDs.push([row.objektid, 0, row.buchid, 0]);
+                    }
+                });
+                resolve(result);
+            });
+        }));
     }
+    await Promise.all(promises);
+
     if (parentsIDs.length !== 0) { // Data for books belonging to articles in books
         parentsIDs = parentsIDs.map((item) => item.toString()).filter(onlyUnique).map((item)=> {return item.split(",").map(Number)});
         for (i = 0; i < parentsIDs.length; i++) {
@@ -575,18 +626,27 @@ async function dsearchDBRequest (data, limit, offset)
     if (data.titel !== null) {
         constraint.push("(titel LIKE '%" + data.titel + "%')");
     }
-    if (data.standort !== "") {
-        let opts = document.getElementById('standort').options;
-        let ind = opts.selectedIndex;
-        constraint.push("(standortsgn = '" + opts[ind].innerHTML + "')");
+    if (data.standort !== undefined) {
+        if (data.standort !== "") {
+            constraint.push("(standortsgn = '" + 
+                document.getElementById('standort')
+                .options[document.getElementById('standort').options.selectedIndex]
+                .innerHTML + "')");
+        }
     }
-
+    if (data.status !== undefined) {
+        if (data.status !== "") {
+            constraint.push("(status = '" + 
+                document.getElementById('status')
+                .options[document.getElementById('status').options.selectedIndex]
+                .value + "')");
+        }
+    }
     constraint = constraint.join(" AND ");
     //console.log(sqlDetailedSearchID(tablesToJoin, constraint, limit, offset));
     matchingIDs = await sqr(sqlDetailedSearchID(tablesToJoin, constraint, limit, offset), [], matchingIDs);
-
-    matchingIDs = matchingIDs.map((item) => {return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid].toString(); }).filter(onlyUnique).map((item) => {return item.split(",").map(Number)});
-
+    matchingIDs = matchingIDs.map((obj) => {return [obj.objektid, obj.zeitschriftid, obj.buchid, obj.aufsatzid]
+        .toString();}).filter(onlyUnique).map((item) => {return item.split(",").map(Number)});
     if (matchingIDs.length === 0) { // No entry in DB found
         return false;
     } else {
@@ -664,7 +724,8 @@ function showResult (result, outputFld, warnFld, nameOfTbl, nameOfSelect, getRes
         {
             div[i] = document.createElement("div");
             container[i] = tblOutputFld.appendChild(div[i]);
-            await cOutputTbl(container[i], "nameOfTbl", ["ID", "Autoren", "Titel und Verweise", "Jahr", "Typ", "Standort"], result);
+            await cOutputTbl(container[i], "nameOfTbl", 
+                ["ID", "Autoren", "Titel und Verweise", "Jahr", "Typ", "Standort", "Status"], result);
             tbl = document.getElementsByName("nameOfTbl")[i];
             cSortFld (container[i], "nameOfSelect", [0, 1, 5], tbl);
             return container[i];
@@ -680,7 +741,7 @@ cStandorteOptions(document.getElementById("standort"));
 
 /*
 TODO
-    - Detailsuche nach Status ermöglichen
+    - Für die Verwaltung eine Detailsuche nach Status ermöglichen
 
 */
 </script>

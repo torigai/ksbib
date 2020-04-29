@@ -64,6 +64,7 @@
             for (i = 1; i < bFrm.noIn; i++) {
                 switch (i) {
                     case 1: bFrm.elements[1].item(bFrm.defaultSelectedIndex).selected = true; break;
+                    case 17: bFrm.elements[17].item(bFrm.defaultSelectedIndex).selected = true; break;
                     default: bFrm.elements[i].value = bFrm.elements[i].defaultValue;
                 }
             }
@@ -382,8 +383,8 @@
                     warnung.innerHTML = firstError[1];
                     return false;
                 } else {
-                    let conf = window.confirm("Neues Buch speichern?");
-                    if (conf) {
+                    let confirm = window.confirm("Neues Buch speichern?");
+                    if (confirm == true) {
                         async function callback () 
                         {
                             bFrm.reset();
@@ -487,11 +488,16 @@
         {
             for (i=0; i < data.autoren.length; i++) { 
                 ((i) => {
-                db.run(sql[8], [data.autoren[i].split(",").map(strtrim)[0], data.autoren[i].split(",").map(strtrim)[1]], 
+                if (data.autoren[i].includes(",")) {
+                    autorenArr = data.autoren[i].split(",").map(strtrim);
+                } else { //ein Name der Art "Müller" oder "Hans" wird immer als Nachname gespeichert
+                    autorenArr = [data.autoren.toString(), ""];
+                }
+                console.log(autorenArr);
+                db.run(sql[8], [autorenArr[0], autorenArr[1]], 
                     function (err)
                     {
                         if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;} 
-                        autorenArr = data.autoren[i].split(",").map(strtrim);
                         db.get(sql[13], [autorenArr[0], autorenArr[1]], 
                             function (err, row) 
                             {
@@ -533,43 +539,58 @@
             if (err) {console.log(err.message); return false;}
             let buchid = row.id + 1;
             if (data.ort !== null) {
+                console.log(1);
                 db.run(sql[2], [data.ort], rollback);
             }
+            console.log(2);
             db.run(sql[3], [data.id, 1, data.standort, data.preis, data.band, data.status], rollback);
             for (i=0; i<data.sachgebietsnr.length; i++) {
                 ((i) => 
                 {
+                    console.log(2 + "." + i);
+                    console.log(data.id + " : " + data.sachgebietsnr[i]);
                     db.run(sql[15], [data.id, data.sachgebietsnr[i]], rollback);
                 })(i);
             }
+            console.log(3);
             db.get(sql[1], [data.jahr], function (err, row)
             {
                 if (err) {console.log(err.message); db.run(`ROLLBACK`); return false}
                 let jahrid = (row === undefined) ? null : row.jahrid;
+                console.log(4);
                 db.run(sql[4], [data.id, 0, buchid, 0, data.autortyp, data.hinweis, data.seiten, jahrid], rollback);
                 if (data.stichworte !== null) {stichwortInsertions();}
                 if (data.autoren !== null) {autorInsertions(buchid);}
                 titelInsertions(buchid); // data.titel is never null
+                console.log(5);
                 db.run(sql[5], [data.verlag], function (err)
                 {
                     if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;}
+                    console.log(6);
                     db.get(sql[16], [data.verlag], function (err, row)
                     {
                         if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;}
                         let verlagid = (row === undefined) ? null : row.verlagid;
+                        console.log(7);
                         db.get(sql[17], [data.ort], function (err, row)
                         {
                             if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;}
+                            console.log(8);
                             let ortid = (row === undefined) ? null : row.ortid;   
                             db.run(sql[18], [buchid, data.auflage, ortid, verlagid, data.isbn], function (err) 
                             {
-                                rollback(err);
-                                if (bFrm.warnFld.innerHTML.includes("ERROR")) {
-                                    return false;
-                                } else {
-                                    db.run(`COMMIT`);
-                                    return callback();
-                                }
+                                (async () =>
+                                {
+                                    let warn = document.getElementById("bFrmWarnFld");
+                                    warn.innerHTML = await rollback(err);
+                                    if (warn.innerHTML.includes("ERROR")) {
+                                        console.log("error");
+                                        return false;
+                                    } else {
+                                        db.run(`COMMIT`);
+                                        return callback();
+                                    }
+                                })();
                             });
                         });
                     });

@@ -2,11 +2,11 @@
     AUSGABE TABELLE
 */
 
-function cOutputTbl (container, tblName, headerNamesArr, entryArr)
+function cOutputTbl (container, tblName, headerNamesArr, entriesArr)
 {
     let i;
     let j = 1;
-    let data = entryArr;    // ist ein Array von Arrays: [[1,2,3],[4,5,6], ...]
+    let data = entriesArr;    // ist ein Array von Arrays: [[1,2,3],[4,5,6], ...]
     let noCols = headerNamesArr.length;
     let noRows = data.length; 
     let th = [], td = [], tr = [];
@@ -43,10 +43,10 @@ function sortTable(val, tbl)
         rows = table.rows;
         for (i = 1; i < (rows.length - 1); i++) {
             shouldSwitch = false;
-            m = rows[i].cells[val];
-            n = rows[i + 1].cells[val];
-            if (m.innerHTML.toLowerCase() > n.innerHTML.toLowerCase()) {
-                shouldSwitch= true;
+            m = Number(rows[i].cells[val].innerHTML) || rows[i].cells[val].innerHTML.toLowerCase();
+            n = Number(rows[i + 1].cells[val].innerHTML) || rows[i + 1].cells[val].innerHTML.toLowerCase();
+            if (m > n) {
+                shouldSwitch = true;
                 break;
             }
         }

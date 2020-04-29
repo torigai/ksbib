@@ -119,7 +119,7 @@ sqr[95] = "insert into reltitel (objektid, zeitschriftid, buchid, aufsatzid, tit
 sqr[96] = `CREATE VIEW media_view AS 
   SELECT objekt.id AS objektid, zeitschriftid, buchid, aufsatzid, 
     jahr, preis, band, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, 
-    standortsgn, medium.medium, band, kuerzel AS zeitschrift, nr AS zeitschriftNr, sgn, hinweis 
+    standortsgn, medium.medium, band, kuerzel AS zeitschrift, nr AS zeitschriftNr, sgn, hinweis, status
     FROM objekt 
     INNER JOIN medium ON medium.id = objekt.medium 
     INNER JOIN standort ON standort.id = objekt.standort 
