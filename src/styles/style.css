@@ -58,7 +58,6 @@ nav ul a {
 	font-weight: lighter;
 }
 nav ul a:hover {color: black;}
-nav .active {color: black;}
 nav ul.dropdown {
   display: inline-block;
 }
@@ -81,11 +80,32 @@ nav .dropdown-content a {
 }
 nav .dropdown-content a:hover {
   /*background-color: #454243;*/
+ background-color: #e6e6e6;
+}
+nav .dropdown-content a:focus {
+  /*background-color: #454243;*/
   background-color: #e6e6e6;
 }
+nav .active ~ .dropdown-content {
+	display: block;
+}
+nav a:focus ~ .dropdown-content {
+  display: block;
+}
+nav .dropdown a:focus {
+  /*background-color: #e6e6e6;	*/
+  color: black;
+  outline: none;
+}
+/*
+nav .dropdown a:focus ~ .dropdown-content {
+	display: block;
+}
+*/
 nav .dropdown:hover .dropdown-content {
   display: block;
 }
+
 
 /* END Navigationsleiste */
 

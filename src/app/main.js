@@ -159,7 +159,6 @@ function aufsatz (id, standort, autoren, titel, jahr, ort, seiten, sachgebietsnr
     this.stichworte = stichworte;
 }
 
-
 /*
     FOOTER
 */

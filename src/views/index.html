@@ -21,19 +21,19 @@
 
 <nav>
     <ul class="dropdown">
-        <li><a href="index.html">Medien</a></li>
+        <a href="index.html" id="navMedien">Medien</a>
         <div class="dropdown-content">
-            <li><a href="sachgebietssuche.html">Sachgebietssuche</a></li>
-            <li><a href="neuaufnahme.html">Hinzufügen</a></li>
-            <li><a href="bearbeiten.html">Bearbeiten</a></li>
-            <li><a href="entfernen.html">Entfernen</a></li>
+            <a href="sachgebietssuche.html">Sachgebietssuche</a>
+            <a href="neuaufnahme.html">Hinzufügen</a>
+            <a href="bearbeiten.html">Bearbeiten</a>
+            <a href="entfernen.html">Entfernen</a>
         </div>
     </ul>
     <ul class="dropdown">
-        <li><a href="sonstiges.html">Sonstiges</a></li>
+        <a href="sonstiges.html" id="navSonstiges">Sonstiges</a>
         <div class="dropdown-content">
-            <li><a href="standorte.html">Standorte</a></li>
-            <li><a href="sachgebiete.html">Sachgebiete</a></li>
+            <a href="standorte.html">Standorte</a>
+            <a href="sachgebiete.html">Sachgebiete</a>
         </div>
     </ul>
 </nav>
@@ -156,8 +156,8 @@
         <p>
             <b>Detailsuche: </b><br>
             Die Detailsuche bietet Möglichkeiten, die Suche einzuschränken. Zwischen
-            Detail- und Schnellsuche kannst Du auch  mit der Tastenkombination "Ctrl/Strg + Enter"
-            wechseln.
+            Detail- und Schnellsuche kannst Du auch  mit der Tastenkombination "Ctrl/Strg + d"
+            bzw. "Ctrl/Strg + s" wechseln.
         </p>
 
         <p>
@@ -177,7 +177,9 @@
 
 </article>
 
+<script src="../app/shortkeys.js"></script>
 <script>
+
 /*
     let gui = require('nw.gui');
     gui.Window.get().on('reload', function() {
@@ -221,7 +223,7 @@
     {
         if (event.keyCode === 13 || event.which === 13) {
                 qsearchFrm.sbmtBtn.click();
-            } else { return; }
+            } else { return false; }
     }
     qsearchFrm.elements[0].addEventListener("keypress", qsearchFrm.onenter);
     qsearchFrm.oninput = function () {
@@ -240,12 +242,12 @@
         soll der "Detailsuche" Button angeklickt werden
         */
 
-        if (event.ctrlKey === true && event.keyCode === 13 || event.ctrlKey === true && event.which == 13) {
+        if (event.ctrlKey === true && event.keyCode === 68 || event.ctrlKey === true && event.which === 68) {
             event.preventDefault();
             qsearchFrm.btn[1].click();
         }
     }
-    qsearchFrm.elements[0].addEventListener("keydown", qsearchFrm.openDetailsuche, false);
+    //qsearchFrm.elements[0].addEventListener("keydown", qsearchFrm.openDetailsuche, false);
     qsearchFrm.go2dsearchBtn = function () {
         qsearchFrm.formular.style.display = "none";
         qsearchFrm.reset();
@@ -263,6 +265,7 @@
         }
     }
     qsearchFrm.smallScreen();
+
 
     // Detailsuche Formular dsearchFrm 
 
@@ -386,7 +389,7 @@
         soll der "Schnellsuche" Button angeklickt werden
         */
 
-        if (event.ctrlKey === true && event.keyCode === 13 || event.ctrlKey === true && event.which == 13) {
+        if (event.ctrlKey === true && event.keyCode === 83 || event.ctrlKey === true && event.which == 83) {
             event.preventDefault();
             dsearchFrm.btn[1].click();
         }
@@ -421,8 +424,15 @@
     dsearchFrm.btn[1].addEventListener("click", dsearchFrm.go2qsearchBtn);
     for (var i = 0; i < dsearchFrm.textFld.length; i++) {
         dsearchFrm.textFld[i].addEventListener("input", dsearchFrm.oninput); 
-        dsearchFrm.elements[0].addEventListener("keydown", dsearchFrm.openSchnellsuche);
+        //dsearchFrm.elements[i].addEventListener("keydown", dsearchFrm.openSchnellsuche);
     }
+
+/*
+    General Event listeners
+*/
+
+document.getElementsByTagName("body")[0].addEventListener("keydown", qsearchFrm.openDetailsuche, false);
+document.getElementsByTagName("body")[0].addEventListener("keydown", dsearchFrm.openSchnellsuche, false);
 
 /* 
     DATABASE REQUEST
@@ -487,14 +497,20 @@ async function resultArray (matchingIDs)
         let seiten = (object.seiten !== null) ? ", S. " + object.seiten : "";
         let nr = (object.zeitschriftNr !== null) ? " Nr. " + object.zeitschriftNr : "";
         let hinweis = (object.hinweis !== null) ? "<p><i>Hinweis</i>: " + object.hinweis + "</p>" : "";
-        let status = object.status;
+        let status;
+        if (object.status === 0) {
+            status = "vorhanden";
+        } else if (object.status === 1) {
+            status = "abhanden";
+        } else {
+            status = "verliehen";
+        }
 
         if (object.buchid !== 0 && object.aufsatzid === 0) {    // Buch   
             titelUndVerweise = object.titel + band + preis + hinweis;
             medientyp = "Buch";
         }
         if (object.buchid !== 0 && object.aufsatzid !== 0) {     // Buchaufsatz
-            console.log("parents exist");
             i = parents.indexOf(parents.find( ({objektid}) => objektid === object.objektid ));   
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
             titelUndVerweise = object.titel + " <i> In: " + parents[i].autor + 
@@ -514,7 +530,7 @@ async function resultArray (matchingIDs)
         }
         return [id, autoren, titelUndVerweise, jahr, medientyp, standort, status];
     }
-    
+
     let promises = [];
     for (i = 0; i < matchingIDs.length; i++) { 
         promises.push(new Promise (function(resolve, reject)
@@ -738,11 +754,10 @@ function showResult (result, outputFld, warnFld, nameOfTbl, nameOfSelect, getRes
 
 cStandorteOptions(document.getElementById("standort"));
 
-
 /*
-TODO
-    - Für die Verwaltung eine Detailsuche nach Status ermöglichen
-
+    TODO
+    - Tastaturkürzel (erläuterung dafür implementieren)
+    - Navigator in allen anderen views anpassen
 */
 </script>
 

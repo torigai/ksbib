@@ -248,6 +248,7 @@
     })
     sgFrm.onenter = function (event)
     {
+        //Falls im Eingabefeld Enter gedrückt wird, soll gespeichert werden
         if (event.keyCode == 13 || event.which == 13) {
                 sgFrm.sbmtBtn.click();
             } else { return; }
