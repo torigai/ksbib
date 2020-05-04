@@ -97,11 +97,6 @@ nav .dropdown a:focus {
   color: black;
   outline: none;
 }
-/*
-nav .dropdown a:focus ~ .dropdown-content {
-	display: block;
-}
-*/
 nav .dropdown:hover .dropdown-content {
   display: block;
 }

@@ -2,6 +2,25 @@
 let linkAltM = document.getElementById("navMedien");
 let linkAltS = document.getElementById("navSonstiges");
 
+function blurMenu ()
+{
+	console.log("blur");
+	let arrDropdownMedien = Array.from(linkAltM.nextElementSibling.children);
+	arrDropdownMedien.push(linkAltM);
+
+	let arrDropdownSonstiges = Array.from(linkAltS.nextElementSibling.children);
+	arrDropdownSonstiges.push(linkAltS);
+
+	setTimeout( () => 
+	{
+		if (linkAltM.className === "active" && arrDropdownMedien.indexOf(document.activeElement) === -1) {
+			linkAltM.setAttribute("class", "");
+		}
+		if (linkAltS.className === "active" && arrDropdownSonstiges.indexOf(document.activeElement) === -1) {
+			linkAltS.setAttribute("class", "");
+		}
+	}, 0);
+}
 
 function altM (event)
 {
@@ -27,52 +46,35 @@ function altS (event)
 
 function down (event)
 {
-	let i;
-	let link = this.firstElementChild;
 	if (event.keyCode === 40 || event.which === 40) {
 		event.preventDefault();
+		let link = this.firstElementChild;
 		link.setAttribute("class", "active");
-		let dropdown = link.nextElementSibling;
-		console.log(dropdown);
-		let l = dropdown.children.length;
+		let arrDropdown = Array.from(link.nextElementSibling.children);
+		let l = arrDropdown.length;
+		let i = arrDropdown.indexOf(document.activeElement);
 		if (link === document.activeElement) {
-			dropdown.children[0].focus();
+			arrDropdown[0].focus();
 		} else {
-			for(i = 0; i < l; i++) {
-				if (dropdown.children[i] === document.activeElement) {
-					if (i === l-1) {
-						link.focus();
-					} else {
-						dropdown.children[i + 1].focus();
-					}
-					break;
-				}	
-			}
+			if (i === l-1) {link.focus();}
+			else {arrDropdown[i+1].focus();}
 		}
 	}
 }
 function up (event)
 {
-	let i;
-	let link = this.firstElementChild;
 	if (event.keyCode === 38 || event.which === 38) {
 		event.preventDefault();
+		let link = this.firstElementChild;
 		link.setAttribute("class", "active");
-		let dropdown = link.nextElementSibling;
-		let l = dropdown.children.length;
+		let arrDropdown = Array.from(link.nextElementSibling.children);
+		let l = arrDropdown.length;
+		let i = arrDropdown.indexOf(document.activeElement);
 		if (link == document.activeElement) {
-			dropdown.children[l - 1].focus();
+			arrDropdown[l-1].focus();
 		} else {
-			for(i = 0; i < l; i++) {
-				if (dropdown.children[i] == document.activeElement) {
-					if (i === 0) {
-						link.focus();
-					} else {
-						dropdown.children[i-1].focus();
-					}
-					break;
-				}	
-			}
+			if (i === 0) {link.focus();}
+			else {arrDropdown[i-1].focus();}
 		}	
 	}
 }
@@ -93,12 +95,32 @@ function rightAndLeft (event)
 	}
 }
 
+function checkboxEnter (event)
+{
+	console.log("enter");
+	if (event.keyCode === 13 || event.which === 13) {
+		event.preventDefault();
+		console.log(this);
+		this.click();
+	}
+}
+
 document.getElementsByTagName("ul")[0].addEventListener("keydown", down, false);
 document.getElementsByTagName("ul")[0].addEventListener("keydown", up, false);
 document.getElementsByTagName("ul")[0].addEventListener("keydown", rightAndLeft, false);
+document.getElementsByTagName("ul")[0].addEventListener("focusout", blurMenu, false);
 document.getElementsByTagName("ul")[1].addEventListener("keydown", down, false);
 document.getElementsByTagName("ul")[1].addEventListener("keydown", up, false);
 document.getElementsByTagName("ul")[1].addEventListener("keydown", rightAndLeft, false);
+document.getElementsByTagName("ul")[1].addEventListener("focusout", blurMenu, false);
 
 document.getElementsByTagName("body")[0].addEventListener("keydown", altM, false);
 document.getElementsByTagName("body")[0].addEventListener("keydown", altS, false);
+
+function findCheckboxes ()
+{
+	let arr = Array.from(document.querySelectorAll("input[type='checkbox']"));
+	arr.forEach((checkbox) => checkbox.addEventListener("keydown", checkboxEnter, false));	
+	return arr;
+}
+findCheckboxes();
