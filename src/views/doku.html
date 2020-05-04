@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ksbib | Dokumentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
+    <!--<script src="../db/db_setup.js"></script>-->
+    <script src="../app/main.js"></script>
+    <script src="../app/table.js"></script>
+    <script src="../app/validation.js"></script>
+    <script src="../app/sql.js"></script>
+</head>         
+
+
+<body onunload="qsearchFrm.reset(); dsearchFrm.reset(); db.close();">
+
+<header>
+    <h1 id="headerTitel">Dokumentation</h1>
+</header>
+
+<nav>
+    <ul class="dropdown">
+        <a href="index.html" id="navMedien">Medien</a>
+        <div class="dropdown-content">
+            <a href="sachgebietssuche.html">Sachgebietssuche</a>
+            <a href="neuaufnahme.html">Hinzufügen</a>
+            <a href="bearbeiten.html">Bearbeiten</a>
+            <a href="entfernen.html">Entfernen</a>
+        </div>
+    </ul>
+    <ul class="dropdown">
+        <a href="sonstiges.html" id="navSonstiges">Sonstiges</a>
+        <div class="dropdown-content">
+            <a href="standorte.html">Standorte</a>
+            <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="doku.html">Dokumentation</a>
+        </div>
+    </ul>
+</nav>
+
+<article>
+    
+    <h1> Tastaturkürzel </h1>
+
+    <table>
+        <tr>
+            <th>Tastenkombination</th>
+            <th>Aktion</th>    
+        </tr>
+        <tr>
+            <td> Alt + m </td>
+            <td> Öffnet das Menu "Medien" </td>
+        </tr>
+        <tr>
+            <td> Alt + s </td>
+            <td> Öffnet das Menu "Sonstiges" </td>
+        </tr>
+        <tr>
+            <td> Pfeiltasten </td>
+            <td>
+                <ul>
+                    <li>Innerhalb des Menus: Auswahl der Seiten</li>
+                    <li>Auf der Seite "Hinzufügen" im Formular "Auswahl der Medienarten": Auswahl der Medienarten</li>
+                </ul> 
+            </td>
+        </tr>
+        <tr>
+            <td> Shift + &#x2191;</td>
+            <td> Auf der Seite "Hinzufügen": Wechsel zum Formular "Auswahl der Medienarten" </td>
+        </tr>
+        <tr>
+            <td> Shift + &#x2193;</td>
+            <td> Auf der Seite "Hinzufügen": Wechsel zurück zum Eingabeformular </td>
+        </tr>
+        <tr>
+            <td> Strg + d </td>
+            <td> Auf der Seite "Medien": Wechsel zum Formular "Detailsuche" </td>
+        </tr>
+        <tr>
+            <td> Strg + s </td>
+            <td> Auf der Seite "Medien": Wechsel zum Formular "Schnellsuche" </td>
+        </tr>
+        <tr>
+            <td>
+                Enter
+            </td>
+            <td>
+                <ul>
+                    <li> In Checkboxes: click </li>
+                    <li> In Eingabefeldern: "OK"</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td> + </td>
+            <td> In Standorte: fügt ein leeres Standortfeld hinzu </td>
+        </tr>
+    </table>
+
+</article>
+<script src="../app/shortkeys.js"></script>
+</body>
+</html>
