@@ -52,6 +52,54 @@
             }
             if (selFrm.warnFld !== undefined) { selFrm.warnFld.innerHTML = ""; }
         }
+        bFrm.onfocusoutSachgebiet = async function ()
+        {
+            let sgnrTextarea = document.getElementsByName("sachgebietsnr")[0];
+            let sgTextarea = document.getElementsByName('sachgebiete')[0];
+            sgnrTextarea.style.color = defaultColor;
+            let sgArr = [];
+            function testSgnr (sgnr)
+            {
+                let x = strtrim(sgnr);
+                if (sachgebietsnrPattern.test(x) == false) {
+                    bFrm.warnFld.innerHTML = message[2];
+                    sgnrTextarea.style.color = warnColor;
+                    sgnrTextarea.focus();
+                    return false;
+                }
+                if (x > 29999) {
+                    bFrm.warnFld.innerHTML = message[1]("29'999");
+                    sgnrTextarea.style.color = warnColor;
+                    sgnrTextarea.focus();
+                    return false;
+                }
+                return x;
+            }
+
+            let sgnrArr = document.getElementsByName("sachgebietsnr")[0]
+                .value.split("\n").filter(stringNotEmpty).filter(onlyUnique).map(testSgnr);
+            sgnrArr.sort();
+            
+            let promises = [];
+            let i;
+            for (i=0; i<sgnrArr.length; i++) {
+                ((i) => {
+                    promises.push(new Promise ((resolve, reject)=>
+                    {
+                        db.get(`SELECT sachgebiet FROM sachgebiet WHERE id = ?`, [sgnrArr[i]], (err, row) =>
+                        {
+                            if (err) {reject(err);}
+                            let osg = ( sgnrArr[i] === 0 || Number.isInteger(sgnrArr[i]/100) ) ? "OSG - " : "USG - ";
+                            resolve(sgArr[i] = osg + row.sachgebiet);
+                        }); 
+                    }));
+                })(i);
+            }
+            await Promise.all(promises).catch(console.error);
+            
+            sgnrTextarea.value = sgnrArr.join("\n");
+            sgTextarea.innerHTML = sgArr.join("\n");
+        }
         bFrm.newReset ( function () 
         {
             /*
@@ -170,80 +218,43 @@
 
                     case "Zeitschrift" :
                         let z;
-                        zeitschriftkuerzelExistiert = (elements.length == 16) ? true : false;
-
-                        if (zeitschriftkuerzelExistiert) {
-                            z = new zeitschrift (
-                                elements[0],     //objekt.ID
-                                elements[1],     //standort.ID
-                                elements[2],    //autoren
-                                elements[3],    //titel der zeitschrift
-                                elements[4],    //journal
-                                elements[6],    //zeitschriftkuerzel
-                                elements[5],     //band
-                                elements[7],     //nr
-                                elements[8],     //jahr
-                                elements[9],    //preis
-                                elements[10],   //sgnr
-                                elements[12],    //hinweis
-                                elements[13]    //stichworte
-                            );
-                        } else {
-                            z = new zeitschrift (
-                                elements[0],     //objekt.ID
-                                elements[1],     //standort.ID
-                                elements[2],    //autoren
-                                elements[3],    //titel der zeitschrift
-                                elements[4],    //journal
-                                "NULL",         //zeitschriftkuerzel
-                                elements[5],     //band
-                                elements[6],     //nr
-                                elements[7],     //jahr
-                                elements[8],    //preis
-                                elements[9],   //sgnr
-                                elements[11],    //hinweis
-                                elements[12]    //stichworte
-                            );
-                        }
+                        z = new zeitschrift (
+                            elements[0],     //objekt.ID
+                            elements[1],     //standort.ID
+                            elements[2],    //autoren
+                            elements[3],    //titel der zeitschrift
+                            elements[4],    //journal
+                            elements[7],    //zeitschriftkuerzel
+                            elements[6],     //band
+                            elements[8],     //nr
+                            elements[9],     //jahr
+                            elements[10],    //preis
+                            elements[11],   //sgnr
+                            elements[13],    //hinweis
+                            elements[14],    //stichworte
+                            elements[15]    //status
+                        );
                         
                         function conformAndValidateJournal(journal) 
                         {
                             err = [];
                             let journalConformed;
-
-                            if(zeitschriftkuerzelExistiert) {
-                                journalConformed = {
-                                    id: journal.id,
-                                    standort: journal.standort,
-                                    autoren: conformAndValidateAuthorArr(journal.autoren, 2, false),
-                                    titel: conformAndValidateTitle(journal.titel, 3, true), 
-                                    journal: conformAndValidateZeitschrift(journal.journal, 4, true),
-                                    zeitschriftkuerzel: conformAndValidateZeitschrift(journal.zeitschriftkuerzel, 6, true),
-                                    band: conformAndValidateNumber(journal.band, 5, false),
-                                    nr: conformAndValidateNumber(journal.nr, 7, false),
-                                    jahr: conformAndValidateYear(journal.jahr, 8, false),
-                                    preis: conformAndValidateCosts(journal.preis, 9, false),
-                                    sachgebietsnr: conformAndValidateSgnr(journal.sachgebietsnr, 10, false),
-                                    hinweis: conformAndValidateComment(journal.hinweis, 12, false),
-                                    stichworte: conformAndValidateKeywords(journal.stichworte, 13, false)
-                                };
-                            } else {
-                                journalConformed = {
-                                    id: journal.id,
-                                    standort: journal.standort,
-                                    autoren: conformAndValidateAuthorArr(journal.autoren, 2, false),
-                                    titel: conformAndValidateTitle(journal.titel, 3, true), 
-                                    journal: conformAndValidateZeitschrift(journal.journal, 4, true),
-                                    zeitschriftkuerzel: "NULL",
-                                    band: conformAndValidateNumber(journal.band, 5, false),
-                                    nr: conformAndValidateNumber(journal.nr, 7, false),
-                                    jahr: conformAndValidateYear(journal.jahr, 8, false),
-                                    preis: conformAndValidateCosts(journal.preis, 9, false),
-                                    sachgebietsnr: conformAndValidateSgnr(journal.sachgebietsnr, 10, false),
-                                    hinweis: conformAndValidateComment(journal.hinweis, 12, false),
-                                    stichworte: conformAndValidateKeywords(journal.stichworte, 13, false)
-                                };
-                            }
+                            journalConformed = {
+                                id: journal.id,
+                                standort: journal.standort.options[journal.standort.selectedIndex].value,
+                                autoren: conformAndValidateAuthorArr(journal.autoren, 2, false),
+                                titel: conformAndValidateTitle(journal.titel, 3, true), 
+                                journal: conformAndValidateZeitschrift(journal.journal, 4, true),
+                                zeitschriftkuerzel: conformAndValidateZeitschrift(journal.zeitschriftkuerzel, 7, true),
+                                band: conformAndValidateNumber(journal.band, 6, false),
+                                nr: conformAndValidateNumber(journal.nr, 8, false),
+                                jahr: conformAndValidateYear(journal.jahr, 9, false),
+                                preis: conformAndValidateCosts(journal.preis, 10, false),
+                                sachgebietsnr: conformAndValidateSgnr(journal.sachgebietsnr, 11, false),
+                                hinweis: conformAndValidateComment(journal.hinweis, 13, false),
+                                stichworte: conformAndValidateKeywords(journal.stichworte, 14, false),
+                                status: journal.status.value
+                            };
                             return journalConformed;
                         }
                         data = conformAndValidateJournal(z);
@@ -374,7 +385,6 @@
                             return bookConformed;
                         }  
                         data = conformAndValidateBook(b);
-                        console.log(data);
                 }
                 if (err.length !== 0) {
                     let firstError = err[0].split("*");
@@ -383,15 +393,19 @@
                     warnung.innerHTML = firstError[1];
                     return false;
                 } else {
-                    let confirm = window.confirm("Neues Buch speichern?");
+                    let confirm = window.confirm("Neues Medium speichern?");
                     if (confirm == true) {
                         async function callback () 
                         {
+                            console.log("callback");
                             bFrm.reset();
                             let x = await getMaxID(1);
                             return bFrm.elements[0].value = x;
                         };
-                        sqlNewBook(data, callback);
+                        switch (typeOfMedium) {
+                            case "Buch": sqlNewBook(data, callback); break;
+                            case "Zeitschrift": sqlNewZeitschrift(data, callback); break;
+                        }
                         return true;
                     } else {
                         return false;
@@ -406,52 +420,31 @@
         for (i = 1; i < bFrm.noIn; i++) {
             bFrm.elements[i].addEventListener("input", bFrm.oninput); 
         }
+        document.getElementsByName('sachgebietsnr')[0].addEventListener("focusout", bFrm.onfocusoutSachgebiet);
     }
 
-    /*
-        In formular-zeitschrift.html und formular-artikel.html:
-
-        Automatische Erkennung ob ein Eintrag für "Zeitschrift" existiert. Falls nein, soll auch ein
-        Zeitschriftkürzel hinzugefügt werden können. Entsprechend wird ein Inputfeld (bei focusout) 
-        angehängt
-    */
-    
-    function appendKuerzelInput (tblIndex, rowIndex, maxNoElements)
+    function insertZeitschriftkuerzelIfExists (journal) 
     {
-        let zeitschriftkuerzelExistiert = (bFrm.elements.length == maxNoElelents) ? true : false;
-     
-        function addKuerzelFld () {
-            if (zeitschriftkuerzelExistiert) { return false; }
+        let kuerzel = document.getElementsByName("zeitschriftkuerzel")[0];
 
-            function checkKey (event) {
-               if (event.keyCode == 13 || event.which == 13) {
-                    document.getElementById("bOKBtn").click();
-                    return true;
-                } else { return false; }
-            }
-
-            let parent = document.getElementsByClassName("rTableBody")[tblIndex];
-            let row = document.createElement("div");
-            row.setAttribute("class", "rTableRow");
-            let cell = document.createElement("div");
-            cell.setAttribute("class", "rTableCell left");
-            let label = document.createElement("label");
-            label.innerHTML = "Zeitschriftkürzel";
-            let br = document.createElement("br");
-            let input = document.createElement("input");
-            input.addEventListener("input", bFrm.oninput); 
-            input.addEventListener("keypress", checkKey);
-            input.setAttribute("type", "text");
-            input.setAttribute("class", "txt");
-            input.setAttribute("name", "Zeitschriftkurzel");
-            input.setAttribute("size", "25");
-            input.setAttribute("value", "");
-            cell.appendChild(label);
-            cell.appendChild(br);
-            cell.appendChild(input);
-            row.appendChild(cell);
-            parent.insertBefore(row, parent.children[rowIndex]);
-            return true;
+        if (journal !== "") {
+            db.get(`SELECT kuerzel FROM zeitschrift WHERE journal = '${journal}'`, [], (err, row) =>
+            {
+                if (err) {console.log(err.message);}
+                if (row !== undefined) {
+                    kuerzel.value = row.kuerzel;
+                    kuerzel.readOnly = true;
+                    kuerzel.tabIndex = -1;
+                } else {
+                    kuerzel.value = "";
+                    kuerzel.readOnly = false;
+                    kuerzel.tabIndex = "";
+                }
+            });
+        } else {
+            kuerzel.value = "";
+            kuerzel.readOnly = false;
+            kuerzel.tabIndex = "";
         }
     }
 
@@ -493,7 +486,6 @@
                 } else { //ein Name der Art "Müller" oder "Hans" wird immer als Nachname gespeichert
                     autorenArr = [data.autoren.toString(), ""];
                 }
-                console.log(autorenArr);
                 db.run(sql[8], [autorenArr[0], autorenArr[1]], 
                     function (err)
                     {
@@ -539,43 +531,33 @@
             if (err) {console.log(err.message); return false;}
             let buchid = row.id + 1;
             if (data.ort !== null) {
-                console.log(1);
                 db.run(sql[2], [data.ort], rollback);
             }
-            console.log(2);
             db.run(sql[3], [data.id, 1, data.standort, data.preis, data.band, data.status], rollback);
             for (i=0; i<data.sachgebietsnr.length; i++) {
                 ((i) => 
                 {
-                    console.log(2 + "." + i);
-                    console.log(data.id + " : " + data.sachgebietsnr[i]);
                     db.run(sql[15], [data.id, data.sachgebietsnr[i]], rollback);
                 })(i);
             }
-            console.log(3);
             db.get(sql[1], [data.jahr], function (err, row)
             {
                 if (err) {console.log(err.message); db.run(`ROLLBACK`); return false}
                 let jahrid = (row === undefined) ? null : row.jahrid;
-                console.log(4);
                 db.run(sql[4], [data.id, 0, buchid, 0, data.autortyp, data.hinweis, data.seiten, jahrid], rollback);
                 if (data.stichworte !== null) {stichwortInsertions();}
                 if (data.autoren !== null) {autorInsertions(buchid);}
                 titelInsertions(buchid); // data.titel is never null
-                console.log(5);
                 db.run(sql[5], [data.verlag], function (err)
                 {
                     if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;}
-                    console.log(6);
                     db.get(sql[16], [data.verlag], function (err, row)
                     {
                         if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;}
                         let verlagid = (row === undefined) ? null : row.verlagid;
-                        console.log(7);
                         db.get(sql[17], [data.ort], function (err, row)
                         {
                             if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;}
-                            console.log(8);
                             let ortid = (row === undefined) ? null : row.ortid;   
                             db.run(sql[18], [buchid, data.auflage, ortid, verlagid, data.isbn], function (err) 
                             {
@@ -600,9 +582,131 @@
         })});
     }
 
+function sqlNewZeitschrift (data, callback)
+    {
+        let i, autorenArr = []; 
+
+        function stichwortInsertions ()
+        {
+            for (i=0; i < data.stichworte.length; i++) { 
+                ((i) => { 
+                db.run(sql[6], [data.stichworte[i]], 
+                    function (err)
+                    {
+                        if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;} 
+                        db.get(sql[12], [data.stichworte[i]], 
+                            function (err, row) 
+                            {
+                                if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;}
+                                db.run(sql[7], [data.id, row.id], rollback);
+                                return true;
+                            }
+                        );
+                    }
+                );
+                })(i);
+            }   
+        }
+        function autorInsertions (zid)
+        {
+            for (i=0; i < data.autoren.length; i++) { 
+                ((i) => {
+                if (data.autoren[i].includes(",")) {
+                    autorenArr = data.autoren[i].split(",").map(strtrim);
+                } else { //ein Name der Art "Müller" oder "Hans" wird immer als Nachname gespeichert
+                    autorenArr = [data.autoren.toString(), ""];
+                }
+                db.run(sql[8], [autorenArr[0], autorenArr[1]], 
+                    function (err)
+                    {
+                        if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;} 
+                        db.get(sql[13], [autorenArr[0], autorenArr[1]], 
+                            function (err, row) 
+                            {
+                                if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;}
+                                let autorid = row.id;
+                                db.run(sql[9], [data.id, zid, 0, 0, autorid, i+1], rollback);
+                                return true;
+                            }
+                        );
+                    }
+                );
+                })(i);
+            }   
+        }
+        function titelInsertions (zid)
+        {
+            for (i=0; i < data.titel.length; i++) { 
+            ((i) => {
+                db.run(sql[10], [data.titel[i]], function (err)
+                {
+                    if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;} 
+                    db.get(sql[14], [data.titel[i]], 
+                        function (err, row) 
+                        {
+                            if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;}
+                            let titelid = row.id;
+                            db.run(sql[11], [data.id, zid, 0, 0, titelid, 0, i+1], rollback);
+                        }
+                    );
+                });
+            })(i);
+            }
+        }
+
+        db.serialize( () => {
+        db.run(`BEGIN TRANSACTION`);
+        db.get(sql[20], [], function (err, row)
+        {
+            if (err) {console.log(err.message); return false;}
+            let zeitschriftid = row.id + 1;
+            console.log("zid: "+ zeitschriftid);
+            db.run(sql[3], [data.id, 3, data.standort, data.preis, data.band, data.status], rollback);
+            db.run(sql[21], [data.journal, data.zeitschriftkuerzel], rollback);
+            for (i=0; i<data.sachgebietsnr.length; i++) {
+                ((i) => 
+                {
+                    db.run(sql[15], [data.id, data.sachgebietsnr[i]], rollback);
+                })(i);
+            }
+            db.get(sql[1], [data.jahr], function (err, row)
+            {
+                if (err) {console.log(err.message); db.run(`ROLLBACK`); return false}
+                let jahrid = (row === undefined) ? null : row.jahrid;
+                console.log("jahrid: " + jahrid);
+                db.run(sql[4], [data.id, zeitschriftid, 0, 0, 1, data.hinweis, data.seiten, jahrid], rollback);
+                if (data.stichworte !== null) {stichwortInsertions();}
+                if (data.autoren !== null) {autorInsertions(zeitschriftid);}
+                titelInsertions(zeitschriftid); // data.titel is never null
+                db.get(sql[22], [data.journal], function (err, row)
+                {
+                    if (err) {console.log(err.message); db.run(`ROLLBACK`); return false}
+                    console.log("zeitschrift.id: " + row.id);
+                    db.run(sql[23], [row.id, zeitschriftid, data.nr], function (err)
+                    {
+                        (async () =>
+                        {
+                            let warn = document.getElementById("bFrmWarnFld");
+                            warn.innerHTML = await rollback(err);
+                            if (warn.innerHTML.includes("ERROR")) {
+                                console.log("error");
+                                return false;
+                            } else {
+                                db.run(`COMMIT`);
+                                return callback();
+                            }
+                        })();
+                    });
+                });
+            });
+        })});
+    }
+
+
 /*
 
 TODO
     - css: textfield wrapping
     - sachgebiete und sachgebietsnummern
+    - Verallgemeinern der Datenlisten Anzeige Funktion
 */

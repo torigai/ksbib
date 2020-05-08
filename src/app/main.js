@@ -111,7 +111,7 @@ function buchaufsatz (id, standort, autoren, titel, jahr, ort, verlag, auflage, 
     this.hrg = hrg;                 //herausgebernamen mit autortyp 1 : hrg
     this.buchtitel = buchtitel;     //typ 0 : buchtitel
 }
-function zeitschrift (id, standort, autoren, titel, journal, kuerzel, band, nr, jahr, preis, sachgebietsnr, hinweis, stichworte)
+function zeitschrift (id, standort, autoren, titel, journal, kuerzel, band, nr, jahr, preis, sachgebietsnr, hinweis, stichworte, status)
 {
     this.id = id;
     this.standort = standort;
@@ -125,7 +125,8 @@ function zeitschrift (id, standort, autoren, titel, journal, kuerzel, band, nr, 
     this.preis = preis;
     this.sachgebietsnr = sachgebietsnr;
     this.hinweis = hinweis;
-    this.stichworte = stichworte;   
+    this.stichworte = stichworte;  
+    this.status = status; 
 }
 function artikel (id, standort, autoren, titel, journal, kuerzel, band, nr, jahr, zeitschrifttitel, preis, seiten, sachgebietsnr, hinweis, stichworte) 
 {

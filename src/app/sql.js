@@ -6,22 +6,6 @@ let linkToDB = 'src/db/ksbib.db';
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database(linkToDB, (err) => { if (err) { return console.log(err.message); } });
 
-/*
-let db;
-
-function openDB (linkToDB) {
-    const sqlite3 = require('sqlite3').verbose();
-    return db = new sqlite3.Database(linkToDB, (err) => { if (err) { return console.log(err.message); } });
-}
-*/
-
-/*
-function callbackSQL (err) 
-{
-    if (err) { console.log(err.message); } 
-    else { return true; } 
-}
-*/
 function rollback (err)
 {
     if (err) {
@@ -33,10 +17,8 @@ function rollback (err)
     return "";
 }
 
-
 function sqr (sql, params, outputArr)
 {
-    //openDB();
     if (db !== undefined) {
         let p = new Promise(function (resolve, reject) 
         {
@@ -50,12 +32,30 @@ function sqr (sql, params, outputArr)
                 }
             });
         });
-        //db.close();
         return p;
     } else {
         return console.log("db not yet opened");
     }
 }
+
+function showDatalist (value, link, sql, data) 
+    {
+        db.all(sql, [value], (err, rows) =>
+        {
+            if (err) {console.log(err.message);}
+            if (link.firstElementChild !== null) {link.firstElementChild.remove();}
+            let sel = document.createElement("select");
+            let opts = [];
+            rows.forEach((row)=>
+            {
+                opts.push(document.createElement("option"));
+                opts[opts.length-1].innerHTML = Object.values(row)[0];
+                sel.appendChild(opts[opts.length-1]);
+            })
+            link.appendChild(sel);
+            return valArr;
+        })
+    }
 
 /*
     Functions to fill up the value of inventarnummer and standorte
@@ -113,7 +113,11 @@ sql[15] = `INSERT INTO relsachgebiet (objektid, sachgebietid) VALUES (?, ?)`;
 sql[16] = `SELECT id AS verlagid FROM verlag WHERE verlag = ?`;
 sql[17] = `SELECT id AS ortid FROM ort WHERE ort = ?`;
 sql[18] = `INSERT INTO buch (id, auflage, ort, verlag, isbn) VALUES (?, ?, ?, ?, ?)`;
-
+sql[19] = `SELECT journal FROM zeitschrift WHERE journal LIKE ? Limit 5`
+sql[20] = `SELECT MAX(zeitschriftid) AS id FROM relobjtyp`;
+sql[21] = `INSERT OR IGNORE INTO zeitschrift (id, journal, kuerzel) VALUES (NULL, ?, ?)`;
+sql[22] = `SELECT id FROM zeitschrift WHERE journal = ?`;
+sql[23] = `INSERT OR IGNORE INTO relzeitschrift (id, zeitschriftid, nr) VALUES (?, ?, ?)`;
 
 function sqlTitelID (titel, limit, offset) 
 {

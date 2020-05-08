@@ -108,6 +108,16 @@ nav .dropdown:hover .dropdown-content {
 
 input, select {
 		font-family: "console", veranda, sans-serif;
+    background: white;
+}
+input[list="zeitschriftenDL"] {
+      width: 12em;
+      background: white;
+}
+datalist select {
+      width: 12em;
+      margin: 0;
+      margin-left: -12.75em;
 }
 input[type="button"]:focus:valid {
   button::-moz-focus-inner { border: none; }

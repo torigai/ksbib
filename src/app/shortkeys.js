@@ -97,10 +97,8 @@ function rightAndLeft (event)
 
 function checkboxEnter (event)
 {
-	console.log("enter");
 	if (event.keyCode === 13 || event.which === 13) {
 		event.preventDefault();
-		console.log(this);
 		this.click();
 	}
 }

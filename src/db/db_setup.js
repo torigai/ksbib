@@ -5,7 +5,7 @@
 
 let sqr = [];
 
-sqr[0] = 'create table if not exists sachgebiet (id integer primary key, sachgebiet text not null)';
+sqr[0] = 'create table if not exists sachgebiet (id integer primary key, sachgebiet text not null, check (id < 30000))';
 sqr[1] = 'create table if not exists medium (id integer primary key, medium text)';
 sqr[2] = 'create table if not exists standort (id integer primary key, standort text unique, standortsgn text unique)';
 sqr[3] = 'create table if not exists jahr (id integer primary key, jahr integer unique, check (jahr > 999 and jahr < 3001))';
@@ -114,9 +114,14 @@ sqr[93] = "insert into relobjtyp (objektid, zeitschriftid, buchid, aufsatzid, au
 sqr[94] = "insert into relautor (objektid, zeitschriftid, buchid, aufsatzid, autorid, autornr) values (3,1,0,1,2,1)";
 sqr[95] = "insert into reltitel (objektid, zeitschriftid, buchid, aufsatzid, titelid, titeltyp, titelnr) values (3,1,0,1,6,1,1)";
 
+//Weitere Zeitschriften
+sqr[96] = "insert into zeitschrift (id, journal, kuerzel) values (2, 'Soziologie Gestern', 'Soz. Gestern')";
+sqr[97] = "insert into zeitschrift (id, journal, kuerzel) values (3, 'Mittelweg', 'Mittelweg')";
+sqr[98] = "insert into zeitschrift (id, journal, kuerzel) values (4, 'Physik Journal', 'Phys. Journ.')";
+
 //Views
 
-sqr[96] = `CREATE VIEW media_view AS 
+sqr[99] = `CREATE VIEW media_view AS 
   SELECT objekt.id AS objektid, zeitschriftid, buchid, aufsatzid, 
     jahr, preis, band, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, 
     standortsgn, medium.medium, band, kuerzel AS zeitschrift, nr AS zeitschriftNr, sgn, hinweis, status

@@ -252,7 +252,7 @@ function conformAndValidateComment (el, i, j)
 
 function conformAndValidateSgnr (el, i, j)
 {
-    let sgnrarr = el.value.replace(/\n/g, "*").split("*").filter(stringNotEmpty);
+    let sgnrarr = el.value.split("\n").filter(stringNotEmpty);
     if (j == true && strtrim(el.value) == "") {
         err[err.length] = i + "*" + message[0]("einen Wert");
         return false;
@@ -262,24 +262,24 @@ function conformAndValidateSgnr (el, i, j)
         return false;
     }
     function testSgnr (sgnr)
-        {
-            let x = sgnr.replace(/\s+/g,'');
-            if (sachgebietsnrPattern.test(x) == false) {
-                err[err.length] = i + "*" + message[2];
-                return false;
-            }
-            if (x > 29999) {
-                err[err.length] = i + "*" + message[1]("29'999");
-                return false;
-            }
-            return x;
+    {
+        let x = strtrim(sgnr);
+        if (sachgebietsnrPattern.test(x) == false) {
+            err[err.length] = i + "*" + message[2];
+            return false;
         }
+        if (x > 29999) {
+            err[err.length] = i + "*" + message[1]("29'999");
+            return false;
+        }
+        return x;
+    }
     return sgnrarr.map(testSgnr).filter(onlyUnique);
 }
 
 function conformAndValidateKeywords (el, i, j)
 {
-    let keywordarr = el.value.replace(/\n/g, "*").split("*").filter(stringNotEmpty).map(strtrim);
+    let keywordarr = el.value.split("\n").filter(stringNotEmpty).map(strtrim);
     if (j == true && strtrim(el.value) == "") {
         err[err.length] = i + "*" + message[0]("ein Stichwort");
         return false;

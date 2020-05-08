@@ -148,7 +148,7 @@
         <div id="infoFld" class="info">
         <p>
             <br>Du kannst mit der Schnellsuche: <br><br>
-            nach einem Autor- ODER Titel suchen: "Kubler Zeit"<br>
+            nach einem Autor- oder Titel suchen: "Geschichte der Zeit"<br>
             nach Autor- UND Titel suchen: "Kubler @ Zeit" <br> 
             nach einem Autor suchen: "Kubler @" <br>
             nach einem Titel suchen: "@ Form der Zeit"
@@ -539,23 +539,26 @@ async function resultArray (matchingIDs)
 
     let promises = [];
     for (i = 0; i < matchingIDs.length; i++) { 
-        promises.push(new Promise (function(resolve, reject)
+        ((i)=>
         {
-            db.all(sqlSearchForMediumData(matchingIDs[i]), [], function (err, rows)
+            promises.push(new Promise (function(resolve, reject)
             {
-                if (err) {reject(err)}
-                rows.forEach((row) => 
-                { 
-                    result.push(row);
-                    if (row.buchid !== 0  && row.aufsatzid !== 0) {  
-                       parentsIDs.push([row.objektid, 0, row.buchid, 0]);
-                    }
-                });
+                db.all(sqlSearchForMediumData(matchingIDs[i]), [], function (err, rows)
+                {
+                    if (err) {reject(err)}
+                    rows.forEach((row) => 
+                    { 
+                        result.push(row);
+                        if (row.buchid !== 0  && row.aufsatzid !== 0) {  
+                            parentsIDs.push([row.objektid, 0, row.buchid, 0]);
+                        }
+                    });
                 resolve(result);
-            });
-        }));
+                });
+            }));
+        })(i);
     }
-    await Promise.all(promises);
+    await Promise.all(promises).catch(console.error);
 
     if (parentsIDs.length !== 0) { // Data for books belonging to articles in books
         parentsIDs = parentsIDs.map((item) => item.toString()).filter(onlyUnique).map((item)=> {return item.split(",").map(Number)});
@@ -764,6 +767,7 @@ cStandorteOptions(document.getElementById("standort"));
     TODO
     - Tastaturkürzel (erläuterung dafür implementieren)
     - Navigator in allen anderen views anpassen
+    - falls eine Zeitschrift kein Kürzel hat, soll der gesamte Name in der Suche angezeigt werden und nicht bloß das Kürzel
 */
 </script>
 
