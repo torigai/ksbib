@@ -1,41 +1,12 @@
-const doSomethingAsync = () => {
-  return new Promise(resolve => {
-    setTimeout(() => resolve('I did something'), 3000)
-  })
-}
-
-const doSomethingElseAsync = () => {
-  return new Promise(resolve => {
-    setTimeout(() => resolve('I did something else'), 1000)
-  })
-}
-
-const doSomethingSync = () => {
-	setTimeout(() => {return console.log("I did something Sync")}, 3000)
-}
-
-const doSomething = async () => {
-	console.log("do Something")
-	console.log(await doSomethingAsync())
-	console.log(await doSomethingElseAsync())
-	console.log("geschafft")
-}
-
-const doSomethingNew = () => {
-	console.log("doSomething")
-	console.log(doSomethingSync())
-	console.log("geschafft")
-}
-
-//doSomething();
-//console.log("next code snippet");
-
 const sqlite3 = require('sqlite3').verbose();
-let db = new sqlite3.Database('src/db/ksbib.db');
-db.run(`INSERT OR IGNORE INTO ort (id, ort) VALUES (?,?)`, [NULL, 'Berlin'], function(err) {
-    if (err) {
-      return console.log(err.message);
-    }
-    console.log(`A row has been changed with rowid ${this.lastID}`);
-  });
-db.close();
+let tb = new sqlite3.Database(':memory:', (err) => {if(err){return console.error(err.message)}});
+sqr[0] = 'create table if not exists zeitschrift (id integer primary key, journal text unique, kuerzel text unique)';
+sqr[1] = 'create table if not exists relzeitschrift (zeitschriftid integer primary key, nr integer, id integer references zeitschrift (id))';
+sqr[2] = 'create table if not exists relobjtyp (objektid integer, zeitschriftid integer references relzeitschrift (zeitschriftid), primary key (objektid, zeitschriftid))';
+
+db.serialize( () =>
+{
+    tb.run(sqr[0], [], function (err) {if (err) {console.log(err.message);} else {console.log(0);} });
+    tb.run(sqr[1], [], function (err) {if (err) {console.log(err.message);} else {console.log(1);} });
+    tb.run(sqr[2], [], function (err) {if (err) {console.log(err.message);} else {console.log(0);} });
+});

@@ -13,8 +13,9 @@ function rollback (err)
         db.run(`ROLLBACK`);
         return "ERROR: Der Datensatz konnte nicht gespeichert werden, \
         bitte kontaktiere kirsten.a@posteo.de";
+    } else {
+        return "";
     }
-    return "";
 }
 
 function sqr (sql, params, outputArr)
@@ -89,7 +90,7 @@ async function getMaxID (plus)
 */
 
 let sql = [];
-sql[0] = `SELECT MAX(id) AS id FROM buch`;
+sql[0] = `SELECT MAX(buchid) AS id FROM relobjtyp`;
 sql[1] = `SELECT id AS jahrid FROM jahr WHERE jahr = ?`;
 sql[2] = `INSERT OR IGNORE INTO ort (id, ort) VALUES (NULL, ?)`;
 sql[3] = `INSERT INTO objekt (id, medium, standort, preis, band, status) 
@@ -97,7 +98,7 @@ sql[3] = `INSERT INTO objekt (id, medium, standort, preis, band, status)
 sql[4] = `INSERT INTO relobjtyp 
     (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-sql[5] = `INSERT OR IGNORE INTO verlag (id, verlag) VALUES (NULL, ?)`;
+sql[5] = `INSERT INTO verlag (id, verlag) VALUES (NULL, ?)`;
 sql[6] = `INSERT OR IGNORE INTO stichwort (id, stichwort) VALUES (NULL, ?)`;
 sql[7] = `INSERT INTO relstichwort (objektid, stichwortid) VALUES (?, ?)`;
 sql[8] = `INSERT OR IGNORE INTO autor (id, name, vorname) VALUES (NULL, ?, ?)`;
