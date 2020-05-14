@@ -547,7 +547,7 @@
         {
             return new Promise((resolve, reject) =>
             {
-                db.all(sql[0], [], function (err, row)
+                db.get(sql[0], [], function (err, row)
                 {
                 if (err) {
                     errArr.push(err.message); 
@@ -781,10 +781,12 @@
         db.serialize( () => {
             db.run(`BEGIN TRANSACTION`);
             getBuchid()
-                .then(buchid => {console.log(promises); return sqlPromises(buchid)})
-                .then(() => {return Promise.all(promises)})
+                .then(buchid => {console.log(buchid); return sqlPromises(buchid)})
+                //.then(() => {return Promise.all(promises)})
+                .then(() => {return promises.reduce((p, promise) => {return p.then(() => {return promise})})})
                 .then((result)=> {console.log(result); db.run(`COMMIT`); callback(errArr);})
-                .catch((error) => {console.log(error); db.run(`ROLLBACK`); callback(errArr);});
+                .catch((error) => {console.log(error); db.run(`ROLLBACK`); callback(errArr);})
+                .finally(() => {db.close()});
         });
 
         /*
