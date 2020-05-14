@@ -545,15 +545,17 @@ async function resultArray (matchingIDs)
             {
                 db.all(sqlSearchForMediumData(matchingIDs[i]), [], function (err, rows)
                 {
-                    if (err) {reject(err)}
-                    rows.forEach((row) => 
-                    { 
-                        result.push(row);
-                        if (row.buchid !== 0  && row.aufsatzid !== 0) {  
-                            parentsIDs.push([row.objektid, 0, row.buchid, 0]);
-                        }
-                    });
-                resolve(result);
+                    if (err) {reject(err);}
+                    else {
+                        rows.forEach((row) => 
+                        { 
+                            result.push(row);
+                            if (row.buchid !== 0  && row.aufsatzid !== 0) {  
+                                parentsIDs.push([row.objektid, 0, row.buchid, 0]);
+                            }
+                        });
+                        resolve(result);
+                    }
                 });
             }));
         })(i);

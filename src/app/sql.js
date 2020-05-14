@@ -98,7 +98,7 @@ sql[3] = `INSERT INTO objekt (id, medium, standort, preis, band, status)
 sql[4] = `INSERT INTO relobjtyp 
     (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-sql[5] = `INSERT INTO verlag (id, verlag) VALUES (NULL, ?)`;
+sql[5] = `INSERT OR IGNORE INTO verlag (id, verlag) VALUES (NULL, ?)`;
 sql[6] = `INSERT OR IGNORE INTO stichwort (id, stichwort) VALUES (NULL, ?)`;
 sql[7] = `INSERT INTO relstichwort (objektid, stichwortid) VALUES (?, ?)`;
 sql[8] = `INSERT OR IGNORE INTO autor (id, name, vorname) VALUES (NULL, ?, ?)`;
