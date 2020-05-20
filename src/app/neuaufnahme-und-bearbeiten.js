@@ -51,9 +51,11 @@
                 this.style.color = defaultColor;
             }
             if (selFrm.warnFld !== undefined) { selFrm.warnFld.innerHTML = ""; }
+            if (bFrm.warnFld !== undefined) {bFrm.warnFld.innerHTML = "";}
         }
         bFrm.onfocusoutSachgebiet = async function ()
         {
+            let errmessage;
             let sgnrTextarea = document.getElementsByName("sachgebietsnr")[0];
             let sgTextarea = document.getElementsByName('sachgebiete')[0];
             sgnrTextarea.style.color = defaultColor;
@@ -75,30 +77,59 @@
                 }
                 return x;
             }
-
             let sgnrArr = document.getElementsByName("sachgebietsnr")[0]
                 .value.split("\n").filter(stringNotEmpty).filter(onlyUnique).map(testSgnr);
-            sgnrArr.sort();
-            
-            let promises = [];
-            let i;
-            for (i=0; i<sgnrArr.length; i++) {
-                ((i) => {
-                    promises.push(new Promise ((resolve, reject)=>
-                    {
-                        db.get(`SELECT sachgebiet FROM sachgebiet WHERE id = ?`, [sgnrArr[i]], (err, row) =>
+            if (sgnrArr.includes(false)) {
+                return false;
+            } else {
+                let i;
+                let index = Array.from(bFrm.elements).indexOf(sgnrTextarea);
+                let promises = [];
+                sgnrArr.sort();
+                for (i=0; i<sgnrArr.length; i++) {
+                    ((i) => {
+                        promises.push(new Promise ((resolve, reject)=>
                         {
-                            if (err) {reject(err);}
-                            let osg = ( sgnrArr[i] === 0 || Number.isInteger(sgnrArr[i]/100) ) ? "OSG - " : "USG - ";
-                            resolve(sgArr[i] = osg + row.sachgebiet);
-                        }); 
-                    }));
-                })(i);
+                            db.get(`SELECT sachgebiet FROM sachgebiet WHERE id = ?`, [sgnrArr[i]], (err, row) =>
+                            {
+                                if (err) {
+                                    reject(err);
+                                }
+                                if (row === undefined) {
+                                /*
+                                sgnrTextarea.focus();
+                                sgnrTextarea.style.color = warnColor;
+                                */
+                                    sgArr[i] = "ERROR";
+                                    reject("Das Sachgebiet existiert nicht");
+                                } else {
+                                    let osg = ( sgnrArr[i] === 0 || Number.isInteger(sgnrArr[i]/100) ) ? "OSG - " : "USG - ";
+                                    resolve(sgArr[i] = osg + row.sachgebiet);
+                                }
+                            }); 
+                        }));
+                    })(i);
+                }
+                await Promise.all(promises)
+                    .then(result => 
+                    {
+                        sgnrTextarea.value = sgnrArr.join("\n");
+                        sgTextarea.value = result.join("\n");
+                        return errmessage = "";
+                    })
+                    .catch(error => 
+                    {
+                        sgnrTextarea.value = sgnrArr.join("\n");
+                        sgTextarea.value = sgArr.join("\n");
+                        return errmessage = error;
+                    });
+                if (errmessage !== "") {
+                    bFrm.warnFld.innerHTML = errmessage;
+                    sgnrTextarea.focus();
+                    sgnrTextarea.style.color = warnColor;
+                } 
+                return errmessage;
             }
-            await Promise.all(promises).catch(console.error);
-            
-            sgnrTextarea.value = sgnrArr.join("\n");
-            sgTextarea.innerHTML = sgArr.join("\n");
         }
         bFrm.newReset ( function () 
         {
@@ -118,7 +149,7 @@
             }
         })
         bFrm.newSbmt(
-            function () 
+            async function () 
             {
                 let warnung = bFrm.warnFld;
                 let data;
@@ -385,6 +416,7 @@
                             return bookConformed;
                         }  
                         data = conformAndValidateBook(b);
+                        console.log(data);
                 }
                 if (err.length !== 0) {
                     let firstError = err[0].split("*");
@@ -393,26 +425,31 @@
                     warnung.innerHTML = firstError[1];
                     return false;
                 } else {
-                    let confirm = window.confirm("Neues Medium speichern?");
-                    if (confirm == true) {
-                        async function callback (errArr) 
-                        {
-                            console.log("callback");
-                            if (errArr.length === 0) {
-                                bFrm.reset();
-                                let x = await getMaxID(1);
-                                return bFrm.elements[0].value = x;
-                            } else {
-                                warnung.innerHTML = "Das Medium konnte nicht gespeichert werden";
-                            } 
-                        }
-                        switch (typeOfMedium) {
-                            case "Buch": sqlNewBook(data, callback); break;
-                            case "Zeitschrift": sqlNewZeitschrift(data, callback); break;
-                        }
-                        return true;
-                    } else {
+                    let sachgebietError = await bFrm.onfocusoutSachgebiet();
+                    if (sachgebietError !== "") {
                         return false;
+                    } else {
+                        let confirm = window.confirm("Neues Medium speichern?");
+                        if (confirm == true) {
+                            async function callback (boolean) 
+                            {
+                                if (boolean === true) {
+                                    bFrm.reset();
+                                    let x = await getMaxID(1);
+                                    bFrmWarnFld.innerHTML = "Der Datensatz wurde gespeichert";
+                                    return bFrm.elements[0].value = x;
+                                } else {
+                                    return bFrmWarnFld.innerHTML = "Der Datensatz konnte nicht gespeichert werden";
+                                }
+                            }
+                            switch (typeOfMedium) {
+                                case "Buch": sqlNewBook(data, callback); break;
+                                case "Zeitschrift": sqlNewZeitschrift(data, callback); break;
+                            }
+                            return true;
+                        } else {
+                            return false;
+                        }
                     }
                 }
             }
@@ -456,428 +493,68 @@
         SQL
     */
 
+
     async function sqlNewBook (data, callback)
     {
         let i, autorenArr = []; 
-        let warn = document.getElementById("bFrmWarnFld");
-        let errArr = [];
-        let promises = [];
-/*
-        function stichwortInsertions ()
-        {
-            for (i=0; i < data.stichworte.length; i++) { 
-                ((i) => { 
-                db.run(sql[6], [data.stichworte[i]], function (err)
+
+        let procBook = new cSQLProcessor(callback);
+
+        procBook.add(sql[0],[], "buchid"); //=> buchid
+        if (data.ort !== null) {procBook.add(sql[2], [data.ort])}; //insert ortid
+        procBook.add(sql[17], [data.ort], "ortid"); //=> ortid
+        procBook.add(sql[5], [data.verlag]); //insert verlag
+        procBook.add(sql[16], [data.verlag], "verlagid"); //=> verlag    
+        procBook.add(sql[3],[data.id, 1, data.standort, data.preis, data.band, data.status]);
+        if (data.sachgebietsnr.length !== 0) {
+            for (i=0; i<data.sachgebietsnr.length; i++) {
+                ((i) => 
                 {
-                    if (err) {errArr.push(err.message); return callback(errArr);} 
-                    else {
-                        db.get(sql[12], [data.stichworte[i]], function (err, row) 
-                        {
-                            if (err) {errArr.push(err.message); return callback(errArr);}
-                            else {
-                                db.run(sql[7], [data.id, row.id], function (err)
-                                {
-                                    if (err) {errArr.push(err.message); return callback(errArr);}
-                                    else {console.log("stichwort " + i + " inserted");}
-                                });}
-                        });
-                    }
-                });
+                    procBook.add(sql[15], [data.id, data.sachgebietsnr[i]]);   //insert
                 })(i);
-            }   
+            }
         }
-        function autorInsertions (bid)
-        {
+        if (data.stichworte !== null) {
+            for (i=0; i < data.stichworte.length; i++) { 
+                ((i) => 
+                { 
+                    procBook.add(sql[6], [data.stichworte[i]]);    // insert
+                    procBook.add(sql[12], [data.stichworte[i]]);
+                    procBook.add(sql[7], function (result) {return [data.id, result]});
+                })(i);
+            }
+        }
+        if (data.autoren !== null) {
             for (i=0; i < data.autoren.length; i++) { 
-                ((i) => {
+                ((i) => 
+                {
                     if (data.autoren[i].includes(",")) {
                         autorenArr = data.autoren[i].split(",").map(strtrim);
                     } else { //ein Name der Art "Müller" oder "Hans" wird immer als Nachname gespeichert
                         autorenArr = [data.autoren.toString(), ""];
                     }
-                    db.run(sql[8], [autorenArr[0], autorenArr[1]], function (err)
-                    {
-                        if (err) {errArr.push(err.message); return callback(errArr);} 
-                        else {
-                            db.get(sql[13], [autorenArr[0], autorenArr[1]], function (err, row) 
-                            {
-                                if (err) {errArr.push(err.message); return callback(errArr);}
-                                else {
-                                    let autorid = row.id;
-                                    db.run(sql[9], [data.id, 0, bid, 0, autorid, i+1], function (err)
-                                    {
-                                        if (err) {errArr.push(err.message); return callback(errArr);}
-                                        else {return console.log("autor " + i + " inserted");}
-                                    });
-                                }
-                            });
-                        }
-                    });
+                    procBook.add(sql[8], [autorenArr[0], autorenArr[1]]);
+                    procBook.add(sql[13], [autorenArr[0], autorenArr[1]]);
+                    procBook.add(sql[9], function (result) {return [data.id, 0, "buchid", 0, result, i+1]}); 
                 })(i);
-            }   
+            }
         }
-        function titelInsertions (bid)
-        {
-            for (i=0; i < data.titel.length; i++) { 
-            ((i) => {
-                db.run(sql[10], [data.titel[i]], function (err)
-                {
-                    if (err) {errArr.push(err.message); return callback(errArr);}
-                    else { 
-                        db.get(sql[14], [data.titel[i]], function (err, row) 
-                        {
-                            if (err) {errArr.push(err.message); return callback(errArr);}
-                            else {
-                                let titelid = row.id;
-                                db.run(sql[11], [data.id, 0, bid, 0, titelid, 0, i+1], function (err)
-                                {
-                                    if (err) {errArr.push(err.message); return callback(errArr);}
-                                    else {return console.log("titel " + i + " inserted");}
-                                });
-                            }
-                        });
-                    }
-                });
+        for (i=0; i < data.titel.length; i++) { 
+            ((i) => 
+            {
+                procBook.add(sql[10], [data.titel[i]]);
+                procBook.add(sql[14], [data.titel[i]]);
+                procBook.add(sql[11], function (result) {return [data.id, 0, "buchid", 0, result, 0, i+1]});
             })(i);
-            }
         }
-    */
-
-        function getBuchid () 
-        {
-            return new Promise((resolve, reject) =>
+        procBook.add(sql[1], [data.jahr]);
+        procBook.add(sql[4], function (result) 
             {
-                db.get(sql[0], [], function (err, row)
-                {
-                if (err) {
-                    errArr.push(err.message); 
-                    reject(errArr);
-                } else { 
-                    let buchid = row.id + 1;
-                    resolve(buchid);
-                }
-                });
+                return [data.id, 0, "buchid", 0, data.autortyp, data.hinweis, data.seiten, result]
             });
-        }
+        procBook.add(sql[18], ["buchid", data.auflage, "ortid", "verlagid", data.isbn]);
 
-        function sqlPromises (buchid) 
-        {
-            promises.push(new Promise((resolve, reject) =>
-            {
-                db.run(sql[3], [data.id, 1, data.standort, data.preis, data.band, data.status], function (err)
-                {
-                    if (err) {
-                        errArr.push(err.message); 
-                        console.log("errArr[0]");
-                        reject(errArr);
-                    } else {
-                        resolve("objekt inserted");
-                    }
-                });
-            }));
-            if (data.ort !== null) {
-                promises.push(new Promise ((resolve, reject) =>
-                {
-                    db.run(sql[2], [data.ort], function (err)
-                    {
-                        if (err) {
-                            errArr.push(err.message); 
-                            console.log("errArr[0]");
-                            reject(errArr);
-                        } else {
-                            resolve("Ort inserted");
-                        }
-                    });
-                }));
-            }
-            if (data.sachgebietsnr !== null) {
-                for (i=0; i<data.sachgebietsnr.length; i++) {
-                    ((i) => 
-                    {
-                        promises.push(new Promise ((resolve, reject) =>
-                        {
-                            db.run(sql[15], [data.id, data.sachgebietsnr[i]], function (err)
-                            {
-                                if (err) {
-                                    errArr.push(err.message); 
-                                    console.log("errArr[0]");
-                                    reject(errArr);
-                                } else {
-                                    resolve("relsachgebiet " + i + " inserted");
-                                }
-                            });
-                        }));
-                    })(i);
-                }
-            }
-            if (data.stichworte !== null) {
-                for (i=0; i < data.stichworte.length; i++) { 
-                    ((i) => { 
-                        promises.push(new Promise ((resolve, reject) =>
-                        {
-                            db.run(sql[6], [data.stichworte[i]], function (err)
-                            {
-                                if (err) {
-                                    errArr.push(err.message);
-                                    reject(errArr);
-                                } else {
-                                    db.get(sql[12], [data.stichworte[i]], function (err, row) 
-                                    {
-                                        if (err) {
-                                            errArr.push(err.message); 
-                                            reject(errArr);
-                                        } else {
-                                            db.run(sql[7], [data.id, row.id], function (err)
-                                            {
-                                                if (err) {
-                                                    errArr.push(err.message); 
-                                                    reject(errArr);
-                                                } else {
-                                                    resolve("stichwort " + i + " inserted");
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                        }));
-                    })(i);
-                }
-            }
-            if (data.autoren !== null) {
-                for (i=0; i < data.autoren.length; i++) { 
-                    ((i) => {
-                        promises.push(new Promise ((resolve, reject) => 
-                        {
-                            if (data.autoren[i].includes(",")) {
-                                autorenArr = data.autoren[i].split(",").map(strtrim);
-                            } else { //ein Name der Art "Müller" oder "Hans" wird immer als Nachname gespeichert
-                                autorenArr = [data.autoren.toString(), ""];
-                            }
-                            db.run(sql[8], [autorenArr[0], autorenArr[1]], function (err)
-                            {
-                                if (err) {
-                                    errArr.push(err.message); 
-                                    reject(errArr);
-                                } else {
-                                    db.get(sql[13], [autorenArr[0], autorenArr[1]], function (err, row) 
-                                    {
-                                        if (err) {
-                                            errArr.push(err.message); 
-                                            reject(errArr);
-                                        } else {
-                                            let autorid = row.id;
-                                            db.run(sql[9], [data.id, 0, buchid, 0, autorid, i+1], function (err)
-                                            {
-                                                if (err) {
-                                                    errArr.push(err.message); 
-                                                    reject(errArr);
-                                                } else {
-                                                    resolve("autor " + i + " inserted");
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                        }));
-                    })(i);
-                }
-            }
-            for (i=0; i < data.titel.length; i++) { 
-                ((i) => {
-                    promises.push(new Promise ((resolve, reject) =>
-                    {  
-                        db.run(sql[10], [data.titel[i]], function (err)
-                        {
-                            if (err) {
-                                errArr.push(err.message); 
-                                reject(errArr);
-                            } else { 
-                                db.get(sql[14], [data.titel[i]], function (err, row) 
-                                {
-                                    if (err) {
-                                        errArr.push(err.message); 
-                                        reject(errArr);
-                                    } else {
-                                        let titelid = row.id;
-                                        db.run(sql[11], [data.id, 0, buchid, 0, titelid, 0, i+1], function (err)
-                                        {
-                                            if (err) {
-                                                errArr.push(err.message); 
-                                                reject(errArr);
-                                            } else {
-                                                resolve("titel " + i + " inserted");
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    }));
-                })(i);
-            }
-            promises.push(new Promise ((resolve, reject) =>
-            {
-                db.get(sql[1], [data.jahr], function (err, row)
-                {
-                    if (err) {
-                        errArr.push(err.message); 
-                        reject(errArr);
-                    } else {
-                        let jahrid = (row === undefined) ? null : row.jahrid;
-                        db.run(sql[4], [data.id, 0, buchid, 0, data.autortyp, data.hinweis, data.seiten, jahrid], function (err)
-                        {
-                            if (err) {
-                                errArr.push(err.message); 
-                                reject(errArr);
-                            } else {
-                                resolve("relobjtyp inserted");
-                            }
-                        });
-                    }
-                });
-            }));
-            promises.push(new Promise ((resolve, reject) => 
-            {
-                db.run(sql[5], [data.verlag], function (err)
-                {
-                    if (err) {
-                        errArr.push(err.message); 
-                        reject(errArr);
-                    } else {
-                        db.get(sql[16], [data.verlag], function (err, row)
-                        {
-                            if (err) {
-                                errArr.push(err.message); 
-                                reject(errArr);
-                            } else {
-                                let verlagid = (row === undefined) ? null : row.verlagid;
-                                db.get(sql[17], [data.ort], function (err, row)
-                                {
-                                    if (err) {
-                                        errArr.push(err.message); 
-                                        reject(errArr);
-                                    } else {
-                                        let ortid = (row === undefined) ? null : row.ortid;   
-                                        db.run(sql[18], [buchid, data.auflage, ortid, verlagid, data.isbn], function (err) 
-                                        {
-                                            if (err) {
-                                                errArr.push(err.message); 
-                                                reject(errArr);
-                                            } else {
-                                                resolve("buch inserted");
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-            }));
-        }
-
-        db.serialize( () => {
-            db.run(`BEGIN TRANSACTION`);
-            getBuchid()
-                .then(buchid => {console.log(buchid); return sqlPromises(buchid)})
-                //.then(() => {return Promise.all(promises)})
-                .then(() => {return promises.reduce((p, promise) => {return p.then(() => {return promise})})})
-                .then((result)=> {console.log(result); db.run(`COMMIT`); callback(errArr);})
-                .catch((error) => {console.log(error); db.run(`ROLLBACK`); callback(errArr);})
-                .finally(() => {db.close()});
-        });
-
-        /*
-        db.serialize( () => {
-        db.run(`BEGIN TRANSACTION`);
-        db.get(sql[0], [], function (err, row)
-        {
-            if (err) {errArr.push(err.message); return callback(errArr);}
-            else { 
-                let buchid = row.id + 1;
-                db.run(sql[3], [data.id, 1, data.standort, data.preis, data.band, data.status], function (err)
-                {
-                    if (err) {errArr.push(err.message); return callback(errArr);}
-                    else {return console.log("objekt inserted");}
-                });
-                if (data.ort !== null) {
-                    db.run(sql[2], [data.ort], function (err)
-                    {
-                        if (err) {errArr.push(err.message); return callback(errArr);}
-                        else {return console.log("Ort inserted");}
-                    });
-                }
-                if (data.sachgebietsnr !== null) {
-                    for (i=0; i<data.sachgebietsnr.length; i++) {
-                        ((i) => 
-                        {
-                            db.run(sql[15], [data.id, data.sachgebietsnr[i]], function (err)
-                            {
-                                if (err) {errArr.push(err.message); return callback(errArr);}
-                                else {return console.log("relsachgebiet " + i + " inserted");}
-                            });
-                        })(i);
-                    }
-                }
-                if (data.stichworte !== null) {stichwortInsertions();}
-                if (data.autoren !== null) {autorInsertions(buchid);}
-                titelInsertions(buchid); // data.titel is never null
-                db.get(sql[1], [data.jahr], function (err, row)
-                {
-                    if (err) {errArr.push(err.message); return callback(errArr);}
-                    else {
-                        let jahrid = (row === undefined) ? null : row.jahrid;
-                        db.run(sql[4], [data.id, 0, buchid, 0, data.autortyp, data.hinweis, data.seiten, jahrid], function (err)
-                        {
-                            if (err) {errArr.push(err.message); return callback(errArr);}
-                            else {return console.log("relobjtyp inserted");}
-                        });
-                    }
-                });
-                db.run(sql[5], [data.verlag], function (err)
-                {
-                    if (err) {errArr.push(err.message); return callback(errArr);}
-                    else {
-                        db.get(sql[16], [data.verlag], function (err, row)
-                        {
-                            if (err) {errArr.push(err.message); return callback(errArr);}
-                            else {
-                                let verlagid = (row === undefined) ? null : row.verlagid;
-                                db.get(sql[17], [data.ort], function (err, row)
-                                {
-                                    if (err) {errArr.push(err.message); return callback(errArr);}
-                                    else {
-                                        let ortid = (row === undefined) ? null : row.ortid;   
-                                        db.run(sql[18], [buchid, data.auflage, ortid, verlagid, data.isbn], function (err) 
-                                        {
-                                            if (err) {errArr.push(err.message); return callback(errArr);} 
-                                            else {
-                                                console.log("buch inserted");
-                                                return callback(errArr);
-                                             
-                                                db.get(`SELECT * FROM media_view WHERE objektid = ?`, [data.id], function (err, row)
-                                                {
-                                                    if (err) {console.log(err.message);}
-                                                    else {
-                                                        console.log(row);
-                                                        return callback(errArr); 
-                                                    }
-                                                });
-                                            
-                                            //return callback(errArr);
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-            };
-        })});
-    */
+        procBook.run();
     }
 
 function sqlNewZeitschrift (data, callback)
@@ -1005,6 +682,5 @@ function sqlNewZeitschrift (data, callback)
 
 TODO
     - css: textfield wrapping
-    - sachgebiete und sachgebietsnummern
     - Verallgemeinern der Datenlisten Anzeige Funktion
 */

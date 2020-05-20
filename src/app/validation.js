@@ -33,16 +33,6 @@ message[2] = "Die Eingabe ist ungültig";
 message[3] = function (string) { return string + " exisitert nicht"; }
 message[4] = function (string) { return string + " exisitert bereits"; }
 
-
-/*
-    FILTER UND DATENBEARBEITUNG
-*/
-
-
-function stringNotEmpty (str) { return strtrim(str) !== ""; }
-function onlyUnique (value, index, self) { return self.indexOf(value) === index; }
-function strtrim (str) { return str.replace(/\s+/g,' ').trim(); }
-
 /*
     TESTFUNKTIONEN
 
