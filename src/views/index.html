@@ -516,25 +516,29 @@ async function resultArray (matchingIDs)
 
         if (object.buchid !== 0 && object.aufsatzid === 0) {    // Buch   
             titelUndVerweise = object.titel + band + verlag + ort + preis + hinweis;
-            medientyp = "Buch";
+            medientyp = object.medium;
         }
         if (object.buchid !== 0 && object.aufsatzid !== 0) {     // Buchaufsatz
             i = parents.indexOf(parents.find( ({objektid}) => objektid === object.objektid ));   
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
             titelUndVerweise = object.titel + " <i> In: " + parents[i].autor + 
                 " (Hrg): " + parents[i].titel + "</i>" + band + verlag + ort + preis + hinweis;
-            medientyp = "Buchaufsatz";
+            medientyp = object.medium;
         }
         if (object.zeitschriftid !== 0 && object.aufsatzid === 0) { // Zeitschrift
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
             titelUndVerweise = object.titel + " <i>" + object.zeitschrift + nr + "</i>" + preis + hinweis;
-            medientyp = "Zeitschrift"; 
+            medientyp = object.medium; 
         }
         if (object.zeitschriftid !== 0 && object.aufsatzid !== 0) { // Artikel
             i = parents.indexOf(parents.find( ({id}) => id === object.objektid ));
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
             titelUndVerweise = object.titel + " <i>" + object.zeitschrift + nr + seiten + "</i>" + hinweis;
-            medientyp = "Artikel";
+            medientyp = object.medium;
+        }
+        if (object.zeitschriftid === 0 && object.buchid === 0) { // Aufsatz
+            titelUndVerweise = object.titel + ort + seiten + "</i>" + hinweis;
+            medientyp = object.medium;
         }
         return [id, autoren, titelUndVerweise, jahr, medientyp, standort, status];
     }
@@ -598,7 +602,6 @@ async function qsearchDBRequest (searchStr, limit, offset)
     if (matchingIDs.length === 0) { // No entry in DB found
         return false;
     } else {
-        console.log(matchingIDs);
         return resultArray(matchingIDs);
     }
 }
@@ -610,7 +613,6 @@ async function dsearchDBRequest (data, limit, offset)
     let tablesToJoin = "";
     let constraint = [];
 
-    console.log(data);
     if (data.autor1 !== null && data.autor2 === null) {
         constraint.push("(autor LIKE '%" + data.autor1 + "%')");
     }

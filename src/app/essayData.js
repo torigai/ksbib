@@ -69,15 +69,18 @@ function addEssay (data, callback)
 {
     let i, autorenArr = []; 
     let procEssay = new cSQLProcessor(callback);
-    
+    console.log(data);
     //Globally used result
     procEssay.add(sql[24], [], "aufsatzid");
-    if (data.ort !== null) {procBook.add(sql[2], [data.ort])};
+    if (data.ort !== null) {procEssay.add(sql[2], [data.ort])};
+    procEssay.add(sql[17], [data.ort], "ortid");
+
+    //Others
     procEssay.add(sql[3], [data.id, data.medientyp, data.standort, null, null, data.status]);
     procEssay.add(sql[1], [data.jahr]);
     procEssay.add(sql[4], function (result) 
     {
-        return [data.id, data.zeitschriftid, data.buchid, "aufsatzid", data.autortyp, data.hinweis, data.seiten, result]
+        return [data.id, data.zeitschriftid, data.buchid, "aufsatzid", data.autortyp, data.hinweis, data.seiten, result, "ortid"]
     });
     if (data.sachgebietsnr.length !== 0) {
         for (i=0; i<data.sachgebietsnr.length; i++) {
@@ -126,4 +129,6 @@ function addEssay (data, callback)
             });
         })(i);
     }
+
+    procEssay.run();
 }

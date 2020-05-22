@@ -124,7 +124,7 @@ sql[20] = `SELECT MAX(zeitschriftid) + 1 AS id FROM relobjtyp`;
 sql[21] = `INSERT OR IGNORE INTO zeitschrift (id, journal, kuerzel) VALUES (NULL, ?, ?)`;
 sql[22] = `SELECT id FROM zeitschrift WHERE journal = ?`;
 sql[23] = `INSERT OR IGNORE INTO relzeitschrift (id, zeitschriftid, nr) VALUES (?, ?, ?)`;
-sql[24] = `SELECT MAX(aufsatz) + 1 AS id FROM relobjtyp`;
+sql[24] = `SELECT MAX(aufsatzid) + 1 AS id FROM relobjtyp`;
 
 
 

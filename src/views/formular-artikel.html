@@ -1,33 +1,3 @@
-<!--
-
-artikel in einer zeitschrift
-{
-	// "ID" und "standort" der Zeitschrift. Falls sie nicht
-	// in der Bibliothek existiert, hat der Artikel (Kopie) eine 
-	// eigene "ID" und einen eigenen Standort. Falls die Zeitschrift
-	// nachträglich hinzugefügt wird, bekommt sie eine eigene ID
-	// und einen eigenen Standort.   
-	
-	objekt.ID 
-	standort 
-	autoren					(autortyp = 0 : autoren)
-	titel + untertitel		(titeltyp = 1 : aufsatztitel/track)
-		zeitschrift
-            kuerzel         (falls die zeitschrift noch nicht aufgenommen ist, soll ein feld fuer das
-                            kuerzel angezeigt werden) 
-		titel + untertitel	(titeltyp = 0 : buchtitel/cdtitel)
-		band
-		nr
-		jahr
-		preis
-	seiten
-	sachgebiete
-	hinweis
-	stichworte
-}
-
--->
-
 <form id="bFrm" class="center">
     <div class='rTable' style="width: 400px">
         <div class='rTableBody'>

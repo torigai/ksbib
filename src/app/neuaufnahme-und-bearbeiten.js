@@ -139,7 +139,7 @@
             for (i = 1; i < bFrm.noIn; i++) {
                 switch (i) {
                     case 1: bFrm.elements[1].item(bFrm.defaultSelectedIndex).selected = true; break;
-                    case 17: bFrm.elements[17].item(bFrm.defaultSelectedIndex).selected = true; break;
+                    case bFrm.noIn - 1: bFrm.elements[bFrm.noIn -1].item(bFrm.defaultSelectedIndex).selected = true; break;
                     default: bFrm.elements[i].value = bFrm.elements[i].defaultValue;
                 }
             }
@@ -376,9 +376,6 @@
 /*
 
 TODO
-    - ORT IN TABELLEN ÄNDERN - RELATION NACH RELOBJTYP NICHT NACH BUCH !!! DAMIT AUCH EIN AUFSATZ EINEN ORT HABEN KANN
-        DANN MÜSSEN AUCH DIE SPEICHER_SQLs ANGEPASST WERDEN !!! EBENFALLS DIE SUCHE !!! IN INDEX.HTML. ANPASSEN AUCH 
-        IN BOOKDATA.JS usw.
     - css: textfield wrapping
     - Verallgemeinern der Datenlisten Anzeige Funktion
     - preis funktioniert nicht mit kommastellen
