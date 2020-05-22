@@ -59,6 +59,7 @@ function cSQLProcessor (callback)
 				})
 				.filter(item => {return item[1] !== -1});
 			hits.forEach((hit) => {return param[hit[1]] = hit[0];});
+			//console.log(sql + " : " + param);
 		}
 		if (sql.includes("SELECT")) {
 			return new Promise ((resolve, reject) =>

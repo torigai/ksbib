@@ -503,6 +503,8 @@ async function resultArray (matchingIDs)
         let seiten = (object.seiten !== null) ? ", S. " + object.seiten : "";
         let nr = (object.zeitschriftNr !== null) ? " Nr. " + object.zeitschriftNr : "";
         let hinweis = (object.hinweis !== null) ? "<p><i>Hinweis</i>: " + object.hinweis + "</p>" : "";
+        let ort = (object.ort !== null) ? ", " + object.ort : "";
+        let verlag = (object.verlag !== null) ? ", " + object.verlag : ""; 
         let status;
         if (object.status === 0) {
             status = "vorhanden";
@@ -513,14 +515,14 @@ async function resultArray (matchingIDs)
         }
 
         if (object.buchid !== 0 && object.aufsatzid === 0) {    // Buch   
-            titelUndVerweise = object.titel + band + preis + hinweis;
+            titelUndVerweise = object.titel + band + verlag + ort + preis + hinweis;
             medientyp = "Buch";
         }
         if (object.buchid !== 0 && object.aufsatzid !== 0) {     // Buchaufsatz
             i = parents.indexOf(parents.find( ({objektid}) => objektid === object.objektid ));   
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
             titelUndVerweise = object.titel + " <i> In: " + parents[i].autor + 
-                " (Hrg): " + parents[i].titel + "</i>" + band + preis + hinweis;
+                " (Hrg): " + parents[i].titel + "</i>" + band + verlag + ort + preis + hinweis;
             medientyp = "Buchaufsatz";
         }
         if (object.zeitschriftid !== 0 && object.aufsatzid === 0) { // Zeitschrift
@@ -596,6 +598,7 @@ async function qsearchDBRequest (searchStr, limit, offset)
     if (matchingIDs.length === 0) { // No entry in DB found
         return false;
     } else {
+        console.log(matchingIDs);
         return resultArray(matchingIDs);
     }
 }
@@ -630,12 +633,12 @@ async function dsearchDBRequest (data, limit, offset)
     }
     if (data.verlag !== null) {
         tablesToJoin += "LEFT OUTER JOIN ( \
-            SELECT id, v AS verlag FROM buch \
+            SELECT zeitschriftid, j AS journal FROM relzeitschrift \
                 LEFT OUTER JOIN ( \
-                    SELECT id AS i, verlag AS v FROM verlag \
-                ) ON buch.verlag = i \
-            ) ON id = buchid";
-        constraint.push("(verlag LIKE '%" + data.verlag + "%')");
+                    SELECT id AS i, journal AS j FROM zeitschrift \
+                ) ON relzeitschrift.id = i \
+            ) USING (zeitschriftid)";
+        constraint.push("(verlag LIKE '%" + data.verlag + "%' OR journal LIKE '%" + data.verlag + "%')");
     }
     if (data.sgn !== null) {
         constraint.push("(sgn = '" + data.sgn + "')");
@@ -768,7 +771,8 @@ cStandorteOptions(document.getElementById("standort"));
 /*
     TODO
     - Tastaturkürzel (erläuterung dafür implementieren)
-    - Navigator in allen anderen views anpassen
+    - Navigator in allen anderen views anpassen (Tastaturkuerzel!)
+    - Evtl. Tastaturkuerzel "Esc" hinzufuegen: falls das Navigatormenu offen ist, soll es inaktiv werden
     - falls eine Zeitschrift kein Kürzel hat, soll der gesamte Name in der Suche angezeigt werden und nicht bloß das Kürzel
 */
 </script>

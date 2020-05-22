@@ -166,7 +166,7 @@ function conformAndValidateAuthorArr (el, i, j)
 
 function conformAndValidateTitle (el, i, j)  //der Index j ist true, falls die Eingabe eines Titels Pflicht ist, sonst false
 {
-    if (j == true && el.value.match(/[a-zöäüß]/i) == null) {
+    if (j == true && el.value == "") {
         err[err.length] = i + "*" + message[0]("einen Titel");
         return false;
     } else {

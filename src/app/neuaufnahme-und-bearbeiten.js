@@ -96,10 +96,6 @@
                                     reject(err);
                                 }
                                 if (row === undefined) {
-                                /*
-                                sgnrTextarea.focus();
-                                sgnrTextarea.style.color = warnColor;
-                                */
                                     sgArr[i] = "ERROR";
                                     reject("Das Sachgebiet existiert nicht");
                                 } else {
@@ -155,7 +151,6 @@
                 let data;
                 let elements = bFrm.elements;
                 let zeitschriftkuerzelExistiert; 
-
                 switch (typeOfMedium) {
                     case "Artikel" :
                         let a;
@@ -245,85 +240,13 @@
                             return articleConformed;
                         }                
                         data = conformAndValidateArticle(a);
-                    break;
-
+                        break;
                     case "Zeitschrift" :
-                        let z;
-                        z = new zeitschrift (
-                            elements[0],     //objekt.ID
-                            elements[1],     //standort.ID
-                            elements[2],    //autoren
-                            elements[3],    //titel der zeitschrift
-                            elements[4],    //journal
-                            elements[7],    //zeitschriftkuerzel
-                            elements[6],     //band
-                            elements[8],     //nr
-                            elements[9],     //jahr
-                            elements[10],    //preis
-                            elements[11],   //sgnr
-                            elements[13],    //hinweis
-                            elements[14],    //stichworte
-                            elements[15]    //status
-                        );
-                        
-                        function conformAndValidateJournal(journal) 
-                        {
-                            err = [];
-                            let journalConformed;
-                            journalConformed = {
-                                id: journal.id,
-                                standort: journal.standort.options[journal.standort.selectedIndex].value,
-                                autoren: conformAndValidateAuthorArr(journal.autoren, 2, false),
-                                titel: conformAndValidateTitle(journal.titel, 3, true), 
-                                journal: conformAndValidateZeitschrift(journal.journal, 4, true),
-                                zeitschriftkuerzel: conformAndValidateZeitschrift(journal.zeitschriftkuerzel, 7, true),
-                                band: conformAndValidateNumber(journal.band, 6, false),
-                                nr: conformAndValidateNumber(journal.nr, 8, false),
-                                jahr: conformAndValidateYear(journal.jahr, 9, false),
-                                preis: conformAndValidateCosts(journal.preis, 10, false),
-                                sachgebietsnr: conformAndValidateSgnr(journal.sachgebietsnr, 11, false),
-                                hinweis: conformAndValidateComment(journal.hinweis, 13, false),
-                                stichworte: conformAndValidateKeywords(journal.stichworte, 14, false),
-                                status: journal.status.value
-                            };
-                            return journalConformed;
-                        }
-                        data = conformAndValidateJournal(z);
-                    break;
-
-                    case "Aufsatz" :
-                        let as = new aufsatz (
-                            elements[0],    //objekt.ID
-                            elements[1],    //standort.ID
-                            elements[2],    //autoren
-                            elements[3],    //titel
-                            elements[4],    //jahr
-                            elements[5],    //ort
-                            elements[6],    //seiten
-                            elements[7],    //sachgebietsnr
-                            elements[9],    //hinweis
-                            elements[10]    //stichworte
-                        )     
-                        function conformAndValidateEssay(essay)
-                        {
-                            err = [];
-                            let essayConformed = {
-                                id: essay.id,
-                                standort: essay.standort,
-                                autoren: conformAndValidateAuthorArr(essay.autoren, 2, false),
-                                titel: conformAndValidateTitle(essay.titel, 3, true),
-                                jahr: conformAndValidateYear(essay.jahr, 4, false),
-                                ort: conformAndValidateStr(essay.ort, 5, false, 500),
-                                seiten: conformAndValidatePages(essay.seiten, 6, false),
-                                sachgebietsnr: conformAndValidateSgnr(essay.sachgebietsnr, 7, false),
-                                hinweis: conformAndValidateComment(essay.hinweis, 9, false),
-                                stichworte: conformAndValidateKeywords(essay.stichworte, 10, false)
-                            };
-                            return essayConformed;
-                        }  
-                        data = conformAndValidateEssay(as);
-                    break;
-
+                        data = journalData(document.forms.bFrm);
+                        break;
+                    case "Aufsatz" :  
+                        data = essayData(document.forms.bFrm);
+                        break;
                     case "Buchaufsatz" :
                         let ba = new buchaufsatz (
                             elements[0],     //objekt.ID
@@ -371,52 +294,8 @@
                         data = conformAndValidateBookessay(ba);
                     break;
 
-                    default :                   //typeOfMedium = "Buch"
-                        let b = new buch (
-                            elements[0],     //objekt.ID
-                            elements[1],     //standort.ID
-                            elements[2],    //autoren
-                            elements[3],    //autortyp
-                            elements[4],    //titel
-                            elements[5],    //jahr
-                            elements[6],     //ort
-                            elements[7],    //verlag
-                            elements[8],     //auflage
-                            elements[9],     //band
-                            elements[10],    //seiten
-                            elements[11],   //isbn
-                            elements[12],   //preis
-                            elements[13],   //sgnr
-                            elements[15],    //hinweis
-                            elements[16],    //stichworte
-                            elements[17],   //status
-                        );
-                        function conformAndValidateBook(book) 
-                        {
-                            err = [];
-                            let bookConformed = {
-                                id: book.id.value,
-                                standort: book.standort.options[book.standort.selectedIndex].value,
-                                autoren: conformAndValidateAuthorArr(book.autoren, 2, false), //Arr[0]: name, vorname
-                                autortyp: book.autortyp.value,
-                                titel: conformAndValidateTitle(book.titel, 4, true), //Arr[0]: titel1 ...
-                                jahr: conformAndValidateYear(book.jahr, 5, false), 
-                                ort: conformAndValidateStr(book.ort, 6, false, 500),
-                                verlag: conformAndValidateStr(book.verlag, 7, false, 500),
-                                auflage: conformAndValidateNumber(book.auflage, 8, false),
-                                band: conformAndValidateNumber(book.band, 9, false),
-                                seiten: conformAndValidatePages(book.seiten, 10, false),
-                                isbn: conformAndValidateISBN(book.isbn, 11, false),
-                                preis: conformAndValidateCosts(book.preis, 12, false),
-                                sachgebietsnr: conformAndValidateSgnr(book.sachgebietsnr, 13, false),
-                                hinweis: conformAndValidateComment(book.hinweis, 15, false),
-                                stichworte: conformAndValidateKeywords(book.stichworte, 16, false),
-                                status: book.status.value
-                            };
-                            return bookConformed;
-                        }  
-                        data = conformAndValidateBook(b);
-                        console.log(data);
+                    default : //typeOfMedium = "Buch"                        
+                        data = bookData(document.forms.bFrm);
                 }
                 if (err.length !== 0) {
                     let firstError = err[0].split("*");
@@ -443,8 +322,9 @@
                                 }
                             }
                             switch (typeOfMedium) {
-                                case "Buch": sqlNewBook(data, callback); break;
-                                case "Zeitschrift": sqlNewZeitschrift(data, callback); break;
+                                case "Buch": addBook(data, callback); break;
+                                case "Zeitschrift": addJournal(data, callback); break;
+                                case "Aufsatz": addEssay(data, callback); break;
                             }
                             return true;
                         } else {
@@ -463,6 +343,10 @@
         }
         document.getElementsByName('sachgebietsnr')[0].addEventListener("focusout", bFrm.onfocusoutSachgebiet);
     }
+
+    /*
+        SQL
+    */
 
     function insertZeitschriftkuerzelIfExists (journal) 
     {
@@ -489,198 +373,13 @@
         }
     }
 
-    /*
-        SQL
-    */
-
-
-    async function sqlNewBook (data, callback)
-    {
-        let i, autorenArr = []; 
-
-        let procBook = new cSQLProcessor(callback);
-
-        procBook.add(sql[0],[], "buchid"); //=> buchid
-        if (data.ort !== null) {procBook.add(sql[2], [data.ort])}; //insert ortid
-        procBook.add(sql[17], [data.ort], "ortid"); //=> ortid
-        procBook.add(sql[5], [data.verlag]); //insert verlag
-        procBook.add(sql[16], [data.verlag], "verlagid"); //=> verlag    
-        procBook.add(sql[3],[data.id, 1, data.standort, data.preis, data.band, data.status]);
-        if (data.sachgebietsnr.length !== 0) {
-            for (i=0; i<data.sachgebietsnr.length; i++) {
-                ((i) => 
-                {
-                    procBook.add(sql[15], [data.id, data.sachgebietsnr[i]]);   //insert
-                })(i);
-            }
-        }
-        if (data.stichworte !== null) {
-            for (i=0; i < data.stichworte.length; i++) { 
-                ((i) => 
-                { 
-                    procBook.add(sql[6], [data.stichworte[i]]);    // insert
-                    procBook.add(sql[12], [data.stichworte[i]]);
-                    procBook.add(sql[7], function (result) {return [data.id, result]});
-                })(i);
-            }
-        }
-        if (data.autoren !== null) {
-            for (i=0; i < data.autoren.length; i++) { 
-                ((i) => 
-                {
-                    if (data.autoren[i].includes(",")) {
-                        autorenArr = data.autoren[i].split(",").map(strtrim);
-                    } else { //ein Name der Art "Müller" oder "Hans" wird immer als Nachname gespeichert
-                        autorenArr = [data.autoren.toString(), ""];
-                    }
-                    procBook.add(sql[8], [autorenArr[0], autorenArr[1]]);
-                    procBook.add(sql[13], [autorenArr[0], autorenArr[1]]);
-                    procBook.add(sql[9], function (result) {return [data.id, 0, "buchid", 0, result, i+1]}); 
-                })(i);
-            }
-        }
-        for (i=0; i < data.titel.length; i++) { 
-            ((i) => 
-            {
-                procBook.add(sql[10], [data.titel[i]]);
-                procBook.add(sql[14], [data.titel[i]]);
-                procBook.add(sql[11], function (result) {return [data.id, 0, "buchid", 0, result, 0, i+1]});
-            })(i);
-        }
-        procBook.add(sql[1], [data.jahr]);
-        procBook.add(sql[4], function (result) 
-            {
-                return [data.id, 0, "buchid", 0, data.autortyp, data.hinweis, data.seiten, result]
-            });
-        procBook.add(sql[18], ["buchid", data.auflage, "ortid", "verlagid", data.isbn]);
-
-        procBook.run();
-    }
-
-function sqlNewZeitschrift (data, callback)
-    {
-        let i, autorenArr = []; 
-
-        function stichwortInsertions ()
-        {
-            for (i=0; i < data.stichworte.length; i++) { 
-                ((i) => { 
-                db.run(sql[6], [data.stichworte[i]], 
-                    function (err)
-                    {
-                        if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;} 
-                        db.get(sql[12], [data.stichworte[i]], 
-                            function (err, row) 
-                            {
-                                if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;}
-                                db.run(sql[7], [data.id, row.id], rollback);
-                                return true;
-                            }
-                        );
-                    }
-                );
-                })(i);
-            }   
-        }
-        function autorInsertions (zid)
-        {
-            for (i=0; i < data.autoren.length; i++) { 
-                ((i) => {
-                if (data.autoren[i].includes(",")) {
-                    autorenArr = data.autoren[i].split(",").map(strtrim);
-                } else { //ein Name der Art "Müller" oder "Hans" wird immer als Nachname gespeichert
-                    autorenArr = [data.autoren.toString(), ""];
-                }
-                db.run(sql[8], [autorenArr[0], autorenArr[1]], 
-                    function (err)
-                    {
-                        if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;} 
-                        db.get(sql[13], [autorenArr[0], autorenArr[1]], 
-                            function (err, row) 
-                            {
-                                if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;}
-                                let autorid = row.id;
-                                db.run(sql[9], [data.id, zid, 0, 0, autorid, i+1], rollback);
-                                return true;
-                            }
-                        );
-                    }
-                );
-                })(i);
-            }   
-        }
-        function titelInsertions (zid)
-        {
-            for (i=0; i < data.titel.length; i++) { 
-            ((i) => {
-                db.run(sql[10], [data.titel[i]], function (err)
-                {
-                    if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;} 
-                    db.get(sql[14], [data.titel[i]], 
-                        function (err, row) 
-                        {
-                            if (err) {console.log(err.message); db.run(`ROLLBACK`); return false;}
-                            let titelid = row.id;
-                            db.run(sql[11], [data.id, zid, 0, 0, titelid, 0, i+1], rollback);
-                        }
-                    );
-                });
-            })(i);
-            }
-        }
-
-        db.serialize( () => {
-        db.run(`BEGIN TRANSACTION`);
-        db.get(sql[20], [], function (err, row)
-        {
-            if (err) {console.log(err.message); return false;}
-            let zeitschriftid = row.id + 1;
-            console.log("zid: "+ zeitschriftid);
-            db.run(sql[3], [data.id, 3, data.standort, data.preis, data.band, data.status], rollback);
-            db.run(sql[21], [data.journal, data.zeitschriftkuerzel], rollback);
-            for (i=0; i<data.sachgebietsnr.length; i++) {
-                ((i) => 
-                {
-                    db.run(sql[15], [data.id, data.sachgebietsnr[i]], rollback);
-                })(i);
-            }
-            db.get(sql[1], [data.jahr], function (err, row)
-            {
-                if (err) {console.log(err.message); db.run(`ROLLBACK`); return false}
-                let jahrid = (row === undefined) ? null : row.jahrid;
-                console.log("jahrid: " + jahrid);
-                db.run(sql[4], [data.id, zeitschriftid, 0, 0, 1, data.hinweis, data.seiten, jahrid], rollback);
-                if (data.stichworte !== null) {stichwortInsertions();}
-                if (data.autoren !== null) {autorInsertions(zeitschriftid);}
-                titelInsertions(zeitschriftid); // data.titel is never null
-                db.get(sql[22], [data.journal], function (err, row)
-                {
-                    if (err) {console.log(err.message); db.run(`ROLLBACK`); return false}
-                    console.log("zeitschrift.id: " + row.id);
-                    db.run(sql[23], [row.id, zeitschriftid, data.nr], function (err)
-                    {
-                        (async () =>
-                        {
-                            let warn = document.getElementById("bFrmWarnFld");
-                            warn.innerHTML = await rollback(err);
-                            if (warn.innerHTML.includes("ERROR")) {
-                                console.log("error");
-                                return false;
-                            } else {
-                                db.run(`COMMIT`);
-                                return callback();
-                            }
-                        })();
-                    });
-                });
-            });
-        })});
-    }
-
-
 /*
 
 TODO
+    - ORT IN TABELLEN ÄNDERN - RELATION NACH RELOBJTYP NICHT NACH BUCH !!! DAMIT AUCH EIN AUFSATZ EINEN ORT HABEN KANN
+        DANN MÜSSEN AUCH DIE SPEICHER_SQLs ANGEPASST WERDEN !!! EBENFALLS DIE SUCHE !!! IN INDEX.HTML. ANPASSEN AUCH 
+        IN BOOKDATA.JS usw.
     - css: textfield wrapping
     - Verallgemeinern der Datenlisten Anzeige Funktion
+    - preis funktioniert nicht mit kommastellen
 */

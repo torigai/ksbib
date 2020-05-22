@@ -101,8 +101,8 @@ sql[2] = `INSERT OR IGNORE INTO ort (id, ort) VALUES (NULL, ?)`;
 sql[3] = `INSERT INTO objekt (id, medium, standort, preis, band, status) 
     VALUES (?, ?, ?, ?, ?, ?)`;
 sql[4] = `INSERT INTO relobjtyp 
-    (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr, ort)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 sql[5] = `INSERT OR IGNORE INTO verlag (id, verlag) VALUES (NULL, ?)`;
 sql[6] = `INSERT OR IGNORE INTO stichwort (id, stichwort) VALUES (NULL, ?)`;
 sql[7] = `INSERT INTO relstichwort (objektid, stichwortid) VALUES (?, ?)`;
@@ -118,12 +118,13 @@ sql[14] = `SELECT id FROM titel WHERE titel = ?`;
 sql[15] = `INSERT INTO relsachgebiet (objektid, sachgebietid) VALUES (?, ?)`;
 sql[16] = `SELECT id AS verlagid FROM verlag WHERE verlag = ?`;
 sql[17] = `SELECT id AS ortid FROM ort WHERE ort = ?`;
-sql[18] = `INSERT INTO buch (id, auflage, ort, verlag, isbn) VALUES (?, ?, ?, ?, ?)`;
+sql[18] = `INSERT INTO buch (id, auflage, verlag, isbn) VALUES (?, ?, ?, ?)`;
 sql[19] = `SELECT journal FROM zeitschrift WHERE journal LIKE ? Limit 5`
-sql[20] = `SELECT MAX(zeitschriftid) AS id FROM relobjtyp`;
+sql[20] = `SELECT MAX(zeitschriftid) + 1 AS id FROM relobjtyp`;
 sql[21] = `INSERT OR IGNORE INTO zeitschrift (id, journal, kuerzel) VALUES (NULL, ?, ?)`;
 sql[22] = `SELECT id FROM zeitschrift WHERE journal = ?`;
 sql[23] = `INSERT OR IGNORE INTO relzeitschrift (id, zeitschriftid, nr) VALUES (?, ?, ?)`;
+sql[24] = `SELECT MAX(aufsatz) + 1 AS id FROM relobjtyp`;
 
 
 
@@ -158,7 +159,7 @@ function sqlSearchForMediumData (idArr)
     let aufsatzid = idArr[3];
     return `SELECT objektid, zeitschriftid, buchid, aufsatzid, 
     jahr, preis, band, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, 
-    standortsgn, medium, band, zeitschrift, zeitschriftNr, hinweis, status
+    standortsgn, medium, band, zeitschrift, zeitschriftNr, hinweis, status, ort, verlag
     FROM media_view
     WHERE objektid = '${id}' AND zeitschriftid = '${zeitschriftid}' AND buchid = '${buchid}' AND aufsatzid = '${aufsatzid}'
     ORDER BY objektid, zeitschriftid, buchid, aufsatzid, titeltyp, titelnr, autortyp, autornr ASC`;

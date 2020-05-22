@@ -17,11 +17,11 @@ sqr[8] = 'create table if not exists titel (id integer primary key, titel text u
 sqr[9] = 'create table if not exists objekt (id integer primary key, aufnahmedatum text, medium integer references medium, standort integer references standort, sgn text unique, preis real, band integer, status integer default 0, check (id > 0), check (status >= 0 AND status <= 2))';
 // status = 0 (vorhanden) = 1 (nicht vorhanden)
 sqr[10] = 'create table if not exists relsachgebiet (objektid integer references objekt, sachgebietid integer references sachgebiet, primary key (objektid, sachgebietid))';
-sqr[11] = 'create table if not exists buch (id integer primary key, auflage integer, ort integer references ort, verlag integer references verlag, isbn integer, buchtitel text, check (length(isbn)=10 or length(isbn)=13), check (auflage >0 and auflage < 201))';
-sqr[12] = 'create table if not exists relzeitschrift (zeitschriftid integer primary key, nr integer, id integer references zeitschrift (id))';
+sqr[11] = 'create table if not exists buch (id integer primary key, auflage integer, verlag integer references verlag, isbn integer, buchtitel text, check (length(isbn)=10 or length(isbn)=13), check (auflage >0 and auflage < 201))';
+sqr[12] = 'create table if not exists relzeitschrift (zeitschriftid integer primary key, nr integer, id integer references zeitschrift (id), unique(id, zeitschriftid))';
 sqr[13] = 'create table if not exists stichwort (id integer primary key, stichwort text unique)';
 // autortyp = 0 (autor) oder 1 (hrg)
-sqr[14] = 'create table if not exists relobjtyp (objektid integer references objekt, zeitschriftid integer references relzeitschrift (zeitschriftid), buchid integer references buch, aufsatzid integer, autortyp integer not null, hinweis text, seiten text, erscheinungsjahr integer references jahr, primary key (objektid, zeitschriftid, buchid, aufsatzid), check (autortyp = 0 OR autortyp = 1))';
+sqr[14] = 'create table if not exists relobjtyp (objektid integer references objekt, zeitschriftid integer references relzeitschrift (zeitschriftid), buchid integer references buch, aufsatzid integer, autortyp integer not null, hinweis text, seiten text, erscheinungsjahr integer references jahr, ort integer references ort, primary key (objektid, zeitschriftid, buchid, aufsatzid), check (autortyp = 0 OR autortyp = 1))';
 // titeltyp = 0 (buchtitel/zeitschrifttitel) oder 1 (aufsatztitel/artikeltitel)
 sqr[15] = 'create table if not exists reltitel (objektid integer, zeitschriftid integer, buchid integer, aufsatzid integer, titelid integer, titelnr integer, titeltyp integer not null, check (titelnr > 0 and titelnr < 4), check (titeltyp = 0 OR titeltyp = 1), primary key (objektid, zeitschriftid, buchid, aufsatzid, titelid), foreign key (objektid, zeitschriftid, buchid, aufsatzid) references relobjtyp (objektid, zeitschriftid, buchid, aufsatzid), foreign key (titelid) references titel (id))';
 sqr[16] = 'create table if not exists relstichwort (objektid integer references relobjtyp (objektID), stichwortid integer references stichwort, primary key (objektid, stichwortid))';
@@ -37,7 +37,7 @@ sqr[23] = "insert into ort (id, ort) values (0, NULL)";
 sqr[24] = "insert into verlag (id, verlag) values (0, NULL)";
 sqr[25] = "insert into autor (id, vorname, name) values (0, NULL, NULL)";
 sqr[26] = "insert into titel (id, titel) values (0, NULL)";
-sqr[27] = "insert into buch (id, auflage, ort, verlag, isbn) values (0, NULL, NULL, NULL, NULL)";
+sqr[27] = "insert into buch (id, auflage, verlag, isbn) values (0, NULL, NULL, NULL)";
 sqr[28] = "insert into relzeitschrift (zeitschriftid, nr, id) values (0, NULL, 0)";
 sqr[29] = "insert into stichwort (id, stichwort) values (0, NULL)";
 
@@ -63,10 +63,10 @@ sqr[48] = "insert into relsachgebiet (objektid, sachgebietid) values (1, 100)";
 sqr[49] = "insert into relsachgebiet (objektid, sachgebietid) values (1, 101)";
 sqr[50] = "insert into relsachgebiet (objektid, sachgebietid) values (2, 0)";
 sqr[51] = "insert into relsachgebiet (objektid, sachgebietid) values (2, 1)";
-sqr[52] = "insert into buch (id, auflage, ort, verlag, isbn) values (1, 1, 1, 1, 3518576054)";
-sqr[53] = "insert into buch (id, auflage, ort, verlag, isbn) values (2, 1, 1, 1, 9783837662535)";
-sqr[54] = "insert into relobjtyp (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr) values (1,0,1,0,1, 'Anmerkung zur Geschichte der Dinge', NULL, 983)";
-sqr[55] = "insert into relobjtyp (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr) values (2,0,2,0,0, 'Dissertation Leibniz-Universität Hannover', NULL, 1014)";
+sqr[52] = "insert into buch (id, auflage, verlag, isbn) values (1, 1, 1, 3518576054)";
+sqr[53] = "insert into buch (id, auflage, verlag, isbn) values (2, 1, 1, 9783837662535)";
+sqr[54] = "insert into relobjtyp (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr, ort) values (1,0,1,0,1, 'Anmerkung zur Geschichte der Dinge', NULL, 983, 1)";
+sqr[55] = "insert into relobjtyp (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr, ort) values (2,0,2,0,0, 'Dissertation Leibniz-Universität Hannover', NULL, 1014, 1)";
 sqr[56] = "insert into reltitel (objektid, zeitschriftid, buchid, aufsatzid, titelid, titeltyp, titelnr) values (1,0,1,0,1,0,1)";
 sqr[57] = "insert into reltitel (objektid, zeitschriftid, buchid, aufsatzid, titelid, titeltyp, titelnr) values (2,0,2,0,2,0,1)";
 sqr[58] = "insert into relautor (objektid, zeitschriftid, buchid, aufsatzid, autorid, autornr) values (1,0,1,0,1,1)";
@@ -91,7 +91,7 @@ sqr[74] = "insert into titel (id, titel) values (4, 'Neuere Erkenntnisse')";
 sqr[75] = "insert into objekt (id, medium, standort, preis, band) values (3, 3, 2, '7.30', NULL)";
 sqr[76] = "insert into relsachgebiet (objektid, sachgebietid) values (3, 100)";
 sqr[77] = "insert into relsachgebiet (objektid, sachgebietid) values (3, 101)";
-sqr[78] = "insert into relobjtyp (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr) values (3,1,0,0,0, 'Wissenschaft als Suche nach Wahrheit', NULL, 983)";
+sqr[78] = "insert into relobjtyp (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr, ort) values (3,1,0,0,0, 'Wissenschaft als Suche nach Wahrheit', NULL, 983, NULL)";
 sqr[79] = "insert into reltitel (objektid, zeitschriftid, buchid, aufsatzid, titelid, titeltyp, titelnr) values (3,1,0,0,4,0,1)";
 sqr[80] = "insert into stichwort (id, stichwort) values (5, 'Wissenschaft')";
 sqr[81] = "insert into relstichwort (objektid, stichwortid) values (3, 5)";
@@ -104,13 +104,13 @@ sqr[87] = "insert into relautor (objektid, zeitschriftid, buchid, aufsatzid, aut
 
 // Buchaufsatz
 sqr[88] = "insert into titel (id, titel) values (5, 'Dies ist ein Untertitel')";
-sqr[89] = "insert into relobjtyp (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr) values (1,0,1,1,0, 'test', '12-28', 983)";
+sqr[89] = "insert into relobjtyp (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr, ort) values (1,0,1,1,0, 'test', '12-28', 983, 1)";
 sqr[90] = "insert into relautor (objektid, zeitschriftid, buchid, aufsatzid, autorid, autornr) values (1,0,1,1,3,1)";
 sqr[91] = "insert into reltitel (objektid, zeitschriftid, buchid, aufsatzid, titelid, titeltyp, titelnr) values (1,0,1,1,5,1,1)";
 
 //Zeitschriftartikel
 sqr[92] = "insert into titel (id, titel) values (6, 'Dies ist der Titel eines Artikels')";
-sqr[93] = "insert into relobjtyp (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr) values (3,1,0,1,0, 'Zeitschriftartikel', '5-10', 980)";
+sqr[93] = "insert into relobjtyp (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr, ort) values (3,1,0,1,0, 'Zeitschriftartikel', '5-10', 980, NULL)";
 sqr[94] = "insert into relautor (objektid, zeitschriftid, buchid, aufsatzid, autorid, autornr) values (3,1,0,1,2,1)";
 sqr[95] = "insert into reltitel (objektid, zeitschriftid, buchid, aufsatzid, titelid, titeltyp, titelnr) values (3,1,0,1,6,1,1)";
 
@@ -124,13 +124,13 @@ sqr[98] = "insert into zeitschrift (id, journal, kuerzel) values (4, 'Physik Jou
 sqr[99] = `CREATE VIEW media_view AS 
   SELECT objekt.id AS objektid, zeitschriftid, buchid, aufsatzid, 
     jahr, preis, band, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, 
-    standortsgn, medium.medium, band, kuerzel AS zeitschrift, nr AS zeitschriftNr, sgn, hinweis, status
+    standortsgn, medium.medium, band, kuerzel AS zeitschrift, nr AS zeitschriftNr, sgn, hinweis, status, ort, verlag
     FROM objekt 
     INNER JOIN medium ON medium.id = objekt.medium 
     INNER JOIN standort ON standort.id = objekt.standort 
     INNER JOIN ( 
         SELECT objektid, zeitschriftid, buchid, aufsatzid, 
-        jahr, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, kuerzel, nr, hinweis
+        jahr, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, kuerzel, nr, hinweis, o AS ort, verlag
         FROM relobjtyp 
         LEFT OUTER JOIN ( 
             SELECT objektid, zeitschriftid, buchid, aufsatzid, 
@@ -139,6 +139,15 @@ sqr[99] = `CREATE VIEW media_view AS
             INNER JOIN autor id ON relautor.autorid = id 
         ) USING (objektid, zeitschriftid, buchid, aufsatzid) 
         LEFT OUTER JOIN jahr ON jahr.id = relobjtyp.erscheinungsjahr 
+        LEFT OUTER JOIN (
+            SELECT id AS oid, ort AS o FROM ort 
+        ) ON oid = relobjtyp.ort
+        LEFT OUTER JOIN (
+            SELECT id AS buchid, v AS verlag FROM buch
+            LEFT OUTER JOIN (
+                SELECT id AS vid, verlag AS v FROM verlag 
+            ) ON buch.verlag = vid
+        ) USING (buchid)
         INNER JOIN ( 
             SELECT objektid, zeitschriftid, buchid, aufsatzid, 
             titel, titelnr, titeltyp 
@@ -153,6 +162,45 @@ sqr[99] = `CREATE VIEW media_view AS
     ) ON objekt.id = objektid AND zeitschriftid = zeitschriftid AND buchid = buchid AND aufsatzid = aufsatzid`;
 
 
+/*
+sqr[99] = `CREATE VIEW media_view AS 
+  SELECT objekt.id AS objektid, zeitschriftid, buchid, aufsatzid, 
+    jahr, preis, band, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, 
+    standortsgn, medium.medium, band, kuerzel AS zeitschrift, nr AS zeitschriftNr, sgn, hinweis, status, verlag, ort
+    FROM objekt 
+    INNER JOIN medium ON medium.id = objekt.medium 
+    INNER JOIN standort ON standort.id = objekt.standort 
+    INNER JOIN ( 
+        SELECT objektid, zeitschriftid, buchid, aufsatzid, 
+        jahr, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, kuerzel, nr, hinweis, ort
+        FROM relobjtyp 
+        LEFT OUTER JOIN (
+            SELECT id AS buchid, v AS verlag FROM buch
+            LEFT OUTER JOIN (
+                SELECT id AS i, verlag AS v FROM verlag
+            ) ON buch.verlag = i
+        ) USING (buchid)
+        LEFT OUTER JOIN ( 
+            SELECT objektid, zeitschriftid, buchid, aufsatzid, ort 
+            autornr, name ||", "|| vorname as autor 
+            FROM relautor 
+            INNER JOIN autor id ON relautor.autorid = id 
+        ) USING (objektid, zeitschriftid, buchid, aufsatzid) 
+        LEFT OUTER JOIN jahr ON jahr.id = relobjtyp.erscheinungsjahr 
+        LEFT OUTER JOIN ort ON ort.id = relobjtyp.ort
+        INNER JOIN ( 
+            SELECT objektid, zeitschriftid, buchid, aufsatzid, 
+            titel, titelnr, titeltyp 
+            FROM reltitel 
+            INNER JOIN titel id ON titelid = id 
+        ) USING (objektid, zeitschriftid, buchid, aufsatzid) 
+        LEFT OUTER JOIN ( 
+            SELECT zeitschriftid, kuerzel, nr 
+            FROM relzeitschrift 
+            INNER JOIN zeitschrift USING (id) 
+        ) USING (zeitschriftid) 
+    ) ON objekt.id = objektid AND zeitschriftid = zeitschriftid AND buchid = buchid AND aufsatzid = aufsatzid`;
+*/
 const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('src/db/ksbib.db', (err) => 
 {
