@@ -18,9 +18,9 @@ function zeitschrift (id, standort, autoren, titel, journal, kuerzel, band, nr, 
     this.hinweis = hinweis;
     this.stichworte = stichworte;  
     this.status = status; 
-    this.medientyp = 3;	//Zeitschrift
+    this.medientyp = 2;	//Zeitschrift
     this.autortyp = 1;	//Hrg
-    this.titeltyp = 0;	//Aufsatztitel
+    this.titeltyp = 0;	//Buchtitel
     this.aufsatzid = 0;
     this.buchid = 0;
 }
@@ -108,7 +108,7 @@ function addJournal (data, callback)
             { 
                 procZeitschrift.add(sql[6], [data.stichworte[i]]); 
                 procZeitschrift.add(sql[12], [data.stichworte[i]]);
-                procZeitschrift.add(sql[7], function (result) {return [data.id, result]});
+                procZeitschrift.add(sql[7], function (result) {return [data.id, "zeitschriftid", data.buchid, data.aufsatzid, result]});
             })(i);
         }
     }

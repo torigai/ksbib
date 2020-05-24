@@ -11,6 +11,7 @@
     <script src="../app/journalData.js"></script>
     <script src="../app/bookData.js"></script>
     <script src="../app/essayData.js"></script>
+    <script src="../app/articleData.js"></script>
     <script src="../app/sql.js"></script>
     <script src="../app/sqlproc.js"></script>
 </head>         
@@ -99,8 +100,9 @@
     let buchaufsatzBtn = document.getElementById("Buchaufsatz");
     let artikelBtn = document.getElementById("Artikel");
     let arrBtn = Array.from(selFrm.elements);
-
-    aktion = "hinzufügen"; // defined in neuaufnahme-und-bearbeiten.js
+    let typeOfMedium;
+    let aktion = "hinzufügen"; // defined in neuaufnahme-und-bearbeiten.js
+    
     let xhttpResponse = function (xhttp)
     {
         document.getElementById("outFld").innerHTML = xhttp.responseText;
@@ -111,6 +113,7 @@
         typeOfMedium = type;
         for (let item of selFrm.elements) {item.setAttribute("style", "");}
         document.getElementById(type).setAttribute("style","background-color: #e6e6e6");
+        document.getElementById("headerTitel").innerHTML = typeOfMedium + " " + aktion; 
         return xhr(link, xhttpResponse);
     }
 
@@ -118,7 +121,7 @@
     zeitschriftBtn.onclick = (()=> pressBtn("Zeitschrift", "formular-zeitschrift.html"));
     aufsatzBtn.onclick = (()=> pressBtn("Aufsatz", "formular-aufsatz.html"));
     buchaufsatzBtn.onclick = (()=> pressBtn("Buchaufsatz", "formular-buchaufsatz.html"));
-    artikelBtn.onclick = (()=> pressBtn("Artikel", "formular-artikel.html"));
+    artikelBtn.onclick = (()=> pressBtn("Artikel", "formular-selid.html"));
 
     /*
         Shortkeys for this view

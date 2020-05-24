@@ -109,7 +109,7 @@ function addBook (data, callback)
             { 
                 procBook.add(sql[6], [data.stichworte[i]]);    // insert
                 procBook.add(sql[12], [data.stichworte[i]]);
-                procBook.add(sql[7], function (result) {return [data.id, result]});
+                procBook.add(sql[7], function (result) {return [data.id, data.zeitschriftid, "buchid", data.aufsatzid, result]});
             })(i);
         }
     }

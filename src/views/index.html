@@ -228,6 +228,7 @@
     qsearchFrm.onenter = function (event)
     {
         if (event.keyCode === 13 || event.which === 13) {
+            event.preventDefault();
                 qsearchFrm.sbmtBtn.click();
             } else { return false; }
     }
@@ -497,7 +498,7 @@ async function resultArray (matchingIDs)
         }
         let id = object.objektid;
         let standort = object.standortsgn;
-        let jahr = object.jahr;
+        let jahr = (object.jahr !== null) ? object.jahr : "";
         let preis = (object.preis !== null) ? ", " + object.preis + " &euro;" : "";
         let band = (object.band !== null) ? ", Band " + object.band : ""; 
         let seiten = (object.seiten !== null) ? ", S. " + object.seiten : "";
@@ -516,29 +517,29 @@ async function resultArray (matchingIDs)
 
         if (object.buchid !== 0 && object.aufsatzid === 0) {    // Buch   
             titelUndVerweise = object.titel + band + verlag + ort + preis + hinweis;
-            medientyp = object.medium;
+            medientyp = "Buch";
         }
         if (object.buchid !== 0 && object.aufsatzid !== 0) {     // Buchaufsatz
             i = parents.indexOf(parents.find( ({objektid}) => objektid === object.objektid ));   
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
             titelUndVerweise = object.titel + " <i> In: " + parents[i].autor + 
                 " (Hrg): " + parents[i].titel + "</i>" + band + verlag + ort + preis + hinweis;
-            medientyp = object.medium;
+            medientyp = "Buchaufsatz";
         }
         if (object.zeitschriftid !== 0 && object.aufsatzid === 0) { // Zeitschrift
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
-            titelUndVerweise = object.titel + " <i>" + object.zeitschrift + nr + "</i>" + preis + hinweis;
-            medientyp = object.medium; 
+            titelUndVerweise = object.titel + " <i>" + object.zeitschrift + band + nr + "</i>" + preis + hinweis;
+            medientyp = "Zeitschrift"; 
         }
         if (object.zeitschriftid !== 0 && object.aufsatzid !== 0) { // Artikel
             i = parents.indexOf(parents.find( ({id}) => id === object.objektid ));
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
-            titelUndVerweise = object.titel + " <i>" + object.zeitschrift + nr + seiten + "</i>" + hinweis;
-            medientyp = object.medium;
+            titelUndVerweise = object.titel + " <i>" + object.zeitschrift + band + nr + seiten + "</i>" + hinweis;
+            medientyp = "Artikel";
         }
         if (object.zeitschriftid === 0 && object.buchid === 0) { // Aufsatz
             titelUndVerweise = object.titel + ort + seiten + "</i>" + hinweis;
-            medientyp = object.medium;
+            medientyp = "Aufsatz";
         }
         return [id, autoren, titelUndVerweise, jahr, medientyp, standort, status];
     }
@@ -566,7 +567,7 @@ async function resultArray (matchingIDs)
             }));
         })(i);
     }
-    await Promise.all(promises).catch(console.error);
+    await Promise.all(promises).catch(err => {return console.error(err)});
 
     if (parentsIDs.length !== 0) { // Data for books belonging to articles in books
         parentsIDs = parentsIDs.map((item) => item.toString()).filter(onlyUnique).map((item)=> {return item.split(",").map(Number)});
@@ -647,9 +648,9 @@ async function dsearchDBRequest (data, limit, offset)
     }
     if (data.stichwort !== null && data.stichwort.length > 0) {
         tablesToJoin += "LEFT OUTER JOIN ( \
-            SELECT objektid, stichwort FROM relStichwort \
-            INNER JOIN stichwort id ON id = stichwortID\
-            ) USING (objektid)";
+            SELECT objektid, zeitschriftid, buchid, aufsatzid, stichwort FROM relStichwort \
+            INNER JOIN stichwort id ON id = stichwortID \
+            ) USING (objektid, zeitschriftid, buchid, aufsatzid)";
         constraint.push("(stichwort LIKE '%" + data.stichwort[0] + "%')");
     }
     if (data.hinweis !== null) {

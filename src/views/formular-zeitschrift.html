@@ -26,7 +26,7 @@ zeitschrift
             <div class='rTableRow'>
                 <div class="rTableCell left">
                 	<label>ID</label><br>
-                	<input type="text" class="txt" name="id" value="1" size="4" readonly="readonly" tabindex="-1">
+                	<input type="text" name="id" value="1" size="4" readonly="readonly" tabindex="-1">
                 </div>
                 <div class="rTableCell left">
                 	<label for="standort"> Standort </label><br>
@@ -62,7 +62,7 @@ zeitschrift
             <div class='rTableRow'>
                 <div class="rTableCell left">
                     <label>Zeitschrift<br></label>
-                    <input type="text" list="zeitschriftenDL" name="zeitschrift" size="30" value=""
+                    <input type="text" list="zeitschriftenDL" name="zeitschrift" class= "txt" size="30" value=""
                     onkeyup="showDatalist(this.value+'%', document.getElementById('zeitschriftenDL'), sql[19], 'journal');"
                     onfocusout="insertZeitschriftkuerzelIfExists(this.value);">
                     <datalist id="zeitschriftenDL">
@@ -76,7 +76,7 @@ zeitschrift
             <div class="rTableRow">
                 <div class="rTableCell left">
                     <label>Zeitschriftkürzel</label><br>
-                    <input type="text" name="zeitschriftkuerzel" size="30" value="">  
+                    <input type="text" name="zeitschriftkuerzel" class="txt" size="30" value="">  
                 </div>
             </div>
             <div class='rTableRow'>

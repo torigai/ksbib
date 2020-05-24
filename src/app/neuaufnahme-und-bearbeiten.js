@@ -1,3 +1,7 @@
+    //POSSIBLE PARENTS: (Beachte die global definierten Variablen !)
+    // neuaufnahme.html 
+    // aendern.html
+
     /*
         XHR Event Listener
     */
@@ -5,10 +9,39 @@
     onLoadenedXHR(
         async function ()
         {
+            if (document.forms.bFrm !== undefined) {
             // create bFrm and fill up "standorte" select field and "id" field
-            await cBFrmObj();
-            cStandorteOptions(document.getElementById("standort"));
-            bFrm.elements[0].value = await getMaxID(1);
+                await cBFrmObj();
+                if (document.getElementById("standort") !== null) {
+                    cStandorteOptions(document.getElementById("standort"));
+                }
+                if (document.getElementsByName("id")[0] !== undefined) {
+                    bFrm.elements[0].value = await getMaxID(1);
+                }
+            }
+            if (typeOfMedium === "Artikel" || typeOfMedium === "Buchaufsatz") {
+                if (document.forms.bFrm === undefined) { // only formular-selid.html is loaded
+                    document.getElementById("selIDStr").focus();
+                }
+                document.getElementById("selIDStr").addEventListener("keypress", function (event)
+                {
+                    if (event.keyCode == 13 || event.which == 13) {
+                        event.preventDefault();
+                        document.getElementById("selIDOKBtn").click();
+                    } else {return;}
+                });
+                if (typeOfMedium === "Artikel") {
+                    document.getElementById("selIDOKBtn").onclick = (()=>
+                    {
+                        return getJournalData(
+                            document.getElementById("selIDStr").value, 
+                            document.getElementById("selIDFrmWarnFld"),
+                            document.getElementById("selIDOutFld"),
+                            "formular-artikel.html"
+                        );
+                    });
+                }
+            }
         }
     )
 
@@ -16,21 +49,19 @@
         FORMULAR
     */
 
-    let typeOfMedium;
-    let aktion;
-    // both get values in neuaufnahme.html and bearbeiten.html
-
     cBFrmObj = function () 
     { 
-        document.getElementById("headerTitel").innerHTML = typeOfMedium + " " + aktion; 
         let bFrm = new cformular(
             document.getElementById("bFrm"), 
             document.getElementById("bFrmWarnFld"), 
             document.getElementById("outFld"), 
             document.getElementById("bOKBtn")
         );
-        bFrm.elements[1].focus();
-        bFrm.defaultSelectedIndex = bFrm.elements[1].selectedIndex;
+        if (document.getElementsByName("id")[0] !== undefined) {
+            bFrm.elements[1].focus();
+        } else {
+            bFrm.elements[0].focus();
+        }
         bFrm.noIn = bFrm.elements.length - 2;
         bFrm.onenter = function (event) {
             let frm = this;
@@ -38,11 +69,12 @@
             let i = 0;
             function checkKey (event) {
                 if (event.keyCode == 13 || event.which == 13) {
+                    event.preventDefault();
                     frm.sbmtBtn.click();
                 } else {return;}
             }
-            for (i = 1; i < txtLen + 1; i++) {
-                frm.inFld[i].addEventListener("keypress", checkKey);
+            for (i = 0; i < txtLen; i++) {
+                frm.textFld[i].addEventListener("keypress", checkKey);
             }
         }
         bFrm.oninput = function ()
@@ -135,14 +167,18 @@
             */
 
             bFrm.warnFld.innerHTML = "";
-            let i;
-            for (i = 1; i < bFrm.noIn; i++) {
-                switch (i) {
-                    case 1: bFrm.elements[1].item(bFrm.defaultSelectedIndex).selected = true; break;
-                    case bFrm.noIn - 1: bFrm.elements[bFrm.noIn -1].item(bFrm.defaultSelectedIndex).selected = true; break;
-                    default: bFrm.elements[i].value = bFrm.elements[i].defaultValue;
+            let elArr = Array.from(bFrm.elements);
+            elArr.forEach(element => 
+            {
+                if (element.name === "id") {
+                    return element;
                 }
-            }
+                if (element.type === "select-one" && element.item(0) !== null) {
+                    return element.item(0).selected = true;
+                } else {
+                    return element.value = element.defaultValue;
+                }
+            });
         })
         bFrm.newSbmt(
             async function () 
@@ -153,93 +189,7 @@
                 let zeitschriftkuerzelExistiert; 
                 switch (typeOfMedium) {
                     case "Artikel" :
-                        let a;
-                        zeitschriftkuerzelExistiert = (elements.length == 18) ? true : false;
-                        if (zeitschriftkuerzelExistiert) {
-                            a = new artikel 
-                            (
-                                elements[0],     //objekt.ID
-                                elements[1],     //standort.ID
-                                elements[2],    //autoren
-                                elements[3],    //titel des artikels
-                                elements[4],    //journal
-                                elements[6],           //zeitschriftkuerzel
-                                elements[5],     //band
-                                elements[7],     //nr
-                                elements[8],     //jahr
-                                elements[9],    //titel der zeitschrift
-                                elements[10],    //preis
-                                elements[11],   //seiten
-                                elements[12],   //sgnr
-                                elements[14],    //hinweis
-                                elements[15]    //stichworte
-                            );
-                        } else {
-                            a = new artikel 
-                            (
-                                elements[0],     //objekt.ID
-                                elements[1],     //standort.ID
-                                elements[2],    //autoren
-                                elements[3],    //titel des artikels
-                                elements[4],    //journal
-                                "NULL",           //zeitschriftkuerzel
-                                elements[5],     //band
-                                elements[6],     //nr
-                                elements[7],     //jahr
-                                elements[8],    //titel der zeitschrift
-                                elements[9],    //preis
-                                elements[10],   //seiten
-                                elements[11],   //sgnr
-                                elements[13],    //hinweis
-                                elements[14]    //stichworte
-                            );
-                        }
-                        console.log(a);
-                        
-                        function conformAndValidateArticle(article) 
-                        {
-                            let articleConformed;
-                            err = [];
-                            if (zeitschriftkuerzelExistiert) {
-                                articleConformed = {
-                                    id: article.id,
-                                    standort: article.standort,
-                                    autoren: conformAndValidateAuthorArr(article.autoren, 2, false),
-                                    titel: conformAndValidateTitle(article.titel, 3, true), 
-                                    journal: conformAndValidateZeitschrift(article.journal, 4, true),
-                                    zeitschriftkuerzel: conformAndValidateZeitschrift(article.zeitschriftkuerzel, 6, true),
-                                    band: conformAndValidateNumber(article.band, 5, false),
-                                    nr: conformAndValidateNumber(article.nr, 7, false),
-                                    jahr: conformAndValidateYear(article.jahr, 8, false),
-                                    zeitschrifttitel: conformAndValidateTitle(article.titel, 9, false),
-                                    preis: conformAndValidateCosts(article.preis, 10, false),
-                                    seiten: conformAndValidatePages(article.seiten, 11, false),
-                                    sachgebietsnr: conformAndValidateSgnr(article.sachgebietsnr, 12, false),
-                                    hinweis: conformAndValidateComment(article.hinweis, 14, false),
-                                    stichworte: conformAndValidateKeywords(article.stichworte, 15, false)
-                                };    
-                            } else {
-                                articleConformed = {
-                                    id: article.id,
-                                    standort: article.standort,
-                                    autoren: conformAndValidateAuthorArr(article.autoren, 2, false),
-                                    titel: conformAndValidateTitle(article.titel, 3, true), 
-                                    journal: conformAndValidateZeitschrift(article.journal, 4, true),
-                                    zeitschriftkuerzel: "NULL",
-                                    band: conformAndValidateNumber(article.band, 5, false),
-                                    nr: conformAndValidateNumber(article.nr, 6, false),
-                                    jahr: conformAndValidateYear(article.jahr, 7, false),
-                                    zeitschrifttitel: conformAndValidateTitle(article.titel, 8, false),
-                                    preis: conformAndValidateCosts(article.preis, 9, false),
-                                    seiten: conformAndValidatePages(article.seiten, 10, false),
-                                    sachgebietsnr: conformAndValidateSgnr(article.sachgebietsnr, 11, false),
-                                    hinweis: conformAndValidateComment(article.hinweis, 13, false),
-                                    stichworte: conformAndValidateKeywords(article.stichworte, 14, false)
-                                };
-                            }
-                            return articleConformed;
-                        }                
-                        data = conformAndValidateArticle(a);
+                        data = articleData(document.forms.bFrm);
                         break;
                     case "Zeitschrift" :
                         data = journalData(document.forms.bFrm);
@@ -304,32 +254,41 @@
                     warnung.innerHTML = firstError[1];
                     return false;
                 } else {
-                    let sachgebietError = await bFrm.onfocusoutSachgebiet();
-                    if (sachgebietError !== "") {
-                        return false;
-                    } else {
-                        let confirm = window.confirm("Neues Medium speichern?");
-                        if (confirm == true) {
-                            async function callback (boolean) 
-                            {
-                                if (boolean === true) {
+                    if (document.getElementsByName("sachgebietsnr")[0] !== undefined) {
+                        let sachgebietError = await bFrm.onfocusoutSachgebiet();
+                        if (sachgebietError !== "") {
+                            return false;
+                        } 
+                    }
+                    let confirm = window.confirm("Neues Medium speichern?");
+                    if (confirm === true) {
+                        async function callback (boolean) 
+                        {
+                            if (boolean === true) {
+                                if (document.forms.selIDFrm !== undefined) {
+                                    document.getElementById("selIDOutFld").innerHTML = "";
+                                    document.getElementById("selIDStr").value = "";
+                                    document.getElementById("selIDStr").focus();
+                                    return document.getElementById("selIDFrmWarnFld").innerHTML = "Der Datensatz wurde gespeichert";
+                                } else {
                                     bFrm.reset();
                                     let x = await getMaxID(1);
-                                    bFrmWarnFld.innerHTML = "Der Datensatz wurde gespeichert";
-                                    return bFrm.elements[0].value = x;
-                                } else {
-                                    return bFrmWarnFld.innerHTML = "Der Datensatz konnte nicht gespeichert werden";
+                                    bFrm.elements[0].value = x;
+                                    return bFrmWarnFld.innerHTML = "Der Datensatz wurde gespeichert";
                                 }
+                            } else {
+                                return bFrmWarnFld.innerHTML = "Der Datensatz konnte nicht gespeichert werden";
                             }
-                            switch (typeOfMedium) {
-                                case "Buch": addBook(data, callback); break;
-                                case "Zeitschrift": addJournal(data, callback); break;
-                                case "Aufsatz": addEssay(data, callback); break;
-                            }
-                            return true;
-                        } else {
-                            return false;
                         }
+                        switch (typeOfMedium) {
+                            case "Buch": addBook(data, callback); break;
+                            case "Zeitschrift": addJournal(data, callback); break;
+                            case "Aufsatz": addEssay(data, callback); break;
+                            case "Artikel": addArticle(data, callback); break;
+                        }
+                        return true;
+                    } else {
+                        return false;
                     }
                 }
             }
@@ -341,7 +300,9 @@
         for (i = 1; i < bFrm.noIn; i++) {
             bFrm.elements[i].addEventListener("input", bFrm.oninput); 
         }
-        document.getElementsByName('sachgebietsnr')[0].addEventListener("focusout", bFrm.onfocusoutSachgebiet);
+        if (document.getElementsByName('sachgebietsnr')[0] !== undefined) {
+            document.getElementsByName('sachgebietsnr')[0].addEventListener("focusout", bFrm.onfocusoutSachgebiet);
+        }
     }
 
     /*

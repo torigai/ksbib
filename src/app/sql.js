@@ -5,7 +5,7 @@
 let linkToDB = 'src/db/ksbib.db';
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database(linkToDB, (err) => { if (err) { return console.log(err.message); } });
-
+/*
 function rollback (err)
 {
     if (err) {
@@ -17,7 +17,7 @@ function rollback (err)
         return "";
     }
 }
-
+*/
 function sqr (sql, params, outputArr)
 {
     if (db !== undefined) {
@@ -105,7 +105,7 @@ sql[4] = `INSERT INTO relobjtyp
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 sql[5] = `INSERT OR IGNORE INTO verlag (id, verlag) VALUES (NULL, ?)`;
 sql[6] = `INSERT OR IGNORE INTO stichwort (id, stichwort) VALUES (NULL, ?)`;
-sql[7] = `INSERT INTO relstichwort (objektid, stichwortid) VALUES (?, ?)`;
+sql[7] = `INSERT INTO relstichwort (objektid, zeitschriftid, buchid, aufsatzid, stichwortid) VALUES (?, ?, ?, ?, ?)`;
 sql[8] = `INSERT OR IGNORE INTO autor (id, name, vorname) VALUES (NULL, ?, ?)`;
 sql[9] = `INSERT INTO relautor (objektid, zeitschriftid, buchid, aufsatzid, autorid, autornr)
     VALUES (?, ?, ?, ?, ?, ?)`;
@@ -125,7 +125,9 @@ sql[21] = `INSERT OR IGNORE INTO zeitschrift (id, journal, kuerzel) VALUES (NULL
 sql[22] = `SELECT id FROM zeitschrift WHERE journal = ?`;
 sql[23] = `INSERT OR IGNORE INTO relzeitschrift (id, zeitschriftid, nr) VALUES (?, ?, ?)`;
 sql[24] = `SELECT MAX(aufsatzid) + 1 AS id FROM relobjtyp`;
-
+sql[25] = `SELECT MAX(aufsatzid) + 1 AS aufsatzid FROM relobjtyp WHERE objektid = ? AND buchid = 0`; //Artikel
+sql[26] = `SELECT MAX(aufsatzid) + 1 AS aufsatzid FROM relobjtyp WHERE objektid = ? AND zeitschriftid = 0`; //Buchaufsatz
+sql[27] = `SELECT zeitschriftid FROM relobjtyp WHERE objektid = ? AND aufsatzid = 0`;
 
 
 function sqlTitelID (titel, limit, offset) 

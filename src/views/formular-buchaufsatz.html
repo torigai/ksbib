@@ -1,37 +1,10 @@
-<!--
-    aufsatz in einem sammelband
-{
-    // "ID" und "standort" wie bei Zeitschriftenartikel
-    // Es wird mit dem Aufsatz auch das Buch gespeichert
-    // aber unter
-    objekt.ID
-    standort
-    autoren                             (autortyp = 0 : autoren)
-    titel + untertitel                  (titeltyp = 1 : aufsatztitel/track)
-        herausgeber                     (autortyp = 1 : hrg)
-        buchtitel + buchuntertitel      (titeltyp = 0 : buchtitel/cdtitel)
-        band
-        jahr
-        ort
-        verlag
-        auflage
-        isbn
-        preis
-    seiten
-    sachgebiete
-    hinweis
-    stichworte
-}
-
--->
-
 <form id="bFrm" class="center">
     <div class='rTable' style="width: 400px">
         <div class='rTableBody'>
             <div class='rTableRow'>
                 <div class="rTableCell left">
                     <label>ID</label><br>
-                    <input type="text" class="txt" name="id" value="1" size="4" readonly="readonly">
+                    <input type="text" name="id" value="1" size="4" readonly="readonly">
                 </div>
                 <div class="rTableCell left">
                     <label for="standort"> Standort </label><br>

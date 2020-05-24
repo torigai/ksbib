@@ -97,25 +97,6 @@ function buchaufsatz (id, standort, autoren, titel, jahr, ort, verlag, auflage, 
     this.buchtitel = buchtitel;     //typ 0 : buchtitel
 }
 
-function artikel (id, standort, autoren, titel, journal, kuerzel, band, nr, jahr, zeitschrifttitel, preis, seiten, sachgebietsnr, hinweis, stichworte) 
-{
-    this.id = id;
-    this.standort = standort;
-    this.autoren = autoren;         //typ 0 : autoren
-    this.titel = titel;             //typ 0 : titel des artikels
-    this.journal = journal;
-    this.zeitschriftkuerzel = kuerzel;
-    this.band = band;
-    this.nr = nr;
-    this.jahr = jahr;
-    this.preis = preis;
-    this.sachgebietsnr = sachgebietsnr;
-    this.hinweis = hinweis;
-    this.stichworte = stichworte; 
-    this.zeitschrifttitel = zeitschrifttitel; //typ 0 : buch-/zeitschrifttitel
-    this.seiten = seiten;
-}
-
 
 /*
     FOOTER

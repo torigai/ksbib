@@ -2,7 +2,7 @@
 //REQUIRES sqlproc.js
 //REQUIRES sql.js
 
-function aufsatz (id, standort, autoren, titel, jahr, ort, seiten, sachgebietsnr, hinweis, stichworte, status)
+function essay (id, standort, autoren, titel, jahr, ort, seiten, sachgebietsnr, hinweis, stichworte, status)
 {
     this.id = id;
     this.standort = standort;
@@ -15,7 +15,7 @@ function aufsatz (id, standort, autoren, titel, jahr, ort, seiten, sachgebietsnr
     this.hinweis = hinweis;
     this.stichworte = stichworte;
     this.status = status; 
-    this.medientyp = 5;
+    this.medientyp = 3;
     this.buchid = 0;
     this.zeitschriftid = 0;
     this.autortyp = 0;  //Autor
@@ -50,7 +50,7 @@ function conformAndValidateEssay(formular, essay)
 }
 function essayData (formular)
 {
-    let as = new aufsatz (
+    let e = new essay (
         document.getElementsByName("id")[0],
         document.getElementById("standort"),
         document.getElementsByName("autoren")[0],
@@ -63,13 +63,12 @@ function essayData (formular)
         document.getElementsByName("stichworte")[0],
         document.getElementById("status")
     );
-    return conformAndValidateEssay(formular, as);
+    return conformAndValidateEssay(formular, e);
 }
 function addEssay (data, callback)
 {
     let i, autorenArr = []; 
     let procEssay = new cSQLProcessor(callback);
-    console.log(data);
     //Globally used result
     procEssay.add(sql[24], [], "aufsatzid");
     if (data.ort !== null) {procEssay.add(sql[2], [data.ort])};
@@ -96,7 +95,7 @@ function addEssay (data, callback)
             { 
                 procEssay.add(sql[6], [data.stichworte[i]]); 
                 procEssay.add(sql[12], [data.stichworte[i]]);
-                procEssay.add(sql[7], function (result) {return [data.id, result]});
+                procEssay.add(sql[7], function (result) {return [data.id, data.zeitschriftid, data.buchid, "aufsatzid", result]});
             })(i);
         }
     }

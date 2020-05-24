@@ -3,96 +3,39 @@
         <div class='rTableBody'>
             <div class='rTableRow'>
                 <div class="rTableCell left">
-                	<label>ID</label><br>
-                	<input type="text" class="txt" name="id" value="1" size="4" readonly="readonly">
-                </div>
-                <div class="rTableCell left">
-                    <label for="standort"> Standort </label><br>
-                    <select id='standort'>
-                        <option value="" selected="selected" style="color: gray">Bitte wählen</option>
-                        <option value="0" >n.A.</option>
-                    </select>
-                </div>
-            </div>
-            <div class='rTableRow'>
-                <div class="rTableCell left">
-                	<label onclick="window.alert(
+                    <label onclick="window.alert(
                         'Bitte gib die Autornamen folgendermaßen ein: Müller, Hans F. \nVor jeder weiteren AutorIn drücke \'Enter\'.'
                     )">Autoren *</label><br>
-                	<textarea class='textareanowrap' name='autoren' rows='5' cols="22" >Kubler, George</textarea>
+                    <textarea class='textareanowrap' name='autoren' rows='5' cols="37" autofocus></textarea>
                 </div>
             </div>
-        </div>
-	</div>
-	<div class='rTable' style="width: 400px">
-        <div class='rTableBody'>        
             <div class='rTableRow'>
-            	<div class="rTableCell left">
-            	<label onclick="window.alert(
-                    'Bitte gib den Titel des Artikels zuerst ein. Falls es einen Untertitel gibt, drücke \'Enter\'. Jede durch \'Enter\' neu begonnene Zeile wird als (weiterer) Untertitel interpretiert.'
-                	)">Titel und Untertitel des Artikels*</label><br>
-                <textarea class='textareanowrap' name='titel' rows='5' cols="49">Die Form der Zeit</textarea>
-            	</div>
+                <div class="rTableCell left">
+                    <label onclick="window.alert(
+                     'Bitte gib den Titel zuerst ein. Falls es einen Untertitel gibt, drücke \'Enter\'. Jede durch \'Enter\' neu begonnene Zeile wird als (weiterer) Untertitel interpretiert.'
+                    )">Titel und Untertitel *</label><br>
+                    <textarea class='textareawrap' name='titel' rows='5' cols="49"></textarea>
+                </div>
             </div>
         </div>
     </div>
     <div class='rTable' style="width: 400px">
         <div class='rTableBody'>
             <div class='rTableRow'>
-                <div class="rTableCell left">
-                	<label>Zeitschrift</label><br>
-                	<input type="text" class="txt" name="zeitschrift" value="Physik Journal" 
-                    size="25" onfocusout="appendKuerzelInput(3,1,18)">
-                </div>
-                <div class="rTableCell left">
-                	<label>Band</label><br>
-                	<input type="text" class="txt" name="band" value="12" size="4">
+                <div class='rTableRow'>
+                    <div class="rTableCell left">
+                        <label>Jahr</label><br>
+                        <input type="text" class="txt" name="jahr" value="" size="4">
                 </div>
             </div>
             <div class='rTableRow'>
                 <div class="rTableCell left">
-                	<label>Nr</label><br>
-                	<input type="text" class="txt" name="nr" value="3" size="4">
+                    <label>Ort</label><br>
+                    <input type="text" class="txt" name="ort" value="" size="30">
                 </div>
                 <div class="rTableCell left">
-                	<label>Jahr</label><br>
-                	<input type="text" class="txt" name="jahr" value="2018" size="4">
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class='rTable' style="width: 400px">
-    	<div class='rTableBody'>        
-       		<div class='rTableRow'>
-       			<div class="rTableCell left">
-       				<label onclick="window.alert(
-               			'Bitte gib den Titel der Zeitschrift zuerst ein. Falls es einen Untertitel gibt, drücke \'Enter\'. Jede durch \'Enter\' neu begonnene Zeile wird als (weiterer) Untertitel interpretiert.'
-         			       )">Titel und Untertitel der Zeitschrift *</label><br>
-                	<textarea class='textareanowrap' name='titel' rows='5' cols="49">Die Form der Zeit</textarea>
-            	</div>
-            </div>
-        </div>
-    </div>
-    <div class='rTable' style="width: 400px">
-    	<div class='rTableBody'>        
-            <div class='rTableRow'>
-                <div class="rTableCell left">
-                	<label>Preis (&euro;)</label><br>
-                	<input type="text" class="txt" name="preis" value="" size="4">
-                </div>
-            </div>
-            <div class="rTableCell left">
-                	<label>Seiten</label><br>
-                	<input type="text" class="txt" name="seiten" value="" size="10">
-                </div>
-            <div class='rTableRow'>
-                <div class="rTableCell left">
-                	<label onclick = "window.alert('Bitte zwischen den Sachgebietsnummern \'Enter\' drücken. Die Liste der Sachgebiete kannst Du mit dem Link erreichen (s.u.)')">Sachgebietsnr *</label><br>
-                	<textarea class='textareanowrap' name='sachgebietsnr' rows="5" cols='15'>0</textarea>
-                </div>
-                <div class="rTableCell left">
-                	<br>
-                	<textarea class='textareahidden' name='sachgebiete' rows='5' cols='15' readonly="readonly">Architektur</textarea>
+                    <label>Seiten</label><br>
+                    <input type="text" class="txt" name="seiten" value="" size="15">
                 </div>
             </div>
         </div>
@@ -100,20 +43,16 @@
     <div class='rTable' style="width: 400px">
         <div class='rTableBody'>        
             <div class='rTableRow'>
-            	<div class="rTableCell left">
-            	<label>Anmerkung</label><br>
-                <textarea class='textareanowrap' name='hinweis' rows='5' cols="49">Anmerkung zur Geschichte der Dinge</textarea>
+                <div class="rTableCell left">
+                    <label>Anmerkung</label><br>
+                    <textarea class='textareawrap' name='hinweis' rows='5' cols="49"></textarea>
+                </div>
             </div>
-            </div>
-        </div>
-    </div>
-    <div class='rTable' style="width: 400px">
-        <div class='rTableBody'>        
             <div class='rTableRow'>
-            	<div class="rTableCell left">
-            	<label onclick="window.alert('Bitte zwischen jedem Stichwort \'Enter\' drücken')">Stichworte *</label><br>
-                <textarea class='textareanowrap' name='stichworte' rows='5' cols="10">Dinge</textarea>
-            </div>
+                <div class="rTableCell left">
+                   <label onclick="window.alert('Bitte zwischen jedem Stichwort \'Enter\' drücken')">Stichworte *</label><br>
+                    <textarea class='textareanowrap' name='stichworte' rows='5' cols="37"></textarea>
+                </div>
             </div>
         </div>
     </div>
