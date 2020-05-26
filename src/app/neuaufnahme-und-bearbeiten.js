@@ -1,6 +1,6 @@
     //POSSIBLE PARENTS: (Beachte die global definierten Variablen !)
-    // neuaufnahme.html 
-    // aendern.html
+    // neuaufnahme.html -> aktion = "hinzufügen"
+    // aendern.html -> aktion = "ändern"
 
     /*
         XHR Event Listener
@@ -33,12 +33,31 @@
                 if (typeOfMedium === "Artikel") {
                     document.getElementById("selIDOKBtn").onclick = (()=>
                     {
-                        return getJournalData(
-                            document.getElementById("selIDStr").value, 
-                            document.getElementById("selIDFrmWarnFld"),
-                            document.getElementById("selIDOutFld"),
-                            "formular-artikel.html"
-                        );
+                        if (document.getElementById("selIDStr").value === "") {
+                            return document.getElementById("selIDFrmWarnFld").innerHTML = "Bitte gib eine ID ein";
+                        } else {
+                            return getJournalData(
+                                document.getElementById("selIDStr").value, 
+                                document.getElementById("selIDFrmWarnFld"),
+                                document.getElementById("selIDOutFld"),
+                                "formular-artikel+buchaufsatz.html"
+                            );
+                        }
+                    });
+                }
+                if (typeOfMedium === "Buchaufsatz") {
+                    document.getElementById("selIDOKBtn").onclick = (()=>
+                    {
+                        if (document.getElementById("selIDStr").value === "") {
+                            return document.getElementById("selIDFrmWarnFld").innerHTML = "Bitte gib eine ID ein";
+                        } else {
+                            return getIncollectionData (
+                                document.getElementById("selIDStr").value, 
+                                document.getElementById("selIDFrmWarnFld"),
+                                document.getElementById("selIDOutFld"),
+                                "formular-artikel+buchaufsatz.html"
+                            );
+                        }
                     });
                 }
             }
@@ -198,52 +217,8 @@
                         data = essayData(document.forms.bFrm);
                         break;
                     case "Buchaufsatz" :
-                        let ba = new buchaufsatz (
-                            elements[0],     //objekt.ID
-                            elements[1],     //standort.ID
-                            elements[2],    //autoren
-                            elements[3],    //titel
-                            elements[6],    //jahr
-                            elements[7],     //ort
-                            elements[8],    //verlag
-                            elements[9],     //auflage
-                            elements[10],     //band
-                            elements[11],    //seiten
-                            elements[12],   //isbn
-                            elements[13],   //preis
-                            elements[14],   //sgnr
-                            elements[16],    //hinweis
-                            elements[17],    //stichworte
-                            elements[4],    //herausgeber
-                            elements[5]    //buchtitel
-                        );
-                        function conformAndValidateBookessay(essay) 
-                        {
-                            err = [];
-                            let essayConformed = {
-                                id: essay.id,
-                                standort: essay.standort,
-                                autoren: conformAndValidateAuthorArr(essay.autoren, 2, false),
-                                titel: conformAndValidateTitle(essay.titel, 3, true),
-                                hrg: conformAndValidateAuthorArr(essay.hrg, 4, false),
-                                buchtitel: conformAndValidateTitle(essay.buchtitel, 5, true),
-                                jahr: conformAndValidateYear(essay.jahr, 6, false), 
-                                ort: conformAndValidateStr(essay.ort, 7, false, 500),
-                                verlag: conformAndValidateStr(essay.verlag, 8, false, 500),
-                                auflage: conformAndValidateNumber(essay.auflage, 9, false),
-                                band: conformAndValidateNumber(essay.band, 10, false),
-                                seiten: conformAndValidatePages(essay.seiten, 11, false),
-                                isbn: conformAndValidateISBN(essay.isbn, 12, false),
-                                preis: conformAndValidateCosts(essay.preis, 13, false),
-                                sachgebietsnr: conformAndValidateSgnr(essay.sachgebietsnr, 14, false),
-                                hinweis: conformAndValidateComment(essay.hinweis, 16, false),
-                                stichworte: conformAndValidateKeywords(essay.stichworte, 17, false)
-                            };
-                            return essayConformed;
-                        }  
-                        data = conformAndValidateBookessay(ba);
+                        data = incollectionData(document.forms.bFrm);
                     break;
-
                     default : //typeOfMedium = "Buch"                        
                         data = bookData(document.forms.bFrm);
                 }
@@ -285,6 +260,7 @@
                             case "Zeitschrift": addJournal(data, callback); break;
                             case "Aufsatz": addEssay(data, callback); break;
                             case "Artikel": addArticle(data, callback); break;
+                            case "Buchaufsatz": addIncollection(data, callback); break;
                         }
                         return true;
                     } else {

@@ -69,6 +69,7 @@ function addEssay (data, callback)
 {
     let i, autorenArr = []; 
     let procEssay = new cSQLProcessor(callback);
+    
     //Globally used result
     procEssay.add(sql[24], [], "aufsatzid");
     if (data.ort !== null) {procEssay.add(sql[2], [data.ort])};

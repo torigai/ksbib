@@ -62,13 +62,18 @@ function addArticle (data, callback)
     // globals
     procArticle.add(sql[25], [data.id], "aufsatzid");
     procArticle.add(sql[27], [data.id], "zeitschriftid");
+    if (data.ort !== null) {procArticle.add(sql[2], [data.ort])}; //ort
+    procArticle.add(sql[17], [data.ort], "ortid"); //=> ortid
+
+
 
     //locals
     procArticle.add(sql[1], [data.jahr]);
     procArticle.add(sql[4], function (result) 
     {
-        return [data.id, "zeitschriftid", data.buchid, "aufsatzid", data.autortyp, data.hinweis, data.seiten, result, data.ort]
+        return [data.id, "zeitschriftid", data.buchid, "aufsatzid", data.autortyp, data.hinweis, data.seiten, result, "ortid"]
     });
+
     if (data.stichworte !== null) {
         for (i=0; i < data.stichworte.length; i++) { 
             ((i) => 
@@ -115,7 +120,7 @@ function getJournalData (id, warnFld, outFld, link)
 {
     warnFld.innerHTML = "";
     warnFld.setAttribute("class", "warning");
-    db.get(`SELECT * FROM media_view WHERE objektid = ?`, [id], function (err, row)
+    db.get(sql[31], [id], function (err, row)
     {
         if (err) {
             return console.log(err); 

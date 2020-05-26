@@ -115,6 +115,7 @@ document.getElementsByTagName("ul")[1].addEventListener("focusout", blurMenu, fa
 document.getElementsByTagName("body")[0].addEventListener("keydown", altM, false);
 document.getElementsByTagName("body")[0].addEventListener("keydown", altS, false);
 
+
 function findCheckboxes ()
 {
 	let arr = Array.from(document.querySelectorAll("input[type='checkbox']"));
@@ -122,3 +123,4 @@ function findCheckboxes ()
 	return arr;
 }
 findCheckboxes();
+

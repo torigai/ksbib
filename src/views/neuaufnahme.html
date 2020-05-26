@@ -12,6 +12,7 @@
     <script src="../app/bookData.js"></script>
     <script src="../app/essayData.js"></script>
     <script src="../app/articleData.js"></script>
+    <script src="../app/incollectionData.js"></script>
     <script src="../app/sql.js"></script>
     <script src="../app/sqlproc.js"></script>
 </head>         
@@ -120,7 +121,7 @@
     buchBtn.onclick = (()=> pressBtn("Buch", "formular-buch.html"));
     zeitschriftBtn.onclick = (()=> pressBtn("Zeitschrift", "formular-zeitschrift.html"));
     aufsatzBtn.onclick = (()=> pressBtn("Aufsatz", "formular-aufsatz.html"));
-    buchaufsatzBtn.onclick = (()=> pressBtn("Buchaufsatz", "formular-buchaufsatz.html"));
+    buchaufsatzBtn.onclick = (()=> pressBtn("Buchaufsatz", "formular-selid.html"));
     artikelBtn.onclick = (()=> pressBtn("Artikel", "formular-selid.html"));
 
     /*
@@ -170,6 +171,14 @@
     });
     document.getElementsByTagName("body")[0].addEventListener("keydown", gotoSelFrm, false);
 
+    function esc (event, callback)
+    {
+        if (event.keyCode === 27 || event.which === 27) {
+            event.preventDefault();
+            return buchBtn.focus();
+        } else {return false;}
+    }
+    document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
 </script>
 </body>
 </html>

@@ -14,20 +14,26 @@ sqr[5] = 'create table if not exists ort (id integer primary key, ort text uniqu
 sqr[6] = 'create table if not exists verlag (id integer primary key, verlag text unique)';
 sqr[7] = 'create table if not exists autor (id integer primary key, vorname text, name text, unique(vorname, name))';
 sqr[8] = 'create table if not exists titel (id integer primary key, titel text unique)';
-sqr[9] = `create table if not exists objekt (id integer primary key, aufnahmedatum text, medium integer references medium, 
-    standort integer references standort, sgn text unique, preis real, band integer, status integer default 0, 
+sqr[9] = `create table if not exists objekt (id integer primary key, aufnahmedatum text, 
+    medium integer references medium, 
+    standort integer references standort, 
+    sgn text unique, preis real, band integer, status integer default 0, 
     check (id > 0), check (status >= 0 AND status <= 2))`;
 // status = 0 (vorhanden) = 1 (nicht vorhanden)
-sqr[10] = `create table if not exists relsachgebiet (objektid integer references objekt, 
-    sachgebietid integer references sachgebiet, primary key (objektid, sachgebietid))`;
+sqr[10] = `create table if not exists relsachgebiet 
+    (objektid integer REFERENCES objekt ON DELETE CASCADE, 
+    sachgebietid integer REFERENCES sachgebiet ON UPDATE CASCADE, 
+    PRIMARY KEY (objektid, sachgebietid))`;
 sqr[11] = `create table if not exists buch (id integer primary key, auflage integer, verlag integer references verlag, 
-    isbn integer, buchtitel text, check (length(isbn)=10 or length(isbn)=13), check (auflage >0 and auflage < 201))`;
+    isbn integer, check (length(isbn)=10 or length(isbn)=13), check (auflage >0 and auflage < 201))`;
 sqr[12] = `create table if not exists relzeitschrift (zeitschriftid integer primary key, nr integer, 
     id integer references zeitschrift (id), unique(id, zeitschriftid))`;
 sqr[13] = 'create table if not exists stichwort (id integer primary key, stichwort text unique)';
 // autortyp = 0 (autor) oder 1 (hrg)
-sqr[14] = `create table if not exists relobjtyp (objektid integer references objekt, 
-    zeitschriftid integer references relzeitschrift (zeitschriftid), buchid integer references buch, aufsatzid integer, 
+sqr[14] = `create table if not exists relobjtyp 
+    (objektid integer references objekt ON DELETE CASCADE, 
+    zeitschriftid integer references relzeitschrift (zeitschriftid), 
+    buchid integer references buch, aufsatzid integer, 
     autortyp integer not null, hinweis text, seiten text, erscheinungsjahr integer references jahr, 
     ort integer references ort, primary key (objektid, zeitschriftid, buchid, aufsatzid), 
     check (autortyp = 0 OR autortyp = 1))`;
@@ -38,24 +44,25 @@ sqr[15] = `create table if not exists reltitel
     check (titelnr > 0 and titelnr < 4), check (titeltyp = 0 OR titeltyp = 1), 
     primary key (objektid, zeitschriftid, buchid, aufsatzid, titelid), 
     foreign key (objektid, zeitschriftid, buchid, aufsatzid) references 
-        relobjtyp (objektid, zeitschriftid, buchid, aufsatzid), 
+        relobjtyp (objektid, zeitschriftid, buchid, aufsatzid) ON DELETE CASCADE, 
     foreign key (titelid) references titel (id))`;
 sqr[16] = `create table if not exists relstichwort 
     (objektid integer, zeitschriftid integer, buchid integer, aufsatzid integer, stichwortid integer, 
     primary key (objektid, zeitschriftid, buchid, aufsatzid, stichwortid), 
     foreign key (objektid, zeitschriftid, buchid, aufsatzid) references 
-        relobjtyp (objektid, zeitschriftid, buchid, aufsatzid),
+        relobjtyp (objektid, zeitschriftid, buchid, aufsatzid) ON DELETE CASCADE,
     foreign key (stichwortid) references stichwort (id))`;
 sqr[17] = `create table if not exists relautor (objektid integer, zeitschriftid integer, buchid integer, 
     aufsatzid integer, autorid integer references autor, autornr integer default 0, check (autornr > 0 and autornr < 11), 
     primary key (objektid, zeitschriftid, buchid, aufsatzid, autorid), 
     foreign key (objektid, zeitschriftid, buchid, aufsatzid) references 
-    relobjtyp (objektid, zeitschriftid, buchid, aufsatzid))`;
+    relobjtyp (objektid, zeitschriftid, buchid, aufsatzid) ON DELETE CASCADE)`;
 
-sqr[18] = `create trigger if not exists trig_neuaufnahme after insert on objekt 
-    for each row begin update objekt set aufnahmedatum = date('now'); 
+sqr[18] = `create trigger if not exists trig_neuaufnahme after insert on objekt for each row 
+begin 
+    update objekt set aufnahmedatum = date('now'); 
     update objekt set sgn = ((select standortsgn from standort where standort.id = objekt.standort) || ' ' || objekt.id); 
-    end;`;
+end;`;
 
 sqr[19] = "insert into medium (id, medium) values (0, NULL)";
 sqr[20] = "insert into standort (id, standort, standortsgn) values (0, 'n.A.', 'n.A.')";
@@ -201,6 +208,64 @@ sqr[99] = `CREATE VIEW media_view AS
         ) USING (zeitschriftid) 
     ) ON objekt.id = objektid AND zeitschriftid = zeitschriftid AND buchid = buchid AND aufsatzid = aufsatzid`;
 
+sqr[100] = `CREATE TRIGGER delete_medium AFTER DELETE ON relobjtyp 
+BEGIN
+    DELETE FROM buch WHERE (id = old.buchid AND id != 0);
+    DELETE FROM relzeitschrift WHERE (zeitschriftid = old.zeitschriftid AND id != 0);
+END;`;
+
+sqr[101] = `CREATE TRIGGER delete_verlag BEFORE DELETE ON buch
+BEGIN
+    DELETE FROM verlag WHERE (
+        id != 0 AND 
+        id = old.verlag AND 
+        (SELECT COUNT(id) FROM buch WHERE verlag = old.verlag) = 1
+    );
+END;`;
+
+sqr[102] = `CREATE TRIGGER delete_autor BEFORE DELETE ON relautor
+BEGIN
+    DELETE FROM autor WHERE (
+        id != 0 AND 
+        id = old.autorid AND 
+        (SELECT COUNT(DISTINCT objektid) FROM relautor WHERE autorid = old.autorid) = 1
+    );
+END;`;
+
+sqr[103] = `CREATE TRIGGER delete_stichwort BEFORE DELETE ON relstichwort
+BEGIN
+    DELETE FROM stichwort WHERE (
+        id != 0 AND
+        id = old.stichwortid AND
+        (SELECT COUNT(DISTINCT objektid) FROM relstichwort WHERE stichwortid = old.stichwortid) = 1  
+    );
+END;`;
+
+sqr[104] = `CREATE TRIGGER delete_zeitschrift BEFORE DELETE ON relzeitschrift
+BEGIN
+    DELETE FROM zeitschrift WHERE (
+        zeitschrift.id != 0 AND
+        zeitschrift.id = old.id AND
+        (SELECT COUNT(id) FROM relzeitschrift WHERE id = old.id) = 1  
+    );
+END;`;
+
+sqr[105] = `CREATE TRIGGER delete_titel BEFORE DELETE ON reltitel
+BEGIN
+    DELETE FROM titel WHERE (
+        id != 0 AND
+        id = old.titelid AND
+        (SELECT COUNT(DISTINCT objektid) FROM reltitel WHERE titelid = old.titelid) = 1  
+    );
+END;`;
+
+sqr[106] = `CREATE TRIGGER delete_ort BEFORE DELETE ON relobjtyp 
+BEGIN
+    DELETE FROM ort WHERE (
+        id != 0 AND 
+        id = old.ort AND
+        (SELECT COUNT(DISTINCT objektid) FROM relobjtyp WHERE ort = old.ort) = 1);
+END;`;
 
 /*
 sqr[99] = `CREATE VIEW media_view AS 

@@ -5,6 +5,8 @@
 let linkToDB = 'src/db/ksbib.db';
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database(linkToDB, (err) => { if (err) { return console.log(err.message); } });
+db.exec('PRAGMA foreign_keys = ON;', (err) =>  { if (err){return console.error(err.message)} });
+
 /*
 function rollback (err)
 {
@@ -18,6 +20,38 @@ function rollback (err)
     }
 }
 */
+function dbGet (sql, param)
+{
+    return new Promise ((resolve, reject) =>
+    {
+        db.get(sql, param, function (err, row)
+        {
+            if (err) {reject(err);}
+            if (row === undefined) {
+                reject('Es gibt kein Ergebnis'); 
+            } else {
+                resolve(row);
+            }
+        });
+    });
+}
+
+function dbRun (sql, param)
+{
+    return new Promise ((resolve, reject) =>
+    {
+        db.run(sql, param, function (err)
+        {
+            if (err) {
+                reject(err);
+            }
+            else {
+                resolve(true);
+            }
+        });
+    });
+}
+
 function sqr (sql, params, outputArr)
 {
     if (db !== undefined) {
@@ -128,6 +162,12 @@ sql[24] = `SELECT MAX(aufsatzid) + 1 AS id FROM relobjtyp`;
 sql[25] = `SELECT MAX(aufsatzid) + 1 AS aufsatzid FROM relobjtyp WHERE objektid = ? AND buchid = 0`; //Artikel
 sql[26] = `SELECT MAX(aufsatzid) + 1 AS aufsatzid FROM relobjtyp WHERE objektid = ? AND zeitschriftid = 0`; //Buchaufsatz
 sql[27] = `SELECT zeitschriftid FROM relobjtyp WHERE objektid = ? AND aufsatzid = 0`;
+sql[28] = `SELECT buchid FROM relobjtyp WHERE objektid = ? AND aufsatzid = 0`;
+sql[29] = `SELECT DISTINCT objektid, zeitschriftid, buchid, aufsatzid FROM media_view 
+    WHERE objektid = ? ORDER BY zeitschriftid, buchid, aufsatzid ASC`;
+sql[30] = `SELECT * FROM media_view WHERE (objektid = ? AND aufsatzid = 0 AND zeitschriftid = 0)`;
+sql[31] = `SELECT * FROM media_view WHERE (objektid = ? AND buchid = 0 AND aufsatzid = 0)`;
+sql[32] = `DELETE FROM objekt WHERE id = ?`;
 
 
 function sqlTitelID (titel, limit, offset) 

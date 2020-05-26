@@ -71,32 +71,6 @@ function cformular (varFormular, varWarnfield, varOutputfield, varSubmitBtn)
     }
 }
 
-/*
-    DATEN OBJEKT
-*/
-
-
-function buchaufsatz (id, standort, autoren, titel, jahr, ort, verlag, auflage, band, seiten, isbn, preis, sachgebietsnr, hinweis, stichworte, hrg, buchtitel)
-{
-    this.id = id;
-    this.standort = standort;
-    this.autoren = autoren;         //typ 0 (autor)
-    this.titel = titel;             //typ 0 buchtitel
-    this.jahr = jahr;
-    this.ort = ort;
-    this.verlag = verlag;
-    this.auflage = auflage;
-    this.band = band;
-    this.seiten = seiten;
-    this.isbn = isbn;
-    this.preis = preis;
-    this.sachgebietsnr = sachgebietsnr;
-    this.hinweis = hinweis;
-    this.stichworte = stichworte;
-    this.hrg = hrg;                 //herausgebernamen mit autortyp 1 : hrg
-    this.buchtitel = buchtitel;     //typ 0 : buchtitel
-}
-
 
 /*
     FOOTER

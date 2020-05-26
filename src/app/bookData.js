@@ -88,13 +88,20 @@ function addBook (data, callback)
 
     //Globally used results
     procBook.add(sql[0],[], "buchid"); //=> buchid
-    if (data.ort !== null) {procBook.add(sql[2], [data.ort])}; //insert ortid
+    if (data.ort !== null) {procBook.add(sql[2], [data.ort])}; //ort
     procBook.add(sql[17], [data.ort], "ortid"); //=> ortid
-    procBook.add(sql[5], [data.verlag]); //insert verlag
+    procBook.add(sql[5], [data.verlag]); //verlag
     procBook.add(sql[16], [data.verlag], "verlagid"); //=> verlag    
 
     //Others
-    procBook.add(sql[3],[data.id, data.medientyp, data.standort, data.preis, data.band, data.status]);
+    //first parents
+    procBook.add(sql[3],[data.id, data.medientyp, data.standort, data.preis, data.band, data.status]); //objekt
+    procBook.add(sql[18], ["buchid", data.auflage, "verlagid", data.isbn]); //buch
+    procBook.add(sql[1], [data.jahr]);
+    procBook.add(sql[4], function (result) 
+    {
+        return [data.id, data.zeitschriftid, "buchid", data.aufsatzid, data.autortyp, data.hinweis, data.seiten, result, "ortid"]
+    });
     if (data.sachgebietsnr.length !== 0) {
         for (i=0; i<data.sachgebietsnr.length; i++) {
             ((i) => 
@@ -142,11 +149,5 @@ function addBook (data, callback)
             });
         })(i);
     }
-    procBook.add(sql[1], [data.jahr]);
-    procBook.add(sql[4], function (result) 
-    {
-        return [data.id, data.zeitschriftid, "buchid", data.aufsatzid, data.autortyp, data.hinweis, data.seiten, result, "ortid"]
-    });
-    procBook.add(sql[18], ["buchid", data.auflage, "verlagid", data.isbn]);
     procBook.run();
 }

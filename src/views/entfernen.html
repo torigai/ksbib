@@ -6,12 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
     <script src="../app/main.js"></script>
-    <script src="../app/mkmv.js"></script>
     <script src="../app/validation.js"></script>
+    <script src="../app/sql.js"></script>
+    <script src="../app/findMedia.js"></script>
 </head>         
 
 
-<body onunload="selFrm.reset();">
+<body onunload="delFrm.reset();">
 
 <header>
     <h1 id="headerTitel">Medien Löschen</h1>
@@ -24,6 +25,7 @@
             <a href="neuaufnahme.html">Hinzufügen</a>
             <a href="bearbeiten.html">Bearbeiten</a>
             <a href="entfernen.html">Entfernen</a>
+            <a href="../db/test.html">TEST</a>
         </div>
     </ul>
     <ul class="dropdown">
@@ -38,18 +40,18 @@
 
 <article>
 
-    <form id='selFrm' class="center">
+    <form id='delFrm' class="center">
         <div class='rTable'>
         <div class='rTableBody'>
             <div class='rTableRow'>
                 <div class="rTableCell">
-                    <label for="selStr">ID</label>
+                    <label for="delStr">ID</label>
                 </div>
                 <div class='rTableCell'>
-                    <input type="text" id="selStr" class="txt" size="5" autofocus>
+                    <input type="text" id="delStr" class="txt" size="5" autofocus>
                 </div>
                 <div class='rTableCell'>
-                    <input type="button" id="selOKBtn" class="btn" value="OK">
+                    <input type="button" id="delOKBtn" class="btn" value="OK">
                 </div>
                 <div class='rTableCell'>
                     Medium ID <a href="index.html">suchen</a>
@@ -57,35 +59,16 @@
             </div>
         </div>
         </div>
-        <div id="selFrmWarnFld" class="warning center"></div>
-    </form>
-
-    <form id="delFrm">
-        <div id="outFld" class="info" style="max-width: 600px">
-            <p>
-                Achieser / Glasmann: Theorie d. Lin. Operat. im Hilbertraum. 1954, 369 Seiten
-            </p>
-            <p>
-                Signatur: AC-006 <br>
-                Aufnahmedatum: 1999-07-29 <br>
-                Standort: Leihbib Reine Math <br>
-            </p>
-            <p>
-                Sachgebiete: <br>
-                4625 – HILBERT-RAEUME
-            </p>
+        <div id="delFrmWarnFld" class="warning center"></div>
+        <div id="outFld" class="info left" style="max-width: 600px">
+            Bitte gib die ID des Mediums ein, das Du löschen möchtest. Die ID ist der Zähler in
+            der Signatur, z.B. "400" bei dem Medium mit Signatur "KA-S-2 400".
         </div>
-        <div class="center">
-            <input type="button" name="delFrmOKBtn" value="Löschen" class="btn">
+        <div class="center margin">
+            <input type="button" name="delDelBtn" value="Löschen" class="btn" style="display: none">
+            <input type="button" name="delAbbrBtn" value="Abbrechen" class="btn" style="display: none">
         </div>
     </form>
-
-
-    <p>
-        Bitte gib die ID des Mediums ein, das Du löschen möchtest. Die ID ist der Zähler in
-        der Signatur, z.B. "400" bei dem Medium mit Signatur "CD-2 400". Falls Du
-        die ID nicht kennst, kannst Du das Medium <a href="index.html">suchen</a>.
-    </p>
         
 
 </article>
@@ -96,33 +79,98 @@
         FORMULARE
     */
 
-    let aktion = "bearbeiten";
-    let selFrm = new cformular(document.getElementById("selFrm"), document.getElementById("selFrmWarnFld"), document.getElementById("outFld"), document.getElementById("selOKBtn"));
-    selFrm.newSbmt(
-        function () 
-        {
-            typeOfMedium = "Aufsatz";
-            switch (typeOfMedium) {
-                case "Zeitschrift" : xhr("formular-zeitschrift.html", selFrm.res); break;
-                case "Artikel" : xhr("formular-artikel.html", selFrm.res); break;
-                case "Aufsatz" : xhr("formular-aufsatz.html", selFrm.res); break;
-                case "Buchaufsatz" : xhr("formular-buchaufsatz.html", selFrm.res); break;
-                default : xhr("formular-buch.html", selFrm.res);    //Buch
+    let delFrm = new cformular(document.getElementById("delFrm"), document.getElementById("delFrmWarnFld"), document.getElementById("outFld"), document.getElementById("delOKBtn"));
+    delFrm.newSbmt( async function ()
+    {
+        delFrm.outFld.innerHTML = "";
+        let id = delFrm.elements[0].value;
+        if (id === "") {
+            return delFrm.warnFld.innerHTML = "Bitte gib eine ID ein";
+        } else {
+            delFrm.warnFld.innerHTML = "";
+            let result = await dbGet(sql[29],id).catch(err => {return delFrm.warnFld.innerHTML = err});
+            if (delFrm.warnFld.innerHTML === "") {
+                result = [[result.objektid, result.zeitschriftid, result.buchid, result.aufsatzid]];
+                result = await findMediaResultArr(result);
+                
+                let resID = result[0][0]; 
+                let resMedientyp = result[0][4];
+                let resAutoren = (result[0][1] === "") ? "<br>" : result[0][1] + "<br>";
+                let resTitelUndVerweise = "<i>" + result[0][2] + "</i> ";
+                let resJahr = (result[0][6] === "") ? "" : result[0][3];
+
+                delFrm.btn[1].style.display = "";
+                delFrm.btn[2].style.display = "";
+                delFrm.btn[1].focus();
+
+                return delFrm.outFld.innerHTML = "<b>" + resMedientyp + " mit ID " + resID + " löschen ?</b><p>" 
+                + resAutoren + resTitelUndVerweise + resJahr + " </p><p>" 
+                + "<br> Standort: " + result[0][5] + "<br> Status: " + result[0][6] + "</p>";
+            } else {
+                delFrm.elements[0].select();
+                return false;
             }
-        })
-    selFrm.sbmtBtn.addEventListener("click", selFrm.sbmt);
-    selFrm.onenter = function (event) 
+        }
+    });
+    delFrm.newReset(() =>
+    {
+        delFrm.outFld.innerHTML = "";
+        delFrm.elements[0].value = "";
+        delFrm.btn[1].style.display = "none";
+        delFrm.btn[2].style.display = "none";
+        delFrm.elements[0].focus();
+        return "reset";
+    });
+    delFrm.onenter = function (event) 
     {
         function checkKey (event) {
             if (event.keyCode == 13 || event.which == 13) {
-                selFrm.sbmtBtn.click();
+                event.preventDefault();
+                delFrm.sbmtBtn.click();
             } else {return;}
         }
-        selFrm.textFld[0].addEventListener("keypress", checkKey);
+        delFrm.textFld[0].addEventListener("keypress", checkKey);
     }
-    selFrm.onenter();
+    delFrm.oninput = function ()
+    {
+        return delFrm.elements[0].addEventListener("input", ()=>
+        {
+            delFrm.btn[1].style.display = "none";
+            delFrm.btn[2].style.display = "none";
+            delFrm.outFld.innerHTML = "";
+            return delFrm.warnFld.innerHTML = "";
+        });
+    }
+    delFrm.onDelete = async function ()
+    {
+        let id = delFrm.elements[0].value;
+        let confirm = window.confirm("Medium mit id " + id + " löschen?");
+        if (confirm === true) {
+            let result = await dbRun(sql[32], id).catch(err => {return console.error(err)});
+            if (result) {
+                delFrm.reset();
+                return delFrm.warnFld.innerHTML = "Das Medium mit id " + id + " wurde gelöscht";
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    delFrm.btn[2].addEventListener("click", delFrm.reset);
+    delFrm.btn[1].addEventListener("click", delFrm.onDelete);
+    delFrm.sbmtBtn.addEventListener("click", delFrm.sbmt);
+    delFrm.onenter();
+    delFrm.oninput();
 
-    
+    function esc (event, callback)
+    {
+        if (event.keyCode === 27 || event.which === 27) {
+            event.preventDefault();
+            return delFrm.elements[0].select();
+        } else {return false;}
+    }
+    document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
 
 
 
