@@ -36,6 +36,22 @@ function dbGet (sql, param)
     });
 }
 
+function dbAll (sql, param)
+{
+    return new Promise ((resolve, reject) =>
+    {
+        db.all(sql, param, function (err, rows)
+        {
+            if (err) {reject(err);}
+            if (rows.length === 0) {
+                reject('Es gibt kein Ergebnis'); 
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+}
+
 function dbRun (sql, param)
 {
     return new Promise ((resolve, reject) =>
@@ -93,7 +109,7 @@ function showDatalist (value, link, sql, data)
     }
 
 /*
-    Functions to fill up the value of inventarnummer and standorte
+    Functions to fill up the value of inventarnummer, standorte, sachgebiete
 */
 
 async function cStandorteOptions (link)
@@ -117,7 +133,6 @@ async function getMaxID (plus)
     x = await sqr("SELECT MAX(id) AS id FROM objekt", [], x);
     return (x[0].id + plus);
 }
-
 
 /*
     SQL
@@ -164,11 +179,22 @@ sql[26] = `SELECT MAX(aufsatzid) + 1 AS aufsatzid FROM relobjtyp WHERE objektid 
 sql[27] = `SELECT zeitschriftid FROM relobjtyp WHERE objektid = ? AND aufsatzid = 0`;
 sql[28] = `SELECT buchid FROM relobjtyp WHERE objektid = ? AND aufsatzid = 0`;
 sql[29] = `SELECT DISTINCT objektid, zeitschriftid, buchid, aufsatzid FROM media_view 
-    WHERE objektid = ? ORDER BY zeitschriftid, buchid, aufsatzid ASC`;
+    WHERE objektid = ? ORDER BY objektid, zeitschriftid, buchid, aufsatzid ASC`;
 sql[30] = `SELECT * FROM media_view WHERE (objektid = ? AND aufsatzid = 0 AND zeitschriftid = 0)`;
 sql[31] = `SELECT * FROM media_view WHERE (objektid = ? AND buchid = 0 AND aufsatzid = 0)`;
 sql[32] = `DELETE FROM objekt WHERE id = ?`;
+sql[33] = `SELECT * FROM sachgebiet WHERE (id%100 = 0) ORDER BY id ASC`;
+sql[34] = `SELECT * FROM sachgebiet WHERE ( (id/100 - ?/100) BETWEEN 0 AND 0.99) ORDER BY id ASC`;
+sql[35] = `SELECT id FROM objekt
+    LEFT OUTER JOIN relsachgebiet ON id = objektid
+    WHERE sachgebietid = ? LIMIT 100 OFFSET 0`;
 
+function sqlIDFromSG (limit, offset)
+{
+    return `SELECT id FROM objekt
+        LEFT OUTER JOIN relsachgebiet ON id = objektid
+        WHERE sachgebietid = ? LIMIT '${limit}' OFFSET '${offset}'`;
+}
 
 function sqlTitelID (titel, limit, offset) 
 {

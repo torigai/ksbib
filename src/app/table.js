@@ -1,5 +1,6 @@
 /*
-    AUSGABE TABELLE
+    This script allows to create a table, if wished with forward and backward buttons,
+    for an array of arrays of data as obtained from findMedia.js.   
 */
 
 function cOutputTbl (container, tblName, headerNamesArr, entriesArr)

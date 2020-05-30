@@ -6,8 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
     <script src="../app/main.js"></script>
+    <script src="../app/sql.js"></script>
+    <script src="../app/findMedia.js"></script>
+    <script src="../app/table.js"></script>
+    <script src="../app/ctableOfMedia.js"></script>
 </head>         
-
 
 <body onunload="sgsFrm.reset();">
 
@@ -37,42 +40,13 @@
 
 <article>
 
-<!--
-    <form id='sgsFrm' hidden="hidden">
-    <div class="center">
-        <h1>Obersachgebiete</h1>
-        <select id='sgsSel' multiple='multiple'>
-            <option class="" value="0">Architektur</option>
-            <option class="" value="100">Geschichte</option>
-        </select>
-    </div>
-    <div class="center margin">
-        <input type='button' id='sgsOKBtn' value='OK' class="btn">
-        <input type='button' value='Verwerfen' class="btn">
-    </div>
-    <div id="sgsFrmWarnFld" class="warning center"></div>
-    <div class="center margin">
-        <p>
-            Liste der aktuellen Sachgebiete <a href="drucken-sachgebiete.html" target="_blank">drucken</a>
-        </p>
-    </div>
-    </form>
--->
-
     <form id='sgsFrm'>
     <div class="center">
-        <h1>Unterrsachgebiete</h1>
-        <select id='sgsSel' multiple='multiple'>
-            <option class="bf" value="0">0000 - Architektur</option>
-            <option value="1">0001 - Theorie</option>
-            <option value="2">0002 - Geschichte</option>
-            <option class="bf" value="100">0100 - Geschichte</option>
-            <option value="101">0101 - Architektur</option>
-        </select>
+        <h1>Obersachgebiete</h1>
     </div>
     <div class="center margin">
         <input type='button' id='sgsOKBtn' value='OK' class="btn">
-        <input type='button' value='Verwerfen' class="btn">
+        <input type='button' value='Zurück' class="btn">
     </div>
     <div id="sgsFrmWarnFld" class="warning center"></div>
     <div class="center margin">
@@ -81,78 +55,262 @@
         </p>
     </div>
     </form>
-        
+
     <div id="outFld" class="margin">
         <div class="info">
         <p>
-            Du kannst ein oder mehrere Sachgebiete auswählen.
-            Indem Du die Shift- oder Umschalttaste gedrückt hältst, kannst Du einen Bereich von Sachgebieten auswählen.
-            Wenn Du die Control- oder Strg-Taste gedrückt haltst, kannst Du auseinanderliegende Einträge zur Auswahl hinzufügen oder entfernen.
+            Du kannst ein oder mehrere Sachgebiete auswählen. Durch drücken der Leertaste oder anclicken mit
+            der Maus kannst Du einzelne Sachgebiete auswählen. Indem Du die Shift- oder Umschalttaste gedrückt 
+            hältst und die Pfeiltasten verwendest, kannst Du einen Bereich von Sachgebieten auswählen.
+        </p>
+        <p>
+            Wenn Du in der zweiten Auswahl ein Obersachgebiet auswählst, werden alle Medien des Obersachgebiets 
+            gezeigt, d.h. auch alle Untersachgebiete, ob Du sie ausgewählt hast oder nicht. 
         </p>
         </div>        
     </div>
+    <input type="text" id="test">
 
 </article>
 
 <script src="../app/shortkeys.js"></script>
-<script>
+<script>    
+    let status = 0;     //0: OSG; 1: OSG AND USG; 2: RESULT
 
-    /*
-        Wenn auf "OK" geklickt wird soll die Überschrift von "OSG" in "Usg" geändert werden
-        und die Daten neu geladen. Die OSGs sollen fett markiert sein.
-        Der "OK" Button muss ebenfalls geändert werden: wenn er jetzt geklickt wird, soll
-        als nächstes die Tabelle der Bücher gezeigt werden, die zu dem gewählten SG gehören.
-    */
-
-    var sgsFrm = new cformular (
-        document.getElementById("sgsFrm"), 
-        document.getElementById("sgsFrmWarnFld"), 
-        document.getElementById("outFld"), 
-        document.getElementById("sgsOKBtn")
-    );
-    sgsFrm.select = document.getElementById("sgsSel");
-    sgsFrm.newReset ( function () 
+    async function processData (data, link, warnFld)
     {
-        /*
-            "Verwerfen" Button:
-        */  
+        let result = [];
+        switch (status) { 
+            case 0: // OSG
+                result = await dbAll(sql[33], data).catch(err=>{return console.error(err)});
+                if (result.length === 0) {
+                    warnFld.innerHTML = "Es gibt keine Sachgebiete in der Datenbank";
+                    return status = 0;
+                } 
+                break;
+            case 1: // OSG AND USG
+                if (data.length > 1) {
+                    let promises = data.map(datum => { return dbAll(sql[34], datum) });
+                    let resolvedPromises = await Promise.all(promises).catch(err=>{return console.error(err)});
+                    resolvedPromises.forEach(resultArray => {return resultArray.forEach(obj => {return result.push(obj)})});
+                } else {
+                    result = await dbAll(sql[34], data).catch(err=>{return console.error(err)});
+                }
+                break;
+            case 2: // SEARCH RESULT
+                async function sgsearchDBRequest(data, limit, offset)
+                {
+                    let matchingIDs = [];
+                    let promises = [];      //required !
+                    result = [];            //required !
+                    //get Array of id's:
+                    promises = data.map(datum => {return dbAll(sqlIDFromSG(limit,offset), datum) });
+                    let resolvedPromises = await Promise.all(promises).catch(err=>{return console.error(err)});
+                    if (resolvedPromises === undefined) {
+                        return false;
+                    } else {
+                        resolvedPromises.forEach(resultArray => 
+                        {
+                            return resultArray.forEach(obj => {return result.push(obj.id)})
+                        });
+                        result = result.filter(onlyUnique);
+                        //get Array of database id's [objektid, zeitschriftid, buchid, aufsatzid]
+                        console.log(result);
+                        let media = result.map(async (obj) => {return dbAll(sql[29],obj)});
+                        let mediaResolved = await Promise.all(media).catch(err=>{return console.error(err)});
+                        mediaResolved.forEach((array) => 
+                        {
+                            array.forEach(obj => 
+                            {
+                                return matchingIDs.push([obj.objektid, obj.zeitschriftid, obj.buchid, obj.aufsatzid])
+                            });
+                        });
+                        //get media Data
+                        return findMediaResultArr(matchingIDs);
+                    } 
+                }
 
-        var opt = document.getElementsByTagName("option");
-        var noOpt = opt.length;
-        var i;
-        for (i=0; i<noOpt; i++) {
-            opt[i].selected = false;
+                let limit = 100;
+                let offset = 0;
+                function getResult (limit, offset) { return sgsearchDBRequest(data, limit, offset); }
+                result = await getResult(limit, offset);
+                
+                showResult (result, document.getElementById("outFld"), 
+                    document.getElementById("sgsFrmWarnFld"), "ResTbl", "SortSel", getResult, limit, offset);
+                return true;
+                break;
         }
-    })
-    sgsFrm.onesc = function (event) 
-    {
-        /*
-        Eventhandler: 
-        Falls irgendwo im Dokument auf der Tastatur "Esc" gedrückt wird
-        soll der "Verwerfen" Button angeklickt werden
-        */
 
-        if (event.keyCode == 27 || event.which == 27) {
-            sgsFrm.reset();
+        let sel = document.createElement("select");
+        sel.setAttribute("id", "sgsSel");
+        sel.setAttribute("multiple", "multiple");
+        let option;
+        result.forEach(row =>
+        {
+            option = document.createElement("option");
+            if (row.id%100 === 0 && status === 1) {
+                option.setAttribute("class", "bf");
+            }
+            option.setAttribute("value", row.id);
+            option.innerHTML = row.sachgebiet;
+            sel.appendChild(option);
+        });
+        let noOpt = sel.length;
+        sel.size = noOpt < 20 ? noOpt : 20;
+
+        function onclick ()
+        {
+            if (sel.options[sel.selectedIndex].hasAttribute("selected", "selected")) {
+                    sel.options[sel.selectedIndex].removeAttribute("selected");
+                    sel.options[sel.selectedIndex].removeAttribute("style");
+                } else {
+                    sel.options[sel.selectedIndex].setAttribute("selected", "selected");
+                    sel.options[sel.selectedIndex].setAttribute("style", "background-color: #DCDAD5");
+                }
         }
+        function onselect (event)
+        {
+            if (event.keyCode === 32 || event.which === 32) {
+                event.preventDefault();
+                onclick();       
+            }
+        }
+        function onselarea (event)
+        {
+            if (event.keyCode === SHIFT || event.which === SHIFT) {
+                let selArr = Array.from(sel.options);
+                selArr.forEach((option) => 
+                {
+                    if (option.selected === true) {
+                        option.setAttribute("selected", "selected");
+                        option.setAttribute("style", "background-color: #DCDAD5");
+                    }
+                });
+            }
+        }
+        sel.addEventListener("keydown", onselect);
+        sel.addEventListener("click", onclick);
+        sel.addEventListener("keyup", onselarea);
+        link.appendChild(sel);
+
+        if (status < 2) {status = status + 1;}
+        else {status = 0;}
+        return status;
     }
-    sgsFrm.selSize = function () 
+
+
+    ( async ()=>
     {
-        var noOpt = sgsFrm.select.length;
-        sgsFrm.select.size = noOpt < 10 ? noOpt : 10;
-    }
-    sgsFrm.selSize();
+        let sgsFrm = new cformular (
+            document.getElementById("sgsFrm"), 
+            document.getElementById("sgsFrmWarnFld"), 
+            document.getElementById("outFld"), 
+            document.getElementById("sgsOKBtn")
+        );
+        await processData([], document.getElementById('sgsFrm').firstElementChild,  
+            document.getElementById("sgsFrmWarnFld"));
+        if (document.getElementById("sgsSel") !== null) {
+            sgsFrm.sel = document.getElementById("sgsSel");
+            sgsFrm.sel.focus();
+            sgsFrm.newReset ( async function () 
+            {
+                window.location.reload();
+                return false;
+            })
+            sgsFrm.newSbmt( async function ()
+            {
+                let optArr = Array.from(document.getElementById('sgsSel'));
+                let parent = document.getElementById('sgsFrm').firstElementChild;
+                let data = [];
+                function getData (array) 
+                {
+                    let osg = 0;
+                    array.forEach(option => 
+                    {
+                        /*
+                            Requires: the option.values are ordered ASC
+                            If an obersachgebiet is selected, the result is not specified according
+                            to its untersachgebiete. Else, if only untersachgebiete of an obersachgebiet
+                            are selected, only results according to the untersachgebiete are shown.
+                        */ 
+                        if (option.hasAttribute("selected", "selected") || option.selected === true) {
+                            let val = Number(option.value);
+                            osg = (val%100 === 0) ? val : osg;
+                            let x = (val - osg) / 100;
 
-    sgsFrm.btn[1].addEventListener("click", sgsFrm.reset);
-    document.getElementsByTagName("body")[0].addEventListener("keydown", sgsFrm.onesc);
+                            if (val === 0) { //case osg = 0 selected
+                                data.push(val);
+                                return data;
+                            } 
+                            if (osg !== 0 && x == 0) { //case osg != 0 selected
+                                data.push(osg);
+                                return data;
+                            }
+                            if (data.includes(osg) && (x>0 && x <=0.99)) { //case usg of osg in datalist or of 
+                                return data;
+                            } 
+                            data.push(val);
+                            return data;
+                        }
+                    });
+                    return data.filter(onlyUnique);
+                }
+                switch (status) {
+                    case 1:
+                        sgsFrm.warnFld.innerHTML = "";
+                        data = getData(optArr);
+                        if (data.length > 0) {
+                            parent.removeChild(parent.lastElementChild);
+                            await processData(data, parent, document.getElementById("sgsFrmWarnFld"));
+                            document.getElementsByTagName("h1")[1].innerHTML = "Sachgebiete";
+                            document.getElementById("sgsSel").addEventListener("keypress", sgsFrm.onenter);
+                            document.getElementById("sgsSel").focus();
+                        } else {
+                            return sgsFrm.warnFld.innerHTML="Bitte wähle ein Obersachgebiet aus";
+                        }
+                        break;
+                    case 2:
+                        sgsFrm.warnFld.innerHTML = "";
+                        data = getData(optArr);
+                        if (data.length > 0) {
+                            parent.removeChild(parent.lastElementChild);
+                            await processData(data, parent, document.getElementById("sgsFrmWarnFld"));
+                            sgsFrm.sbmtBtn.style.display = "none";
+                            sgsFrm.outFld.firstElementChild.setAttribute("class", "center");
+                            sgsFrm.outFld.firstElementChild.innerHTML = "<b>Sachgebiete: </b>" + data;
+                        } else {
+                            return sgsFrm.warnFld.innerHTML="Bitte wähle ein Sachgebiet aus";   
+                        }
+                        break;
+                }
+            })
+            sgsFrm.onesc = function (event) 
+            {
+                if (event.keyCode == 27 || event.which == 27) {
+                    event.preventDefault();
+                    sgsFrm.reset();
+                }
+            }
+            sgsFrm.onenter = function (event)
+            {
+                if (event.keyCode === 13 || event.which === 13) {
+                    event.preventDefault();
+                    sgsFrm.sbmtBtn.click();
+                } else { return false; }
+            }
+            sgsFrm.sbmtBtn.addEventListener("click", sgsFrm.sbmt);
+            sgsFrm.btn[1].addEventListener("click", sgsFrm.reset);
+            sgsFrm.sel.addEventListener("keypress", sgsFrm.onenter);
+            document.getElementsByTagName("body")[0].addEventListener("keydown", sgsFrm.onesc);
+        } 
 
+    })();    
 
 </script>
 
 </body>
 
 <footer>
-    &copy; Kirsten Vogeler - Alle Rechte vorbehalten
 </footer>
 
 </html>

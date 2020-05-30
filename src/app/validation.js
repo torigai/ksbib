@@ -14,7 +14,7 @@ const textPattern = /^[\d\wÄÖÜäüöß\s.,:!°?"\-'()#+;]*$/;  //Normaler Tex
 const buchstabenPattern = /^[a-zäüöß\s]*$/i;          //Buchstaben und Leerzeichen
 const zahlenPattern = /^\d+$/;
 //const zahlenPattern = /^0$|^[1-9]{1}[0-9]{0,2}$/;     //ganze Zahlen [0,999]
-const reelleZahlenPattern = /^\d+(,?)(\d+)?$/;        //Null und postive reelle Zahlen
+const reelleZahlenPattern = /^\d+((,|.)\d{1,2})?$/;        //Null und postive reelle Zahlen
 const jahreszahlPattern = /^[1-9]{1}[0-9]{3}$/;       //vierstellige ganze Zahl > 1000
 const seitenPattern = /^[xiv]+(\s?-\s?[xiv]+)?$|^[1-9]{1}[0-9]{0,4}(\s?-\s?[1-9]{1}[0-9]{0,4})?$/; //max fünfstellige Seiten; von 3 - 10
 const isbnPattern = /^(\d{10}|\d{13})$/;              //10 oder 13 stellige ganze Zahl > 0
@@ -91,7 +91,7 @@ function conformAndValidateCosts (el, i, j)
     if (j == false && preis == "") {
         return null;
     }
-    if (preis !== "" && zahlenPattern.test(preis) == false) {
+    if (preis !== "" && reelleZahlenPattern.test(preis) == false) {
         err[err.length] = i + "*" + message[2];
         return false;
     }
@@ -99,7 +99,10 @@ function conformAndValidateCosts (el, i, j)
         err[err.length] = i + "*" + message[1]("10'000");
         return false;
     }
-    return preis;
+    if (preis.includes(',')) {
+        preis = preis.replace(',', '.');
+    }
+    return Number(preis);
 }
 
 function conformAndValidateZeitschrift (el, i, j) 

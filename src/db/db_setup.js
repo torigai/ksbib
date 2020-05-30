@@ -78,8 +78,8 @@ sqr[29] = "insert into stichwort (id, stichwort) values (0, NULL)";
 
 sqr[30] = "insert into sachgebiet (id, sachgebiet) values (0, 'Architektur')";
 sqr[31] = "insert into sachgebiet (id, sachgebiet) values (1, 'Theorie')";
-sqr[32] = "insert into sachgebiet (id, sachgebiet) values (100, 'Geschichte')";
-sqr[33] = "insert into sachgebiet (id, sachgebiet) values (101, 'Theorie')";
+sqr[32] = "insert into sachgebiet (id, sachgebiet) values (2, 'Methodik')";
+sqr[33] = "insert into sachgebiet (id, sachgebiet) values (100, 'Geschichte')";
 sqr[34] = "insert into medium (id, medium) values (1, 'Buch')";
 //sqr[35] = "insert into medium (id, medium) values (2, 'Buchaufsatz')";
 sqr[35] = "insert into standort (id, standort, standortsgn) values (1, 'Karstens Arbeitszimmer Süd Regal 2', 'KA-S-2')";
@@ -94,10 +94,10 @@ sqr[43] = "insert into titel (id, titel) values (1, 'Die Form der Zeit')";
 sqr[44] = "insert into titel (id, titel) values (2, 'Sakrale zeitlose Inszenierungen')";
 sqr[45] = "insert into objekt (id, medium, standort, preis, band) values (1, 1, 1, '30', NULL)"; //aufnahmedatum und sgn durch den trigger
 sqr[46] = "insert into objekt (id, medium, standort, preis, band) values (2, 1, 2, '15', NULL)"; //aufnahmedatum und sgn durch den trigger
-sqr[47] = "insert into relsachgebiet (objektid, sachgebietid) values (1, 100)";
-sqr[48] = "insert into relsachgebiet (objektid, sachgebietid) values (1, 101)";
+sqr[47] = "insert into relsachgebiet (objektid, sachgebietid) values (1, 0)";
+sqr[48] = "insert into relsachgebiet (objektid, sachgebietid) values (1, 1)";
 sqr[49] = "insert into relsachgebiet (objektid, sachgebietid) values (2, 0)";
-sqr[50] = "insert into relsachgebiet (objektid, sachgebietid) values (2, 1)";
+sqr[50] = "insert into relsachgebiet (objektid, sachgebietid) values (2, 2)";
 sqr[51] = "insert into buch (id, auflage, verlag, isbn) values (1, 1, 1, 3518576054)";
 sqr[52] = "insert into buch (id, auflage, verlag, isbn) values (2, 1, 1, 9783837662535)";
 sqr[53] = `insert into relobjtyp (objektid, zeitschriftid, buchid, aufsatzid, 
@@ -171,7 +171,8 @@ sqr[98] = "insert into zeitschrift (id, journal, kuerzel) values (4, 'Physik Jou
 sqr[99] = `CREATE VIEW media_view AS 
   SELECT objekt.id AS objektid, zeitschriftid, buchid, aufsatzid, 
     jahr, preis, band, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, 
-    standortsgn, medium.medium, band, kuerzel AS zeitschrift, nr AS zeitschriftNr, sgn, hinweis, status, ort, verlag
+    standortsgn, medium.medium, band, kuerzel AS zeitschrift, nr AS zeitschriftNr, 
+    sgn, hinweis, status, ort, verlag
     FROM objekt 
     INNER JOIN medium ON medium.id = objekt.medium 
     INNER JOIN standort ON standort.id = objekt.standort 
@@ -266,6 +267,7 @@ BEGIN
         id = old.ort AND
         (SELECT COUNT(DISTINCT objektid) FROM relobjtyp WHERE ort = old.ort) = 1);
 END;`;
+
 
 /*
 sqr[99] = `CREATE VIEW media_view AS 

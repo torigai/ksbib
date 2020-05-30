@@ -103,6 +103,15 @@ function checkboxEnter (event)
 	}
 }
 
+function findCheckboxes ()
+{
+	let arr = Array.from(document.querySelectorAll("input[type='checkbox']"));
+	arr.forEach((checkbox) => checkbox.addEventListener("keydown", checkboxEnter, false));	
+	return arr;
+}
+findCheckboxes();
+
+
 document.getElementsByTagName("ul")[0].addEventListener("keydown", down, false);
 document.getElementsByTagName("ul")[0].addEventListener("keydown", up, false);
 document.getElementsByTagName("ul")[0].addEventListener("keydown", rightAndLeft, false);
@@ -116,11 +125,5 @@ document.getElementsByTagName("body")[0].addEventListener("keydown", altM, false
 document.getElementsByTagName("body")[0].addEventListener("keydown", altS, false);
 
 
-function findCheckboxes ()
-{
-	let arr = Array.from(document.querySelectorAll("input[type='checkbox']"));
-	arr.forEach((checkbox) => checkbox.addEventListener("keydown", checkboxEnter, false));	
-	return arr;
-}
-findCheckboxes();
+
 
