@@ -49,6 +49,7 @@
         <input type='button' value='Zurück' class="btn">
     </div>
     <div id="sgsFrmWarnFld" class="warning center"></div>
+    <div id="sgInfo" class="center"></div>
     <div class="center margin">
         <p>
             Liste der aktuellen Sachgebiete <a href="drucken-sachgebiete.html" target="_blank">drucken</a>
@@ -60,8 +61,9 @@
         <div class="info">
         <p>
             Du kannst ein oder mehrere Sachgebiete auswählen. Durch drücken der Leertaste oder anclicken mit
-            der Maus kannst Du einzelne Sachgebiete auswählen. Indem Du die Shift- oder Umschalttaste gedrückt 
-            hältst und die Pfeiltasten verwendest, kannst Du einen Bereich von Sachgebieten auswählen.
+            der Maus kannst Du einzelne Sachgebiete aus- und abwählen. Indem Du die Shift- oder Umschalttaste 
+            gedrückt hältst und die Pfeiltasten verwendest, kannst Du  Bereiche von Sachgebieten auswählen.
+            Mit der Shift-/Umschalttaste können auch einzelne Sachgebiete gewählt aber nicht abgewählt werden.
         </p>
         <p>
             Wenn Du in der zweiten Auswahl ein Obersachgebiet auswählst, werden alle Medien des Obersachgebiets 
@@ -69,13 +71,13 @@
         </p>
         </div>        
     </div>
-    <input type="text" id="test">
 
 </article>
 
 <script src="../app/shortkeys.js"></script>
 <script>    
     let status = 0;     //0: OSG; 1: OSG AND USG; 2: RESULT
+    let sglist = [];
 
     async function processData (data, link, warnFld)
     {
@@ -115,7 +117,6 @@
                         });
                         result = result.filter(onlyUnique);
                         //get Array of database id's [objektid, zeitschriftid, buchid, aufsatzid]
-                        console.log(result);
                         let media = result.map(async (obj) => {return dbAll(sql[29],obj)});
                         let mediaResolved = await Promise.all(media).catch(err=>{return console.error(err)});
                         mediaResolved.forEach((array) => 
@@ -152,7 +153,7 @@
                 option.setAttribute("class", "bf");
             }
             option.setAttribute("value", row.id);
-            option.innerHTML = row.sachgebiet;
+            option.innerHTML = ("000" + row.id).slice(-4) + " - " + row.sachgebiet;
             sel.appendChild(option);
         });
         let noOpt = sel.length;
@@ -160,12 +161,46 @@
 
         function onclick ()
         {
+            let sachgebiete;
             if (sel.options[sel.selectedIndex].hasAttribute("selected", "selected")) {
+                    let i;
                     sel.options[sel.selectedIndex].removeAttribute("selected");
                     sel.options[sel.selectedIndex].removeAttribute("style");
+                    if (status == 2 && Number(sel.options[sel.selectedIndex].value)%100 === 0) {
+                        i = sglist.indexOf(" <i>" + sel.options[sel.selectedIndex].innerHTML + "</i>");
+                    } else {
+                        i = sglist.indexOf(" " + sel.options[sel.selectedIndex].innerHTML);
+                    }
+                    sglist.splice(i, 1);
+                    if (sglist.length > 0) {
+                        sachgebiete = sglist.toString();
+                        document.getElementById("sgInfo").innerHTML = 
+                            "<b>Ausgewählte Sachgebiete: </b><p>" + sachgebiete + "</p>";
+                    } else {
+                        document.getElementById("sgInfo").innerHTML = "";
+                    }
                 } else {
                     sel.options[sel.selectedIndex].setAttribute("selected", "selected");
                     sel.options[sel.selectedIndex].setAttribute("style", "background-color: #DCDAD5");
+                    if (status == 2 && Number(sel.options[sel.selectedIndex].value)%100 === 0) {
+                        sglist.push(" <i>" + sel.options[sel.selectedIndex].innerHTML + "</i>");
+                    } else {
+                        sglist.push(" " + sel.options[sel.selectedIndex].innerHTML);
+                    }
+                    sglist.sort((a,b)=>
+                    {
+                        function strToCompare (str)
+                        {
+                            if (str.includes("<i>")) {return str.slice(4,8);}
+                            else {return str.slice(1,5);}
+                        }
+                        let c = strToCompare(a);
+                        let d = strToCompare(b);
+                        return c - d;
+                    });
+                    sachgebiete = sglist.toString();
+                    document.getElementById("sgInfo").innerHTML = 
+                        "<b>Ausgewählte Sachgebiete: </b><p>" + sachgebiete + "</p>";
                 }
         }
         function onselect (event)
@@ -177,15 +212,38 @@
         }
         function onselarea (event)
         {
-            if (event.keyCode === SHIFT || event.which === SHIFT) {
+            if (event.keyCode === 16 || event.which === 16) {
+                event.preventDefault();
                 let selArr = Array.from(sel.options);
                 selArr.forEach((option) => 
                 {
-                    if (option.selected === true) {
+                    if (option.selected === true && !option.hasAttribute("selected", "selected")) {
                         option.setAttribute("selected", "selected");
                         option.setAttribute("style", "background-color: #DCDAD5");
+
+                        if (status == 2 && Number(option.value)%100 === 0) {
+                            sglist.push(" <i>" + option.innerHTML + "</i>");
+                        } else {
+                            sglist.push(" " + option.innerHTML);
+                        }
                     }
                 });
+                sglist.sort((a,b)=>
+                {
+                    function strToCompare (str)
+                    {
+                        if (str.includes("<i>")) {return str.slice(4,8);}
+                        else {return str.slice(1,5);}
+                    }
+                    let c = strToCompare(a);
+                    let d = strToCompare(b);
+                    return c - d;
+                });
+                if (sglist.length > 0) {
+                    sachgebiete = sglist.toString();
+                    document.getElementById("sgInfo").innerHTML = 
+                        "<b>Ausgewählte Sachgebiete: </b><p>" + sachgebiete + "</p>";
+                }
             }
         }
         sel.addEventListener("keydown", onselect);
@@ -257,6 +315,8 @@
                 }
                 switch (status) {
                     case 1:
+                        sglist = [];
+                        document.getElementById("sgInfo").innerHTML = "";
                         sgsFrm.warnFld.innerHTML = "";
                         data = getData(optArr);
                         if (data.length > 0) {
@@ -277,7 +337,9 @@
                             await processData(data, parent, document.getElementById("sgsFrmWarnFld"));
                             sgsFrm.sbmtBtn.style.display = "none";
                             sgsFrm.outFld.firstElementChild.setAttribute("class", "center");
+                            document.getElementById("sgInfo").innerHTML = "";
                             sgsFrm.outFld.firstElementChild.innerHTML = "<b>Sachgebiete: </b>" + data;
+                            sgsFrm.btn[1].focus();
                         } else {
                             return sgsFrm.warnFld.innerHTML="Bitte wähle ein Sachgebiet aus";   
                         }

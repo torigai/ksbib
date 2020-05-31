@@ -5,7 +5,7 @@
 
 let sqr = [];
 
-sqr[0] = `create table if not exists sachgebiet (id integer primary key, sachgebiet text not null, check (id < 30000))`;
+sqr[0] = `create table if not exists sachgebiet (id integer primary key, sachgebiet text not null, check (id < 9999))`;
 sqr[1] = 'create table if not exists medium (id integer primary key, medium text)';
 sqr[2] = 'create table if not exists standort (id integer primary key, standort text unique, standortsgn text unique)';
 sqr[3] = 'create table if not exists jahr (id integer primary key, jahr integer unique, check (jahr > 999 and jahr < 3001))';
