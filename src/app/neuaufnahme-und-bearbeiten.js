@@ -1,6 +1,7 @@
-    //POSSIBLE PARENTS: (Beachte die global definierten Variablen !)
+    // Global definierten Variablen
     // neuaufnahme.html -> aktion = "hinzufügen"
-    // aendern.html -> aktion = "ändern"
+    // bearbeiten.html -> aktion = "bearbeiten"
+    // Global vars: typeOfMedium, mediumData, aktion
 
     /*
         XHR Event Listener
@@ -9,58 +10,163 @@
     onLoadenedXHR(
         async function ()
         {
-            if (document.forms.bFrm !== undefined) {
-            // create bFrm and fill up "standorte" select field and "id" field
-                await cBFrmObj();
-                if (document.getElementById("standort") !== null) {
-                    cStandorteOptions(document.getElementById("standort"));
+            if (aktion === "hinzufügen") {  // from neuaufnahme.html
+                if (document.forms.bFrm !== undefined) {
+                // create bFrm and fill up "standorte" select field and "id" field
+                    await cBFrmObj();
+                    if (document.getElementById("standort") !== null) {
+                        cStandorteOptions(document.getElementById("standort"));
+                    }
+                    if (document.getElementsByName("id")[0] !== undefined) {
+                        bFrm.elements[0].value = await getMaxID(1);
+                    }
                 }
-                if (document.getElementsByName("id")[0] !== undefined) {
-                    bFrm.elements[0].value = await getMaxID(1);
-                }
-            }
-            if (typeOfMedium === "Artikel" || typeOfMedium === "Buchaufsatz") {
-                if (document.forms.bFrm === undefined) { // only formular-selid.html is loaded
-                    document.getElementById("selIDStr").focus();
-                }
-                document.getElementById("selIDStr").addEventListener("keypress", function (event)
-                {
-                    if (event.keyCode == 13 || event.which == 13) {
-                        event.preventDefault();
-                        document.getElementById("selIDOKBtn").click();
-                    } else {return;}
-                });
-                if (typeOfMedium === "Artikel") {
-                    document.getElementById("selIDOKBtn").onclick = (()=>
+                if (typeOfMedium === "Artikel" || typeOfMedium === "Buchaufsatz") {
+                    if (document.forms.bFrm === undefined) { // only formular-selid.html is loaded
+                        document.getElementById("selIDStr").focus();
+                    }
+                    document.getElementById("selIDStr").addEventListener("keypress", function (event)
                     {
-                        if (document.getElementById("selIDStr").value === "") {
-                            return document.getElementById("selIDFrmWarnFld").innerHTML = "Bitte gib eine ID ein";
-                        } else {
-                            return getJournalData(
-                                document.getElementById("selIDStr").value, 
-                                document.getElementById("selIDFrmWarnFld"),
-                                document.getElementById("selIDOutFld"),
-                                "formular-artikel+buchaufsatz.html"
-                            );
-                        }
+                        if (event.keyCode == 13 || event.which == 13) {
+                            event.preventDefault();
+                            document.getElementById("selIDOKBtn").click();
+                        } else {return;}
                     });
+                    if (typeOfMedium === "Artikel") {
+                        document.getElementById("selIDOKBtn").onclick = (()=>
+                        {
+                            if (document.getElementById("selIDStr").value === "") {
+                                return document.getElementById("selIDFrmWarnFld").innerHTML = "Bitte gib eine ID ein";
+                            } else {
+                                return getJournalData(
+                                    document.getElementById("selIDStr").value, 
+                                    document.getElementById("selIDFrmWarnFld"),
+                                    document.getElementById("selIDOutFld"),
+                                    "formular-artikel+buchaufsatz.html"
+                                );
+                            }
+                        });
+                    }
+                    if (typeOfMedium === "Buchaufsatz") {
+                        document.getElementById("selIDOKBtn").onclick = (()=>
+                        {
+                            if (document.getElementById("selIDStr").value === "") {
+                                return document.getElementById("selIDFrmWarnFld").innerHTML = "Bitte gib eine ID ein";
+                            } else {
+                                return getIncollectionData (
+                                    document.getElementById("selIDStr").value, 
+                                    document.getElementById("selIDFrmWarnFld"),
+                                    document.getElementById("selIDOutFld"),
+                                    "formular-artikel+buchaufsatz.html"
+                                );
+                            }
+                        });
+                    }
                 }
-                if (typeOfMedium === "Buchaufsatz") {
-                    document.getElementById("selIDOKBtn").onclick = (()=>
+            } else if (aktion === "bearbeiten") {   //from bearbeiten.html
+                if (document.forms.bFrm !== undefined) {
+                    let standort, autoren, titel, sachgebietsnr, stichworte;
+                    let datacoll;
+                    function fillOutInputFlds (fieldname, dataObj)
                     {
-                        if (document.getElementById("selIDStr").value === "") {
-                            return document.getElementById("selIDFrmWarnFld").innerHTML = "Bitte gib eine ID ein";
-                        } else {
-                            return getIncollectionData (
-                                document.getElementById("selIDStr").value, 
-                                document.getElementById("selIDFrmWarnFld"),
-                                document.getElementById("selIDOutFld"),
-                                "formular-artikel+buchaufsatz.html"
-                            );
+                        let i = Object.keys(dataObj).indexOf(fieldname);
+                        if (document.getElementsByName(fieldname)[0] !== undefined) {
+                            return document.getElementsByName(fieldname)[0].value = 
+                                dataObj[Object.keys(dataObj)[i]];
                         }
+                    }
+
+                    await cBFrmObj();
+
+                    if (document.getElementsByName("id")[0] !== undefined) {
+                        document.getElementsByName("id")[0].value = mediumData[0];
+                    }
+                    datacoll = await dbGet(sql[41], mediumData).catch(err => {return console.error(err)});
+                    fillOutInputFlds("jahr", datacoll);
+                    fillOutInputFlds("ort", datacoll);
+                    fillOutInputFlds("verlag", datacoll);
+                    fillOutInputFlds("band", datacoll);
+                    fillOutInputFlds("seiten", datacoll);
+                    fillOutInputFlds("hinweis", datacoll);
+                    fillOutInputFlds("preis", datacoll);
+                    if (datacoll.autortyp === 1 && document.getElementsByName("autortyp")[0] !== undefined) {
+                        document.getElementsByName("autortyp")[0].checked = true;
+                    }
+                    if (document.getElementById("status") !== null) {
+                        Array.from(document.getElementById("status").options).forEach(option =>
+                        {
+                            if (option.value == datacoll.status) {
+                                return option.setAttribute("selected", "selected");
+                            } else {
+                                if (option.hasAttribute("selected")) {
+                                    return option.removeAttribute("selected");
+                                } else {
+                                    return option;
+                                }
+                            }
+                        });
+                    }
+                    if (typeOfMedium === "Buch") {
+                        datacoll = await dbGet(sql[42], mediumData[0]).catch(err => {return console.error(err)});
+                        datacoll = (datacoll === undefined) ? {auflage: null, isbn: null} : datacoll;
+                        fillOutInputFlds("auflage",datacoll);
+                        fillOutInputFlds("isbn",datacoll);
+                    }
+                    if (typeOfMedium === "Zeitschrift") {
+                        let zeitschrift = await dbGet(sql[43], mediumData[1]).catch(err => {return console.error(err)});
+                        document.getElementsByName("zeitschrift")[0].value = zeitschrift.journal;
+                        document.getElementsByName("zeitschriftkuerzel")[0].value = zeitschrift.kuerzel;
+                        document.getElementsByName("nr")[0].value = zeitschrift.nr;
+                    }
+                    if (document.getElementById("standort") !== null) {
+                        cStandorteOptions(document.getElementById("standort"));
+                        standort = await dbGet(sql[36], mediumData[0]).catch(err => {return console.error(err)});
+                        Array.from(document.getElementById("standort")).forEach(item =>
+                        {
+                            if (item.innerHTML.includes(standort.standortsgn)) {
+                                return item.selected = true;
+                            } else {
+                                return item;
+                            }
+                        });
+                    }
+                    if (document.getElementsByName("sachgebietsnr")[0] !== undefined) {
+                        sachgebiete = await dbAll(sql[39], mediumData[0]).catch(err => {return console.error(err)});
+                        if (sachgebiete !== undefined) {
+                            sachgebiete.forEach(sachgebiet =>
+                            {
+                                document.getElementsByName("sachgebietsnr")[0].innerHTML += 
+                                    sachgebiet.sachgebietid + "\n";
+                                let sg = (Number(sachgebiet.sachgebietid)%100 === 0) ? 
+                                    "OSG - " + sachgebiet.sachgebiet :
+                                    "USG - " + sachgebiet.sachgebiet;
+                                document.getElementsByName("sachgebiete")[0].innerHTML += sg + "\n";
+                            });
+                        }
+                    }
+                    autoren = await dbAll(sql[37], mediumData).catch(err => {return console.error(err)});
+                    if (autoren !== undefined) {
+                        autoren.forEach(autor =>
+                        {
+                            return document.getElementsByName("autoren")[0].innerHTML += 
+                                autor.name + ", " + autor.vorname + "\n";
+                        });
+                    }
+                    titel = await dbAll(sql[38], mediumData).catch(err => {return console.error(err)});
+                    titel.forEach(titel =>
+                    {
+                        return document.getElementsByName("titel")[0].innerHTML += titel.titel + "\n";
                     });
+                    stichworte = await dbAll(sql[40], mediumData).catch(err => {return console.error(err)});
+                    if (stichworte !== undefined) {
+                        stichworte.forEach(stichwort =>
+                        {
+                            return document.getElementsByName("stichworte")[0].innerHTML +=
+                                stichwort.stichwort + "\n";
+                        });
+                    }
                 }
-            }
+            } 
         }
     )
 
@@ -141,7 +247,7 @@
                     ((i) => {
                         promises.push(new Promise ((resolve, reject)=>
                         {
-                            db.get(`SELECT sachgebiet FROM sachgebiet WHERE id = ?`, [sgnrArr[i]], (err, row) =>
+                            db.get(sql[44], [sgnrArr[i]], (err, row) =>
                             {
                                 if (err) {
                                     reject(err);
@@ -150,7 +256,8 @@
                                     sgArr[i] = "ERROR";
                                     reject("Das Sachgebiet existiert nicht");
                                 } else {
-                                    let osg = ( sgnrArr[i] === 0 || Number.isInteger(sgnrArr[i]/100) ) ? "OSG - " : "USG - ";
+                                    let osg = ( sgnrArr[i] === 0 || Number.isInteger(sgnrArr[i]/100) ) ? 
+                                        "OSG - " : "USG - ";
                                     resolve(sgArr[i] = osg + row.sachgebiet);
                                 }
                             }); 
@@ -244,7 +351,8 @@
                                     document.getElementById("selIDOutFld").innerHTML = "";
                                     document.getElementById("selIDStr").value = "";
                                     document.getElementById("selIDStr").focus();
-                                    return document.getElementById("selIDFrmWarnFld").innerHTML = "Der Datensatz wurde gespeichert";
+                                    return document.getElementById("selIDFrmWarnFld").innerHTML = 
+                                        "Der Datensatz wurde gespeichert";
                                 } else {
                                     bFrm.reset();
                                     let x = await getMaxID(1);

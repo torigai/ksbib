@@ -102,12 +102,12 @@
     let artikelBtn = document.getElementById("Artikel");
     let arrBtn = Array.from(selFrm.elements);
     let typeOfMedium;
-    let aktion = "hinzufügen"; // defined in neuaufnahme-und-bearbeiten.js
+    let aktion = "hinzufügen"; //variable is relevant for neuaufnahme-und-bearbeiten.js
     
     let xhttpResponse = function (xhttp)
     {
         document.getElementById("outFld").innerHTML = xhttp.responseText;
-        findCheckboxes();
+        onenterCheckbox();  //requires shortkeys,js
     }
     function pressBtn (type, link) 
     {

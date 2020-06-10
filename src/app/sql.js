@@ -26,9 +26,9 @@ function dbGet (sql, param)
     {
         db.get(sql, param, function (err, row)
         {
-            if (err) {reject(err);}
+            if (err) {reject(err + ': ' + sql + ' with ' + param);}
             if (row === undefined) {
-                reject('Es gibt kein Ergebnis'); 
+                reject('No result: ' + sql + ' with ' + param); 
             } else {
                 resolve(row);
             }
@@ -42,9 +42,9 @@ function dbAll (sql, param)
     {
         db.all(sql, param, function (err, rows)
         {
-            if (err) {reject(err);}
+            if (err) {reject(err + ': ' + sql + ' with ' + param);}
             if (rows.length === 0) {
-                reject('Es gibt kein Ergebnis'); 
+                reject('No result: ' + sql + ' with ' + param); 
             } else {
                 resolve(rows);
             }
@@ -185,9 +185,34 @@ sql[31] = `SELECT * FROM media_view WHERE (objektid = ? AND buchid = 0 AND aufsa
 sql[32] = `DELETE FROM objekt WHERE id = ?`;
 sql[33] = `SELECT * FROM sachgebiet WHERE (id%100 = 0) ORDER BY id ASC`;
 sql[34] = `SELECT * FROM sachgebiet WHERE ( (id/100 - ?/100) BETWEEN 0 AND 0.99) ORDER BY id ASC`;
-sql[35] = `SELECT id FROM objekt
-    LEFT OUTER JOIN relsachgebiet ON id = objektid
-    WHERE sachgebietid = ? LIMIT 100 OFFSET 0`;
+sql[35] = `SELECT medientyp FROM objekt INNER JOIN (
+    SELECT id AS i, medium AS medientyp FROM medium) ON i = objekt.medium WHERE id = ?`;
+sql[36] = `SELECT standortsgn FROM media_view WHERE objektid = ?`;
+sql[37] = `SELECT name, vorname, autornr FROM relautor
+    LEFT OUTER JOIN autor id ON id = autorid
+    WHERE objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ? ORDER BY autornr ASC`;
+sql[38] = `SELECT titel, titelnr FROM reltitel
+    INNER JOIN titel id ON id = titelid
+    WHERE objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ? ORDER BY titelnr ASC`;
+sql[39] = `SELECT * FROM relsachgebiet
+    INNER JOIN sachgebiet id ON id = sachgebietid 
+    WHERE objektid = ? ORDER BY sachgebietid ASC`;
+sql[40] = `SELECT stichwort FROM relstichwort 
+    INNER JOIN stichwort id ON id = stichwortid
+    WHERE objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?
+    ORDER BY stichwort ASC`;
+sql[41] = `SELECT * FROM media_view WHERE objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?`;
+sql[42] = `SELECT auflage, isbn FROM buch WHERE id = ?`;
+sql[43] = `SELECT journal, kuerzel, nr FROM relzeitschrift
+    INNER JOIN zeitschrift USING (id)
+    WHERE zeitschriftid = ?`;
+sql[44] = `SELECT sachgebiet FROM sachgebiet WHERE id = ?`;
+
+function sqlTitelObjID(id, titel)
+{
+    return `SELECT DISTINCT objektid, zeitschriftid, buchid, aufsatzid FROM media_view WHERE
+    objektid = '${id}' AND titel LIKE '%${titel}%' ORDER BY objektid, zeitschriftid, buchid, aufsatzid ASC`;
+}
 
 function sqlIDFromSG (limit, offset)
 {
@@ -201,7 +226,7 @@ function sqlTitelID (titel, limit, offset)
     return `SELECT DISTINCT objektid, zeitschriftid, buchid, aufsatzid from reltitel
     INNER JOIN titel id ON titelid = id
     WHERE titel LIKE '%${titel}%' 
-    ORDER BY objektid ASC
+    ORDER BY objektid, zeitschriftid, buchid, aufsatzid ASC
     LIMIT '${limit}' OFFSET '${offset}'`;
 }
 

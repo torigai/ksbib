@@ -10,8 +10,7 @@
 
 function compose (object, index, self)
 {
-    // Notice SQL: ORDER BY id, zeitschriftid, buchid, aufsatzid, titeltyp, titelnr, autortyp, autornr ASC
-    // Titel ist Pflichtfeld, Autor kann "null" sein.
+    // REQUIRES: ORDER BY id, zeitschriftid, buchid, aufsatzid, titeltyp, titelnr, autortyp, autornr ASC
     let i = self.indexOf(object);
     let previousObject = ( self[i-1] !== undefined ) ? self[i-1] : "nonExistent";
     if (previousObject !== "nonExistent" && previousObject.objektid === object.objektid) {
@@ -45,6 +44,8 @@ async function findMediaResultArr (matchingIDs)
     let i;
     let result = [];
     let parentsIDs = [], parents = [];  // Zu Buchaufsätzen zugehörige Bücher
+    let promises = [];
+
     function outputArray (object) 
     {
         let i, titelUndVerweise, medientyp;
@@ -95,7 +96,6 @@ async function findMediaResultArr (matchingIDs)
             medientyp = "Zeitschrift"; 
         }
         if (object.zeitschriftid !== 0 && object.aufsatzid !== 0) { // Artikel
-            i = parents.indexOf(parents.find( ({id}) => id === object.objektid ));
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
             titelUndVerweise = object.titel + " <i>" + object.zeitschrift + band + nr + seiten + "</i>" + hinweis;
             medientyp = "Artikel";
@@ -107,9 +107,8 @@ async function findMediaResultArr (matchingIDs)
         return [id, autoren, titelUndVerweise, jahr, medientyp, standort, status];
     }
 
-    let promises = [];
     for (i = 0; i < matchingIDs.length; i++) { 
-        ((i)=>
+        ((i)=> 
         {
             promises.push(new Promise (function(resolve, reject)
             {
@@ -120,6 +119,8 @@ async function findMediaResultArr (matchingIDs)
                         rows.forEach((row) => 
                         { 
                             result.push(row);
+                            //Parents for essays in books (not needed for articles that won't be cited
+                            //with title etc. in the result table):
                             if (row.buchid !== 0  && row.aufsatzid !== 0) {  
                                 parentsIDs.push([row.objektid, 0, row.buchid, 0]);
                             }
@@ -130,9 +131,15 @@ async function findMediaResultArr (matchingIDs)
             }));
         })(i);
     }
-
     await Promise.all(promises).catch(err => {return console.error(err)});
-
+    //sorting the results such that they conform the order of mathingIDs
+    //required by bearbeiten.html, callFormularBearbeiten()
+    result.sort(function (a, b) 
+    {
+        let val1 = (a.objektid).toString() + (a.zeitschriftid).toString() + (a.buchid).toString() + (a.aufsatzid).toString();
+        let val2 = (b.objektid).toString() + (b.zeitschriftid).toString() + (b.buchid).toString() + (b.aufsatzid).toString();
+        return val1 - val2;
+    });
     if (parentsIDs.length !== 0) { // Data for books belonging to articles in books
         parentsIDs = parentsIDs
             .map((item) => item.toString()).filter(onlyUnique)
@@ -142,5 +149,7 @@ async function findMediaResultArr (matchingIDs)
         }
     }
     parents = parents.map(compose).filter(onlyComposedResults);
-    return result = result.map(compose).filter(onlyComposedResults).map(outputArray);
+    result = result.map(compose).filter(onlyComposedResults).map(outputArray);
+
+    return result;
 }

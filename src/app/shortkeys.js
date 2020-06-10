@@ -103,13 +103,13 @@ function checkboxEnter (event)
 	}
 }
 
-function findCheckboxes ()
+function onenterCheckbox ()
 {
 	let arr = Array.from(document.querySelectorAll("input[type='checkbox']"));
 	arr.forEach((checkbox) => checkbox.addEventListener("keydown", checkboxEnter, false));	
 	return arr;
 }
-findCheckboxes();
+onenterCheckbox();
 
 
 document.getElementsByTagName("ul")[0].addEventListener("keydown", down, false);

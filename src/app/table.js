@@ -10,7 +10,7 @@ function cOutputTbl (container, tblName, headerNamesArr, entriesArr)
     let data = entriesArr;    // ist ein Array von Arrays: [[1,2,3],[4,5,6], ...]
     let noCols = headerNamesArr.length;
     let noRows = data.length; 
-    let th = [], td = [], tr = [];
+    let th = [], td = [], tr = [], btn = [];
     let table = document.createElement("table");
     table.setAttribute("class", "center");
     table.setAttribute("name", tblName);
@@ -27,7 +27,17 @@ function cOutputTbl (container, tblName, headerNamesArr, entriesArr)
         for (i=0; i < noCols; i++) {
             td[i] = tr[j].insertCell(i);
             td[i].setAttribute("class", "tableCell");
-            td[i].innerHTML = data[j-1][i];
+            if (i === 0) {
+                btn[j] = document.createElement("input");
+                btn[j].setAttribute("type", "button");
+                btn[j].setAttribute("class", "plain");
+                btn[j].setAttribute("name", "tblBtn");
+                btn[j].setAttribute("tabindex", "-1");
+                btn[j].value = data[j-1][i];
+                td[i].appendChild(btn[j]);
+            } else {
+                td[i].innerHTML = data[j-1][i];
+            }
         }
         j++;
     }

@@ -6,8 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
     <script src="../app/main.js"></script>
+    <script src="../app/sql.js"></script>
     <script src="../app/neuaufnahme-und-bearbeiten.js"></script>
     <script src="../app/validation.js"></script>
+    <script src="../app/findMedia.js"></script>
+    <script src="../app/table.js"></script>
 </head>         
 
 
@@ -44,10 +47,13 @@
         <div class='rTableBody'>
             <div class='rTableRow'>
                 <div class="rTableCell">
-                    <label for="selStr">ID</label>
+                    <label for="selId">ID</label>
                 </div>
                 <div class='rTableCell'>
-                    <input type="text" id="selStr" class="txt" size="5" autofocus>
+                    <input type="text" id="selId" class="txt" size="5" autofocus>
+                </div>
+                <div class='rTableCell'>
+                    <input type="text" id="selTitel" class="txt" size="5" autofocus>
                 </div>
                 <div class='rTableCell'>
                     <input type="button" id="selOKBtn" class="btn" value="OK">
@@ -61,10 +67,15 @@
 
     <div id="outFld">
         <div class="info">
-            Bitte gib die ID des Mediums ein, das Du bearbeiten möchtest. Die ID ist der Zähler in
-            der Signatur des Mediums, z.B. "400" bei dem Medium mit Signatur "CD-2 400". Falls Du
-            die ID nicht kennst, kannst Du das Medium <a href="index.html">suchen</a> und von den
-            Suchergebnissen aus die Maske zum Bearbeiten des Mediums öffnen.
+            <p>
+                Bitte gib die ID des Mediums ein, das Du bearbeiten möchtest. Die ID ist der Zähler in
+                der Signatur des Mediums, z.B. "400" bei dem Medium mit Signatur "CD-2 400". Falls Du
+                die ID nicht kennst, kannst Du das Medium <a href="index.html">suchen</a> und von den
+                Suchergebnissen aus die Maske zum Bearbeiten des Mediums öffnen.
+            </p>
+            <p>
+                Mit "ESC" gelangst Du zurück zur Auswahl der Medien ID.
+            </p>
         </div>
     </div>
 
@@ -75,38 +86,171 @@
     /*
         FORMULARE
     */
+    let aktion = "bearbeiten"; // defined in neuaufnahme-und-bearbeiten.js
+    let typeOfMedium;
+    let mediumData;
 
-    aktion = "bearbeiten"; // defined in neuaufnahme-und-bearbeiten.js
+    let xhttpResponse = async function (xhttp)
+    {
+        document.getElementById("outFld").innerHTML = xhttp.responseText;
+        onenterCheckbox();   //requires shortkeys,js
+
+    }
+
     let selFrm = new cformular(document.getElementById("selFrm"), document.getElementById("selFrmWarnFld"), document.getElementById("outFld"), document.getElementById("selOKBtn"));
-    selFrm.newSbmt(
-        function () 
+    selFrm.newSbmt( async function () 
+    {
+        if (selFrm.elements[0].value === "" && selFrm.elements[1].value === "") {
+            return selFrm.warnFld.innerHTML = message[0]("Suchbegriff");
+        }
+        let matchingIDs;
+        let result; 
+        let tblArr = [];
+        let id = conformAndValidateNumber(selFrm.elements[0], 0, false);
+        let titel = conformAndValidateTitle (selFrm.elements[1], 1, false);
+        async function callFormularBearbeiten (idArr)
         {
-            typeOfMedium = "Aufsatz"; // defined in neuaufnahme-und-bearbeiten.js
-            switch (typeOfMedium) {
-                case "Zeitschrift" : xhr("formular-zeitschrift.html", selFrm.res); break;
-                case "Artikel" : xhr("formular-artikel.html", selFrm.res); break;
-                case "Aufsatz" : xhr("formular-aufsatz.html", selFrm.res); break;
-                case "Buchaufsatz" : xhr("formular-buchaufsatz.html", selFrm.res); break;
-                default : xhr("formular-buch.html", selFrm.res);    //Buch
+            typeOfMedium = await dbGet(sql[35], mediumData[0]).catch(err => {return console.error(err)});
+            typeOfMedium = typeOfMedium.medientyp;
+            if (typeOfMedium === "Buch" && idArr[3] !== 0) {
+                typeOfMedium = "Buchaufsatz";
+            } else if (typeOfMedium === "Zeitschrift" && idArr[3] !== 0) {
+                typeOfMedium = "Artikel";
             }
-        })
+            document.getElementById("headerTitel").innerHTML = typeOfMedium + " " + aktion; 
+            selFrm.warnFld.innerHTML = "";
+            switch (typeOfMedium) {
+                case "Zeitschrift" : xhr("formular-zeitschrift.html", xhttpResponse); break;
+                case "Artikel" : xhr("formular-artikel+buchaufsatz.html", xhttpResponse); break;
+                case "Aufsatz" : xhr("formular-aufsatz.html", xhttpResponse); break;
+                case "Buchaufsatz" : xhr("formular-artikel+buchaufsatz.html", xhttpResponse); break;
+                default : xhr("formular-buch.html", xhttpResponse);    //Buch
+            }
+        }
+
+        if (id === null) {
+            matchingIDs = await dbAll(sqlTitelID(titel[0], 10, 0), []).catch(err => {return console.error(err)});
+        } else if (titel.length === 0) {
+            matchingIDs = await dbAll(sql[29], id).catch(err => {return console.error(err)});
+        } else {
+            matchingIDs = await dbAll(sqlTitelObjID(id, titel[0]),[]).catch(err => {return console.error(err)});    
+        }
+        if (matchingIDs === undefined) {
+            return selFrm.warnFld.innerHTML = "Zu der Eingabe existiert kein Medium";
+        } else {
+            matchingIDs = matchingIDs.map(item => 
+            {
+                return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid]
+            });
+        }
+        if (matchingIDs.length > 1) {
+            result = await findMediaResultArr(matchingIDs);
+            selFrm.outFld.innerHTML = "";
+            cOutputTbl (selFrm.outFld, "selTbl", 
+                ["ID", "Autoren", "Titel und Verweise", "Jahr", "Typ", "Standort", "Status"], result);
+            tblArr = Array.from(document.getElementsByName("selTbl")[0].rows);
+            tblArr.forEach(row => 
+            {
+                if (tblArr.indexOf(row) === 0) {
+                    return row;
+                } else {
+                    row.setAttribute("class","hoverable");
+                    return row.addEventListener("click",(()=>
+                    {
+                        //Requires that the table is ordered like matchingIDs 
+                        //which is done in findMedia.js, outputArray()
+                        mediumData = matchingIDs[tblArr.indexOf(row)-1];
+                        return callFormularBearbeiten(mediumData);
+                    }));
+                }
+            });
+        } else {
+            mediumData = matchingIDs[0];
+            return callFormularBearbeiten(mediumData);
+        }
+    })
     selFrm.sbmtBtn.addEventListener("click", selFrm.sbmt);
     selFrm.onenter = function (event) 
     {
         function checkKey (event) {
-            if (event.keyCode == 13 || event.which == 13) {
+            if (event.key === "Enter" || event.code === "Enter") {
+                event.preventDefault();
                 selFrm.sbmtBtn.click();
-            } else {return;}
+            }
         }
         selFrm.textFld[0].addEventListener("keypress", checkKey);
+        selFrm.textFld[1].addEventListener("keypress", checkKey);
     }
     selFrm.onenter();
+    selFrm.oninput = function ()
+    {
+        function clear ()
+        {
+            selFrm.warnFld.innerHTML = "";
+        }
+        return Array.from(selFrm.textFld).forEach(fld => {return fld.addEventListener("input",clear)});
+    }
+    selFrm.oninput();
 
-    
+    let boolean = false;
+    function esc (event)
+    {
+        if (event.key === "Escape" || event.code === "Escape") {
+            event.preventDefault();
+            if (boolean === true ) {
+                let btns = Array.from(document.getElementsByName("tblBtn"));
+                btns.forEach(btn => {return btn.removeEventListener("keydown", tblBtn_onArrow)});
+            }
+            return document.getElementById("selId").select();
+        }
+    }
+    document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
 
-
-
-//TO DO: onfocusout -> die Sachgebietsnamen zu den eingegebenen sachgebietsnummern anzeigen
+    function tblBtn_onArrow (event)
+    {
+        let btns = Array.from(document.getElementsByName("tblBtn"));
+        let l = btns.length;
+        let i = btns.indexOf(document.activeElement);
+        if (event.key === "ArrowDown" || event.code === "ArrowDown") {
+            event.preventDefault();
+            btns[i].parentElement.parentElement.removeAttribute("style", "background-color");
+            if (i === l-1) {
+                btns[0].parentElement.parentElement.setAttribute("style", "background-color: #e6e6e6");
+                return btns[0].focus();
+            } else {
+                btns[i+1].parentElement.parentElement.setAttribute("style", "background-color: #e6e6e6");
+                return btns[i+1].focus();
+            }
+        }
+        if (event.key === "ArrowUp" || event.code === "ArrowUp") {
+            event.preventDefault();
+            btns[i].parentElement.parentElement.removeAttribute("style", "background-color");
+            if (i === 0) {
+                btns[l-1].parentElement.parentElement.setAttribute("style", "background-color: #e6e6e6");
+                return btns[l-1].focus();
+            } else {
+                btns[i-1].parentElement.parentElement.setAttribute("style", "background-color: #e6e6e6");
+                return btns[i-1].focus();
+            }
+        }
+    }
+    function arrowDown (event)
+    {
+        if (event.key === "ArrowDown" || event.code === "ArrowDown") {
+            event.preventDefault();
+            if (document.getElementsByName("selTbl")[0] !== undefined) {
+                let btns = Array.from(document.getElementsByName("tblBtn"));
+                btns[0].parentElement.parentElement.setAttribute("style", "background-color: #e6e6e6");
+                btns[0].focus();
+                btns.forEach(btn => {return btn.addEventListener("keydown", tblBtn_onArrow)});
+                return boolean = true;
+            } else {
+                return boolean = false;
+            }
+        }
+    }
+    selFrm.textFld[0].addEventListener("keydown", arrowDown);
+    selFrm.textFld[1].addEventListener("keydown", arrowDown);
      
 </script>
 

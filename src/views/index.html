@@ -555,7 +555,7 @@ async function dsearchDBRequest (data, limit, offset)
 
 cStandorteOptions(document.getElementById("standort"));
 
-function esc (event, callback)
+function esc (event)
 {
     if (event.keyCode === 27 || event.which === 27) {
         event.preventDefault();
@@ -572,8 +572,7 @@ document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false)
     TODO
     - Tastaturkürzel (erläuterung dafür implementieren)
     - Navigator in allen anderen views anpassen (Tastaturkuerzel!)
-    - Evtl. Tastaturkuerzel "Esc" hinzufuegen: falls das Navigatormenu offen ist, soll es inaktiv werden
-    - falls eine Zeitschrift kein Kürzel hat, soll der gesamte Name in der Suche angezeigt werden und nicht bloß das Kürzel
+    - suchergebnisse zum bearbeiten oeffnen koennen
 */
 </script>
 

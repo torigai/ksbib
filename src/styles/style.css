@@ -226,6 +226,12 @@ table {
 table.center {
 	margin: auto;
 }
+table .hoverable {
+  background-color: white;
+}
+table .hoverable:hover {
+  background-color: #e6e6e6;
+}
 table, td {
 	border: solid 1px #4995A7;
 }
@@ -264,7 +270,7 @@ th {
   padding-bottom: 10px;
   text-align: left;
   vertical-align: middle;
-  /*background-color: lightgreen;*/
+  /*background-color: #e6e6e6;*/
 }
 
 .tableHeader {

@@ -83,7 +83,7 @@ function cSQLProcessor (callback)
 				});
 			});
 		}
-		if (sql.includes("INSERT")) {
+		if (sql.includes("INSERT") || sql.includes("UPDATE")) {
 			return new Promise ((resolve, reject) =>
 			{
 				db.run(sql, param, function (err)
@@ -92,7 +92,7 @@ function cSQLProcessor (callback)
 					else {resolve(sql);}
 				});
 			});
-		}	
+		}
 	}
 	this.run = function ()
 	{
