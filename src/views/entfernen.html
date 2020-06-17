@@ -88,7 +88,11 @@
             return delFrm.warnFld.innerHTML = "Bitte gib eine ID ein";
         } else {
             delFrm.warnFld.innerHTML = "";
-            let result = await dbGet(sql[29],id).catch(err => {return delFrm.warnFld.innerHTML = err});
+            let result = await dbGet(sql[29],id).catch(err => 
+                {
+                    console.log(err); 
+                    return delFrm.warnFld.innerHTML = "Zu der ID gibt es kein Medium in der Datenbank";
+                });
             if (delFrm.warnFld.innerHTML === "") {
                 result = [[result.objektid, result.zeitschriftid, result.buchid, result.aufsatzid]];
                 result = await findMediaResultArr(result);

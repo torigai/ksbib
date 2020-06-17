@@ -1,7 +1,7 @@
     // Global definierten Variablen
     // neuaufnahme.html -> aktion = "hinzufügen"
     // bearbeiten.html -> aktion = "bearbeiten"
-    // Global vars: typeOfMedium, mediumData, aktion
+    // typeOfMedium, mediumData, aktion, olddata    (definiert in: bearbeiten.html und/oder neuaufnahme.html)
 
     /*
         XHR Event Listener
@@ -118,6 +118,14 @@
                         document.getElementsByName("zeitschriftkuerzel")[0].value = zeitschrift.kuerzel;
                         document.getElementsByName("nr")[0].value = zeitschrift.nr;
                     }
+                    if (typeOfMedium === "Artikel") {
+                        //selectedID is defined in articleData.js and there defines data.id
+                        selectedID = mediumData[0];
+                    }
+                    if (typeOfMedium === "Buchaufsatz") {
+                        //selectedIncollID is defined in incollectionData.js and there defines data.id
+                        selectedIncollID = mediumData[0];
+                    }
                     if (document.getElementById("standort") !== null) {
                         cStandorteOptions(document.getElementById("standort"));
                         standort = await dbGet(sql[36], mediumData[0]).catch(err => {return console.error(err)});
@@ -165,6 +173,23 @@
                                 stichwort.stichwort + "\n";
                         });
                     }
+
+                    switch (typeOfMedium) {
+                    case "Artikel" :
+                        return olddata = articleData(document.forms.bFrm);
+                        break;
+                    case "Zeitschrift" :
+                        return olddata = journalData(document.forms.bFrm);
+                        break;
+                    case "Aufsatz" :  
+                        return olddata = essayData(document.forms.bFrm);
+                        break;
+                    case "Buchaufsatz" :
+                        return olddata = incollectionData(document.forms.bFrm);
+                    break;
+                    default : //typeOfMedium = "Buch"                        
+                        return olddata = bookData(document.forms.bFrm);
+                }
                 }
             } 
         }
@@ -194,12 +219,16 @@
             let i = 0;
             function checkKey (event) {
                 if (event.keyCode == 13 || event.which == 13) {
-                    event.preventDefault();
+                    event.preventDefault(); 
                     frm.sbmtBtn.click();
                 } else {return;}
             }
             for (i = 0; i < txtLen; i++) {
-                frm.textFld[i].addEventListener("keypress", checkKey);
+                if (frm.textFld[i].name === "zeitschrift") {
+                    continue;
+                } else {
+                    frm.textFld[i].addEventListener("keypress", checkKey);
+                }
             }
         }
         bFrm.oninput = function ()
@@ -326,7 +355,7 @@
                     case "Buchaufsatz" :
                         data = incollectionData(document.forms.bFrm);
                     break;
-                    default : //typeOfMedium = "Buch"                        
+                    default :                     
                         data = bookData(document.forms.bFrm);
                 }
                 if (err.length !== 0) {
@@ -342,33 +371,53 @@
                             return false;
                         } 
                     }
-                    let confirm = window.confirm("Neues Medium speichern?");
+                    let confirm = window.confirm("Medium speichern?");
                     if (confirm === true) {
                         async function callback (boolean) 
                         {
                             if (boolean === true) {
-                                if (document.forms.selIDFrm !== undefined) {
-                                    document.getElementById("selIDOutFld").innerHTML = "";
-                                    document.getElementById("selIDStr").value = "";
-                                    document.getElementById("selIDStr").focus();
-                                    return document.getElementById("selIDFrmWarnFld").innerHTML = 
-                                        "Der Datensatz wurde gespeichert";
-                                } else {
-                                    bFrm.reset();
-                                    let x = await getMaxID(1);
-                                    bFrm.elements[0].value = x;
-                                    return bFrmWarnFld.innerHTML = "Der Datensatz wurde gespeichert";
+                                if (aktion === "hinzufügen") {
+                                    if (document.forms.selIDFrm !== undefined) {
+                                        document.getElementById("selIDOutFld").innerHTML = "";
+                                        document.getElementById("selIDStr").value = "";
+                                        document.getElementById("selIDStr").focus();
+                                        return document.getElementById("selIDFrmWarnFld").innerHTML = 
+                                            "Der Datensatz wurde gespeichert";
+                                    } else {
+                                        bFrm.reset();
+                                        let x = await getMaxID(1);
+                                        bFrm.elements[0].value = x;
+                                        return bFrmWarnFld.innerHTML = "Der Datensatz wurde gespeichert";
+                                    }
+                                }
+                                if (aktion === "bearbeiten") {
+                                    bFrm.outFld.innerHTML = "";
+                                    selFrm.textFld[0].value = "";
+                                    selFrm.textFld[1].value = "";
+                                    selFrm.textFld[0].focus();
+                                    return selFrm.warnFld.innerHTML = "Der Datensatz wurde gespeichert";   
                                 }
                             } else {
                                 return bFrmWarnFld.innerHTML = "Der Datensatz konnte nicht gespeichert werden";
                             }
                         }
-                        switch (typeOfMedium) {
-                            case "Buch": addBook(data, callback); break;
-                            case "Zeitschrift": addJournal(data, callback); break;
-                            case "Aufsatz": addEssay(data, callback); break;
-                            case "Artikel": addArticle(data, callback); break;
-                            case "Buchaufsatz": addIncollection(data, callback); break;
+                        if (aktion === "hinzufügen") {
+                            switch (typeOfMedium) {
+                                case "Buch": addBook(data, callback); break;
+                                case "Zeitschrift": addJournal(data, callback); break;
+                                case "Aufsatz": addEssay(data, callback); break;
+                                case "Artikel": addArticle(data, callback); break;
+                                case "Buchaufsatz": addIncollection(data, callback); break;
+                            }
+                        } 
+                        if (aktion === "bearbeiten") {
+                            switch (typeOfMedium) {
+                                case "Buch": updateBook(data, olddata, callback); break;
+                                case "Zeitschrift": updateJournal(data, olddata, callback); break;
+                                case "Aufsatz": updateEssay(data, olddata, callback); break;
+                                case "Artikel": updateArticle(data, olddata, callback); break;
+                                case "Buchaufsatz": updateIncollection(data, olddata, callback); break;
+                            }  
                         }
                         return true;
                     } else {
@@ -396,7 +445,6 @@
     function insertZeitschriftkuerzelIfExists (journal) 
     {
         let kuerzel = document.getElementsByName("zeitschriftkuerzel")[0];
-
         if (journal !== "") {
             db.get(`SELECT kuerzel FROM zeitschrift WHERE journal = '${journal}'`, [], (err, row) =>
             {
@@ -418,10 +466,3 @@
         }
     }
 
-/*
-
-TODO
-    - css: textfield wrapping
-    - Verallgemeinern der Datenlisten Anzeige Funktion
-    - preis funktioniert nicht mit kommastellen
-*/

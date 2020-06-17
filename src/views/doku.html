@@ -43,7 +43,7 @@
     
     <h1> Tastaturkürzel </h1>
 
-    <table>
+    <table class="center">
         <tr>
             <th>Tastenkombination</th>
             <th>Aktion</th>    
@@ -107,17 +107,23 @@
         </tr>
     </table>
 
-    <h1>Sachgebiete</h1>
+    <h1>Signatur</h1>
+    <p>
+        Die Signatur wird durch das Programm automatisch vergeben und kombiniert den Standort
+        und die ID des Mediums. Das Medium mit ID 112 am Standort WZ-S-1 (Wohnzimmer Südwand Regal 1)
+        hat entsprechend eine Signatur WZ-S-1 112
+    </p>
 
+    <h1>Sachgebiete</h1>
     <p>
         Es wird in Ober- und Untersachgebiete unterschieden. Beide sind durch
         Sachgebietsnummern gekennzeichnet, die automatisch vergeben werden. 
         <br>
         Hier wird kurz die Logik dieser Nummernvergabe beschrieben: Obersachgebiete haben die
-        Sachgebietsnummern 0, 100, 200, ... , 29'900. Z.B. könnte es ein Obersachgebiet
+        Sachgebietsnummern 0, 100, 200, ... , 9'900. Z.B. könnte es ein Obersachgebiet
         "0 Architektur" geben. Die Untersachgebiete zu dem Obersachgebiet "0 Architektur"
-        haben die Nummern 1, 2, ... , 99. Zu jedem Obersachgebiet kann es also maximal 99 
-        Untersachgebiete geben. 
+        haben die Nummern 1, 2, ... , 99. Zu jedem der möglichen 100 Obersachgebiete können
+        99 Untersachgebiete vergeben werden. 
         <br>
         Ein neues Buch könnte dem Untersachgebiet "5 Geschichte" aus dem Obersachgebiet 
         "0 Architektur" zugeordnet werden. Es gehört dann automatisch auch zum Obersachgebiet 
@@ -127,6 +133,8 @@
         können auf einer <a href="drucken-sachgebiete.html" target="_blank">Liste der Sachgebiete</a> 
         nachgeschlagen werden.
     </p>
+
+
 </article>
 <script src="../app/shortkeys.js"></script>
 </body>

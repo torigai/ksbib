@@ -116,6 +116,128 @@ function addArticle (data, callback)
     procArticle.run();
 }
 
+function updateArticle (data, olddata, callback)
+{
+    let compareResult = {};    //intended: with keys as in data and values 0 (unchanged), 1 (changed)
+    let procArticle = new cSQLProcessor(callback);
+    let i;
+    function compare (oldObj, newObj) 
+    {
+        let noChanges;
+        let obj = {};
+        for (const key in oldObj) {
+            if (Array.isArray(oldObj[key])) {
+                noChanges = 0;
+                if (newObj[key] === null) {
+                    noChanges = 1;
+                } else if (oldObj[key].length !== newObj[key].length) {
+                    noChanges = 1;
+                } else {
+                    oldObj[key].forEach(element => 
+                    {
+                        let i = oldObj[key].indexOf(element);
+                        if (element !== newObj[key][i]) {
+                            return noChanges = noChanges + 1;
+                        } else {
+                            return noChanges;
+                        }
+                    });
+                }
+                obj[key] = (noChanges === 0) ? 0 : 1;
+            } else {
+                obj[key] = (oldObj[key] === newObj[key]) ? 0 : 1;
+            }
+        }
+        return obj;
+    }
+    function columsToUpdate (compareObj, newData, namesArr)
+    {
+        let resultArr = [];
+        namesArr.map(name => 
+        {
+            if (compareObj[name] === 1) {
+                let datum = (typeof newData[name] === "string") ? `'${newData[name]}'` : newData[name];
+                resultArr.push(name + "=" + datum);
+            }
+        });
+        return resultArr.toString();
+    }
+    compareResult = compare(olddata, data);
+    if (!Object.values(compareResult).includes(1)) { //no changes
+        return callback(true);
+    } else {
+        //Globals
+        //globale Variable mediumData von bearbeiten.html (mediumData = [objektid, zeitschriftid, buchid, aufsatzid])
+
+        if (compareResult.hinweis !== 0) {
+            procArticle.add(sqlUpdate(
+                "relobjtyp",
+                columsToUpdate(compareResult, data, ["hinweis"]),
+                "objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?"
+                ), [data.id, mediumData[1], data.buchid, mediumData[3]]
+            );
+        }
+        if (compareResult.jahr !== 0) {
+            procArticle.add(sql[1], [data.jahr]);  //select jahrid
+            procArticle.add(sql[48], function (result) 
+            {
+                return [result, data.id, mediumData[1], data.buchid, mediumData[3]]
+            });
+        }
+        if (compareResult.stichworte !== 0) {
+            if (olddata.stichworte !== null) {  //delete all from relstichw
+                procArticle.add(sql[57], [data.id, mediumData[1], data.buchid, mediumData[3]]);
+            } 
+            if (data.stichworte !== null) {
+                data.stichworte.forEach(stichwort =>  //add all new to relstichw.
+                {
+                    procArticle.add(sql[6], [stichwort]);  //insert or ignore
+                    procArticle.add(sql[12], [stichwort]); //select id
+                    procArticle.add(sql[7], function (result)
+                    {
+                        return [data.id, mediumData[1], data.buchid, mediumData[3], result]
+                    });
+                });
+            }       
+        }
+        if (compareResult.autoren !== 0) {
+            if (olddata.autoren !== null) { //delete all old relations in relautor
+                olddata.autoren.forEach(autor =>
+                {
+                    procArticle.add(sql[59], [data.id, mediumData[1], data.buchid, mediumData[3]]); 
+                });
+            }
+            if (data.autoren !== null) {   //insert all new relations in relautor
+                for (i=0; i < data.autoren.length; i++) { ((i) => {
+                    if (data.autoren[i].includes(",")) {
+                        autorenArr = data.autoren[i].split(",").map(strtrim);
+                    } else { //ein Name der Art "Müller" oder "Hans" wird immer als Nachname gespeichert
+                        autorenArr = [data.autoren.toString(), ""];
+                    }
+                    procArticle.add(sql[8], [autorenArr[0], autorenArr[1]]);
+                    procArticle.add(sql[13], [autorenArr[0], autorenArr[1]]);
+                    procArticle.add(sql[9], function (result) 
+                    {
+                        return [data.id, mediumData[1], data.buchid, mediumData[3], result, i+1]
+                    }); 
+                })(i);}
+            }
+        }
+        if (compareResult.titel !== 0) {
+            procArticle.add(sql[60], [data.id, mediumData[1], data.buchid, mediumData[3]]); // delete all old in reltitel
+            for (i=0; i < data.titel.length; i++) { ((i) => {   //add all new in reltitel
+                procArticle.add(sql[10], [data.titel[i]]);
+                procArticle.add(sql[14], [data.titel[i]]);
+                procArticle.add(sql[11], function (result) 
+                {
+                    return [data.id, mediumData[1], data.buchid, mediumData[3], result, data.titeltyp, i+1]
+                });
+            })(i);}
+        }
+        procArticle.run();
+    }
+}
+
 function getJournalData (id, warnFld, outFld, link)
 {
     warnFld.innerHTML = "";

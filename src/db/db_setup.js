@@ -268,6 +268,10 @@ BEGIN
         (SELECT COUNT(DISTINCT objektid) FROM relobjtyp WHERE ort = old.ort) = 1);
 END;`;
 
+sqr[107] = `create trigger if not exists trig_update_sgn after update of standort on objekt for each row 
+begin 
+    update objekt set sgn = ((select standortsgn from standort where standort.id = objekt.standort) || ' ' || objekt.id); 
+end;`;
 
 /*
 sqr[99] = `CREATE VIEW media_view AS 

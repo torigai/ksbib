@@ -8,9 +8,15 @@
     <script src="../app/main.js"></script>
     <script src="../app/sql.js"></script>
     <script src="../app/neuaufnahme-und-bearbeiten.js"></script>
+    <script src="../app/sqlproc.js"></script>
     <script src="../app/validation.js"></script>
     <script src="../app/findMedia.js"></script>
     <script src="../app/table.js"></script>
+    <script src="../app/journalData.js"></script>
+    <script src="../app/bookData.js"></script>
+    <script src="../app/essayData.js"></script>
+    <script src="../app/articleData.js"></script>
+    <script src="../app/incollectionData.js"></script>
 </head>         
 
 
@@ -73,9 +79,6 @@
                 die ID nicht kennst, kannst Du das Medium <a href="index.html">suchen</a> und von den
                 Suchergebnissen aus die Maske zum Bearbeiten des Mediums öffnen.
             </p>
-            <p>
-                Mit "ESC" gelangst Du zurück zur Auswahl der Medien ID.
-            </p>
         </div>
     </div>
 
@@ -86,9 +89,10 @@
     /*
         FORMULARE
     */
-    let aktion = "bearbeiten"; // defined in neuaufnahme-und-bearbeiten.js
+    let aktion = "bearbeiten"; 
     let typeOfMedium;
     let mediumData;
+    let oldData;
 
     let xhttpResponse = async function (xhttp)
     {
@@ -158,7 +162,7 @@
                     return row.addEventListener("click",(()=>
                     {
                         //Requires that the table is ordered like matchingIDs 
-                        //which is done in findMedia.js, outputArray()
+                        //which is asserted in findMedia.js, outputArray()
                         mediumData = matchingIDs[tblArr.indexOf(row)-1];
                         return callFormularBearbeiten(mediumData);
                     }));

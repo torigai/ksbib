@@ -55,7 +55,7 @@ function conformAndValidateYear (el, i, j)
         err[err.length] = i + "*" + message[2];
         return false;
     } else {
-        return jahr;
+        return Number(jahr);
     }
 }
     
@@ -77,7 +77,7 @@ function conformAndValidateNumber (el, i, j)
         err[err.length] = i + "*" + message[1]("eine Zahl kleiner oder gleich 500");
         return false;
     }
-    return zahl;
+    return Number(zahl);
 }
 
 function conformAndValidateCosts (el, i, j)
@@ -265,7 +265,7 @@ function conformAndValidateSgnr (el, i, j)
             err[err.length] = i + "*" + message[1]("29'999");
             return false;
         }
-        return x;
+        return Number(x);
     }
     return sgnrarr.map(testSgnr).filter(onlyUnique);
 }
@@ -334,7 +334,7 @@ function conformAndValidateISBN (el, i, j)
         err[err.length] = i + "*" + message[1]("10 oder 13 Stellen und Ziffern größer oder gleich Null");
         return false;
     }
-    return isbn;
+    return Number(isbn);
 }
 
 function conformAndValidateSgn (el, i, j)

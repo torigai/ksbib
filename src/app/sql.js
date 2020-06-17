@@ -207,6 +207,35 @@ sql[43] = `SELECT journal, kuerzel, nr FROM relzeitschrift
     INNER JOIN zeitschrift USING (id)
     WHERE zeitschriftid = ?`;
 sql[44] = `SELECT sachgebiet FROM sachgebiet WHERE id = ?`;
+sql[45] = `UPDATE relsachgebiet SET sachgebietid = ? WHERE objektid = ?`;
+sql[46] = `UPDATE buch SET verlag = ? WHERE id = ?`;
+sql[47] = `UPDATE relstichwort SET stichwortid = ? WHERE 
+    objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?`;
+sql[48] = `UPDATE relobjtyp SET erscheinungsjahr = ? WHERE 
+    objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?`;
+sql[49] = `SELECT COUNT(id) AS noVerlagCitations FROM buch WHERE verlag = ?`;
+sql[50] = `UPDATE verlag SET verlag = ? WHERE id = ?`;
+sql[51] = `DELETE FROM relsachgebiet WHERE objektid = ?`;
+sql[52] = `SELECT COUNT(DISTINCT objektid) AS noOrtCitations FROM relobjtyp WHERE ort = ?`;
+sql[53] = `UPDATE ort SET ort = ? WHERE id = ?`;
+sql[54] = `UPDATE relobjtyp SET ort = ? WHERE 
+    objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?`;
+sql[55] = `UPDATE stichwort SET stichwort = ? WHERE id = ?`;
+sql[56] = `SELECT COUNT(stichwortid) AS noStichwortCitations FROM relstichwort WHERE stichwortid = ?`;
+sql[57] = `DELETE FROM relstichwort WHERE objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?`;
+sql[58] = `DELETE FROM stichwort WHERE id = ?`;
+sql[59] = `DELETE FROM relautor WHERE objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?`;
+sql[60] = `DELETE FROM reltitel WHERE objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?`;
+sql[61] = `SELECT aufsatzid FROM relobjtyp WHERE objektid = ? AND zeitschriftid = 0 AND buchid = 0`;
+sql[62] = `UPDATE relzeitschrift SET nr = ?, id = ? WHERE zeitschriftid = ?`;
+sql[63] = `SELECT aufsatzid FROM media_view WHERE objektid = ? AND zeitschriftid = ? AND buchid = 0 AND titel = ?`;
+
+function sqlUpdate(table, columns, constraint)
+{
+    let x= `UPDATE ${table} SET ${columns} WHERE ${constraint}`;
+    console.log(x);
+    return x;
+}
 
 function sqlTitelObjID(id, titel)
 {

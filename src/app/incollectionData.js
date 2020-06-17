@@ -109,6 +109,128 @@ function addIncollection (data, callback)
     procIncoll.run();
 }
 
+function updateIncollection (data, olddata, callback)
+{
+    let compareResult = {};    //intended: with keys as in data and values 0 (unchanged), 1 (changed)
+    let procIncoll = new cSQLProcessor(callback);
+    let i;
+    function compare (oldObj, newObj) 
+    {
+        let noChanges;
+        let obj = {};
+        for (const key in oldObj) {
+            if (Array.isArray(oldObj[key])) {
+                noChanges = 0;
+                if (newObj[key] === null) {
+                    noChanges = 1;
+                } else if (oldObj[key].length !== newObj[key].length) {
+                    noChanges = 1;
+                } else {
+                    oldObj[key].forEach(element => 
+                    {
+                        let i = oldObj[key].indexOf(element);
+                        if (element !== newObj[key][i]) {
+                            return noChanges = noChanges + 1;
+                        } else {
+                            return noChanges;
+                        }
+                    });
+                }
+                obj[key] = (noChanges === 0) ? 0 : 1;
+            } else {
+                obj[key] = (oldObj[key] === newObj[key]) ? 0 : 1;
+            }
+        }
+        return obj;
+    }
+    function columsToUpdate (compareObj, newData, namesArr)
+    {
+        let resultArr = [];
+        namesArr.map(name => 
+        {
+            if (compareObj[name] === 1) {
+                let datum = (typeof newData[name] === "string") ? `'${newData[name]}'` : newData[name];
+                resultArr.push(name + "=" + datum);
+            }
+        });
+        return resultArr.toString();
+    }
+    compareResult = compare(olddata, data);
+    if (!Object.values(compareResult).includes(1)) { //no changes
+        return callback(true);
+    } else {
+        //Globals
+        //globale Variable mediumData von bearbeiten.html (mediumData = [objektid, zeitschriftid, buchid, aufsatzid])
+
+        if (compareResult.hinweis !== 0) {
+            procIncoll.add(sqlUpdate(
+                "relobjtyp",
+                columsToUpdate(compareResult, data, ["hinweis"]),
+                "objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?"
+                ), [data.id, data.zeitschriftid, mediumData[2], mediumData[3]]
+            );
+        }
+        if (compareResult.jahr !== 0) {
+            procIncoll.add(sql[1], [data.jahr]);  //select jahrid
+            procIncoll.add(sql[48], function (result) 
+            {
+                return [result, data.id, data.zeitschriftid, mediumData[2], mediumData[3]]
+            });
+        }
+        if (compareResult.stichworte !== 0) {
+            if (olddata.stichworte !== null) {  //delete all from relstichw
+                procIncoll.add(sql[57], [data.id, data.zeitschriftid, mediumData[2], mediumData[3]]);
+            } 
+            if (data.stichworte !== null) {
+                data.stichworte.forEach(stichwort =>  //add all new to relstichw.
+                {
+                    procIncoll.add(sql[6], [stichwort]);  //insert or ignore
+                    procIncoll.add(sql[12], [stichwort]); //select id
+                    procIncoll.add(sql[7], function (result)
+                    {
+                        return [data.id, data.zeitschriftid, mediumData[2], mediumData[3], result]
+                    });
+                });
+            }       
+        }
+        if (compareResult.autoren !== 0) {
+            if (olddata.autoren !== null) { //delete all old relations in relautor
+                olddata.autoren.forEach(autor =>
+                {
+                    procIncoll.add(sql[59], [data.id, data.zeitschriftid, mediumData[2], mediumData[3]]); 
+                });
+            }
+            if (data.autoren !== null) {   //insert all new relations in relautor
+                for (i=0; i < data.autoren.length; i++) { ((i) => {
+                    if (data.autoren[i].includes(",")) {
+                        autorenArr = data.autoren[i].split(",").map(strtrim);
+                    } else { //ein Name der Art "Müller" oder "Hans" wird immer als Nachname gespeichert
+                        autorenArr = [data.autoren.toString(), ""];
+                    }
+                    procIncoll.add(sql[8], [autorenArr[0], autorenArr[1]]);
+                    procIncoll.add(sql[13], [autorenArr[0], autorenArr[1]]);
+                    procIncoll.add(sql[9], function (result) 
+                    {
+                        return [data.id, data.zeitschriftid, mediumData[2], mediumData[3], result, i+1]
+                    }); 
+                })(i);}
+            }
+        }
+        if (compareResult.titel !== 0) {
+            procIncoll.add(sql[60], [data.id, data.zeitschriftid, mediumData[2], mediumData[3]]); // delete all old in reltitel
+            for (i=0; i < data.titel.length; i++) { ((i) => {   //add all new in reltitel
+                procIncoll.add(sql[10], [data.titel[i]]);
+                procIncoll.add(sql[14], [data.titel[i]]);
+                procIncoll.add(sql[11], function (result) 
+                {
+                    return [data.id, data.zeitschriftid, mediumData[2], mediumData[3], result, data.titeltyp, i+1]
+                });
+            })(i);}
+        }
+        procIncoll.run();
+    }
+}
+
 function getIncollectionData (id, warnFld, outFld, link)
 {
     warnFld.innerHTML = "";

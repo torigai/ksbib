@@ -59,7 +59,7 @@ function cSQLProcessor (callback)
 				})
 				.filter(item => {return item[1] !== -1});
 			hits.forEach((hit) => {return param[hit[1]] = hit[0];});
-			console.log(sql + " : " + param);
+			//console.log(sql + " : " + param);
 		}
 		if (sql.includes("SELECT")) {
 			return new Promise ((resolve, reject) =>
@@ -83,7 +83,7 @@ function cSQLProcessor (callback)
 				});
 			});
 		}
-		if (sql.includes("INSERT") || sql.includes("UPDATE")) {
+		if (sql.includes("INSERT") || sql.includes("UPDATE") || sql.includes("DELETE")) {
 			return new Promise ((resolve, reject) =>
 			{
 				db.run(sql, param, function (err)
@@ -118,6 +118,10 @@ function cSQLProcessor (callback)
 				});
 			});
 		}
+	}
+	this.test = function ()
+	{
+		console.log(this.dataArr);
 	}
 /*
 	this.promisifyAllSerially = function (array)
