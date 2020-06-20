@@ -155,7 +155,8 @@ sql[4] = `INSERT INTO relobjtyp
 sql[5] = `INSERT OR IGNORE INTO verlag (id, verlag) VALUES (NULL, ?)`;
 sql[6] = `INSERT OR IGNORE INTO stichwort (id, stichwort) VALUES (NULL, ?)`;
 sql[7] = `INSERT INTO relstichwort (objektid, zeitschriftid, buchid, aufsatzid, stichwortid) VALUES (?, ?, ?, ?, ?)`;
-sql[8] = `INSERT OR IGNORE INTO autor (id, name, vorname) VALUES (NULL, ?, ?)`;
+sql[8] = `INSERT OR IGNORE INTO autor (id, name, vorname) VALUES 
+    (NULL, ?, ?)`;
 sql[9] = `INSERT INTO relautor (objektid, zeitschriftid, buchid, aufsatzid, autorid, autornr)
     VALUES (?, ?, ?, ?, ?, ?)`;
 sql[10] = `INSERT OR IGNORE INTO titel (id, titel) VALUES (NULL, ?)`;
@@ -229,12 +230,37 @@ sql[60] = `DELETE FROM reltitel WHERE objektid = ? AND zeitschriftid = ? AND buc
 sql[61] = `SELECT aufsatzid FROM relobjtyp WHERE objektid = ? AND zeitschriftid = 0 AND buchid = 0`;
 sql[62] = `UPDATE relzeitschrift SET nr = ?, id = ? WHERE zeitschriftid = ?`;
 sql[63] = `SELECT aufsatzid FROM media_view WHERE objektid = ? AND zeitschriftid = ? AND buchid = 0 AND titel = ?`;
+sql[64] = `DELETE FROM relstichwort WHERE 
+    objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ? AND stichwortid = ?`;
+sql[65] = `SELECT COUNT(autorid) AS count FROM relautor WHERE autorid = ?`;
+sql[66] = `DELETE FROM autor WHERE id = ?`;
+sql[67] = `SELECT COUNT(titelid) AS count FROM reltitel WHERE titelid = ?`;
+sql[68] = `DELETE FROM titel WHERE id = ?`;
+sql[69] = `DELETE FROM relautor WHERE 
+    objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ? AND autorid = ?`;
+sql[70] = `UPDATE relautor SET autornr = ? WHERE
+    objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ? AND autorid = ?`;
+sql[71] = `INSERT OR IGNORE INTO ort (id, ort) VALUES (?,?)`;
+sql[72] = `INSERT OR IGNORE INTO autor (id, name, vorname) VALUES (?, ?, ?)`;
+sql[73] = `DELETE FROM reltitel WHERE objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ? AND titelid = ?`;
+sql[74] = `UPDATE reltitel SET titelnr = ? WHERE
+    objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ? AND titelid = ?`;
+sql[75] = `INSERT OR IGNORE INTO stichwort (id, stichwort) VALUES (?,?)`;
+sql[76] = `INSERT OR IGNORE INTO titel (id, titel) VALUES (?, ?)`;
+sql[77] = `INSERT OR IGNORE INTO verlag (id, verlag) VALUES (?,?)`;
+sql[78] = `INSERT OR IGNORE INTO zeitschrift (id, journal, kuerzel) VALUES (?, ?, ?)`;
+
+function sqlFindGap (table)
+{
+    return `SELECT id + 1 FROM ${table} mo WHERE 
+    NOT EXISTS (
+        SELECT NULL FROM ${table} mi WHERE mi.id = mo.id + 1
+    ) ORDER BY id LIMIT 1`
+}
 
 function sqlUpdate(table, columns, constraint)
 {
-    let x= `UPDATE ${table} SET ${columns} WHERE ${constraint}`;
-    console.log(x);
-    return x;
+    return `UPDATE ${table} SET ${columns} WHERE ${constraint}`;
 }
 
 function sqlTitelObjID(id, titel)

@@ -1,6 +1,7 @@
 
 let linkAltM = document.getElementById("navMedien");
 let linkAltS = document.getElementById("navSonstiges");
+let linkStrgQ = document.getElementById("navBeenden");
 
 function blurMenu ()
 {
@@ -42,6 +43,28 @@ function altS (event)
         	linkAltM.setAttribute("class", "");
         }
     }
+}
+
+function altB (event)
+{
+	if (event.altKey === true && event.keyCode === 66  || event.altKey === true && event.which === 66) {
+        event.preventDefault();
+        linkStrgQ.focus();
+        if (linkAltM.className === "active") {
+        	linkAltM.setAttribute("class", "");
+        }
+      	if (linkAltS.className === "active") {
+      		linkAltS.setAttribute("class", "");
+      	}
+    }	
+}
+
+function strgQ (event)
+{
+	if (event.ctrlKey === true && event.keyCode === 81 || event.ctrlKey === true && event.which === 81) {
+		event.preventDefault();
+		linkStrgQ.click();
+	}
 }
 
 function down (event)
@@ -123,7 +146,6 @@ document.getElementsByTagName("ul")[1].addEventListener("focusout", blurMenu, fa
 
 document.getElementsByTagName("body")[0].addEventListener("keydown", altM, false);
 document.getElementsByTagName("body")[0].addEventListener("keydown", altS, false);
-
-
+document.getElementsByTagName("body")[0].addEventListener("keydown", strgQ, false);
 
 

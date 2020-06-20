@@ -59,7 +59,6 @@ function cSQLProcessor (callback)
 				})
 				.filter(item => {return item[1] !== -1});
 			hits.forEach((hit) => {return param[hit[1]] = hit[0];});
-			//console.log(sql + " : " + param);
 		}
 		if (sql.includes("SELECT")) {
 			return new Promise ((resolve, reject) =>
@@ -88,7 +87,7 @@ function cSQLProcessor (callback)
 			{
 				db.run(sql, param, function (err)
 				{
-					if (err) {db.run(`ROLLBACK`); reject(err);}
+					if (err) {console.log(sql + " : " + param); db.run(`ROLLBACK`); reject(err);}
 					else {resolve(sql);}
 				});
 			});

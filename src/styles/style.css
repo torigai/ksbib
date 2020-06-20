@@ -100,6 +100,11 @@ nav .dropdown:hover .dropdown-content {
   display: block;
 }
 
+nav .floatright {
+  list-style-type: none;
+  float: right;
+  cursor: pointer;
+}
 
 /* END Navigationsleiste */
 

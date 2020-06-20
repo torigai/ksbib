@@ -38,6 +38,40 @@
                             if (document.getElementById("selIDStr").value === "") {
                                 return document.getElementById("selIDFrmWarnFld").innerHTML = "Bitte gib eine ID ein";
                             } else {
+                                function getJournalData (id, warnFld, outFld, link)
+                                {
+                                    warnFld.innerHTML = "";
+                                    warnFld.setAttribute("class", "warning");
+                                    db.get(sql[31], [id], function (err, row)
+                                    {
+                                        if (err) {
+                                            return console.log(err); 
+                                        } 
+                                        if (row === undefined) {
+                                            outFld.innerHTML = "";
+                                            return warnFld.innerHTML = 'Es gibt keine Zeitschrift zu der ID'; 
+                                        } 
+                                        if (row.medium !== 'Zeitschrift') {
+                                            outFld.innerHTML = "";
+                                            return warnFld.innerHTML = 'Es gibt keine Zeitschrift zu der ID';
+                                        } else {
+                                            let jahr = (row.jahr !== null) ? ', ' + row.jahr : '';
+                                            let band = (row.band !== null) ? ', Band ' + row.band : '';
+                                            let nr = (row.zeitschriftNr !== null) ? ' Nr. ' + row.zeitschriftNr : '';
+                                            if (!row.titel.endsWith('.')) { row.titel = row.titel + '.'; }
+                                            let xhttpResponse = function (xhttp)
+                                            {
+                                                return outFld.innerHTML = xhttp.responseText;
+                                            }
+                                            warnFld.removeAttribute("class");
+                                            warnFld.setAttribute("class", "center margin");
+                                            warnFld.innerHTML = "<b>Zeitschrift: </b>" 
+                                                + row.titel + ' <i>' + row.zeitschrift + band + nr + '</i>' + jahr;
+                                            xhr(link, xhttpResponse);
+                                            return selectedID = id;
+                                        }
+                                    });
+                                }
                                 return getJournalData(
                                     document.getElementById("selIDStr").value, 
                                     document.getElementById("selIDFrmWarnFld"),
@@ -53,6 +87,52 @@
                             if (document.getElementById("selIDStr").value === "") {
                                 return document.getElementById("selIDFrmWarnFld").innerHTML = "Bitte gib eine ID ein";
                             } else {
+                                function getIncollectionData (id, warnFld, outFld, link)
+                                {
+                                    warnFld.innerHTML = "";
+                                    warnFld.setAttribute("class", "warning");
+                                    db.get(sql[30], [id], function (err, row)
+                                    {
+                                        if (err) {
+                                           return console.log(err); 
+                                        }    
+                                        if (row === undefined) {
+                                            outFld.innerHTML = "";
+                                            return warnFld.innerHTML = 'Es gibt kein Buch zu der ID'; 
+                                        } 
+                                        if (row.medium !== 'Buch') {
+                                            outFld.innerHTML = "";
+                                            return warnFld.innerHTML = 'Es gibt kein Buch zu der ID';
+                                        } else {
+                                            let autortyp = (row.autortyp === 0) ? "" : " (Hrg.)";
+                                            let autoren;
+                                            if (row.autor !== null) { 
+                                            // In media_view wird (Name = "Müller" Vorname = "") als "Müller, " 
+                                            // gespeichert
+                                            // Das "," soll in diesem Fall nicht angezeigt werden
+                                                autoren = strtrim(row.autor).endsWith(",") ? 
+                                                strtrim(row.autor).slice(0, row.autor.indexOf(",")) + autortyp + ": " : 
+                                                row.autor + autortyp + ": "; 
+                                            } else {
+                                                autoren = "";
+                                            }
+                                            let jahr = (row.jahr !== null) ? ', ' + row.jahr : '';
+                                            let band = (row.band !== null) ? ', Band ' + row.band : '';
+                                            let verlag = (row.verlag !== null) ? row.verlag : '';
+                                            if (!row.titel.endsWith('.')) { row.titel = row.titel + '.'; }
+                                            let xhttpResponse = function (xhttp)
+                                            {
+                                                outFld.innerHTML = xhttp.responseText;
+                                            }
+                                            warnFld.removeAttribute("class");
+                                            warnFld.setAttribute("class", "center margin");
+                                            warnFld.innerHTML = "<b>Buch: </b>" + autoren + 
+                                                '<i>' + row.titel + '</i>' + band + verlag + jahr;
+                                            xhr(link, xhttpResponse);
+                                            return selectedIncollID = id;
+                                        }
+                                    });
+                                }
                                 return getIncollectionData (
                                     document.getElementById("selIDStr").value, 
                                     document.getElementById("selIDFrmWarnFld"),
@@ -395,6 +475,21 @@
                                     selFrm.textFld[0].value = "";
                                     selFrm.textFld[1].value = "";
                                     selFrm.textFld[0].focus();
+                                    /*
+                                    console.log(await dbAll(`SELECT * FROM autor`, []));
+                                    console.log(await dbAll(`SELECT * FROM relautor`, []));
+                                    console.log(await dbGet(`SELECT  id + 1 AS gap
+FROM    autor mo
+WHERE   NOT EXISTS
+        (
+        SELECT  NULL
+        FROM    autor mi 
+        WHERE   mi.id = mo.id + 1
+        )
+ORDER BY
+        id
+LIMIT 1`).gap);
+*/
                                     return selFrm.warnFld.innerHTML = "Der Datensatz wurde gespeichert";   
                                 }
                             } else {

@@ -33,6 +33,22 @@ function xhr (url, cFunction)
     xhttp.send();
 }
 
+/*
+    EXIT
+*/
+
+let gui = require('nw.gui');
+let win = gui.Window.get();
+function closeApp () {
+    let conf = window.confirm("Programm Beenden ?");
+    if (conf) {
+        gui.App.closeAllWindows();
+        win.close(true);
+    } else {
+        return false;
+    }
+};
+
 
 /* 
     FORMULAR 

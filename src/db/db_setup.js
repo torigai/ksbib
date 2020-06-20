@@ -53,7 +53,7 @@ sqr[16] = `create table if not exists relstichwort
         relobjtyp (objektid, zeitschriftid, buchid, aufsatzid) ON DELETE CASCADE,
     foreign key (stichwortid) references stichwort (id))`;
 sqr[17] = `create table if not exists relautor (objektid integer, zeitschriftid integer, buchid integer, 
-    aufsatzid integer, autorid integer references autor, autornr integer default 0, check (autornr > 0 and autornr < 11), 
+    aufsatzid integer, autorid integer references autor ON UPDATE CASCADE, autornr integer default 0, check (autornr > 0 and autornr < 11), 
     primary key (objektid, zeitschriftid, buchid, aufsatzid, autorid), 
     foreign key (objektid, zeitschriftid, buchid, aufsatzid) references 
     relobjtyp (objektid, zeitschriftid, buchid, aufsatzid) ON DELETE CASCADE)`;
@@ -209,109 +209,61 @@ sqr[99] = `CREATE VIEW media_view AS
         ) USING (zeitschriftid) 
     ) ON objekt.id = objektid AND zeitschriftid = zeitschriftid AND buchid = buchid AND aufsatzid = aufsatzid`;
 
-sqr[100] = `CREATE TRIGGER delete_medium AFTER DELETE ON relobjtyp 
-BEGIN
-    DELETE FROM buch WHERE (id = old.buchid AND id != 0);
-    DELETE FROM relzeitschrift WHERE (zeitschriftid = old.zeitschriftid AND id != 0);
-END;`;
-
-sqr[101] = `CREATE TRIGGER delete_verlag BEFORE DELETE ON buch
-BEGIN
-    DELETE FROM verlag WHERE (
-        id != 0 AND 
-        id = old.verlag AND 
-        (SELECT COUNT(id) FROM buch WHERE verlag = old.verlag) = 1
-    );
-END;`;
-
-sqr[102] = `CREATE TRIGGER delete_autor BEFORE DELETE ON relautor
-BEGIN
-    DELETE FROM autor WHERE (
-        id != 0 AND 
-        id = old.autorid AND 
-        (SELECT COUNT(DISTINCT objektid) FROM relautor WHERE autorid = old.autorid) = 1
-    );
-END;`;
-
-sqr[103] = `CREATE TRIGGER delete_stichwort BEFORE DELETE ON relstichwort
-BEGIN
-    DELETE FROM stichwort WHERE (
-        id != 0 AND
-        id = old.stichwortid AND
-        (SELECT COUNT(DISTINCT objektid) FROM relstichwort WHERE stichwortid = old.stichwortid) = 1  
-    );
-END;`;
-
-sqr[104] = `CREATE TRIGGER delete_zeitschrift BEFORE DELETE ON relzeitschrift
-BEGIN
-    DELETE FROM zeitschrift WHERE (
-        zeitschrift.id != 0 AND
-        zeitschrift.id = old.id AND
-        (SELECT COUNT(id) FROM relzeitschrift WHERE id = old.id) = 1  
-    );
-END;`;
-
-sqr[105] = `CREATE TRIGGER delete_titel BEFORE DELETE ON reltitel
-BEGIN
-    DELETE FROM titel WHERE (
-        id != 0 AND
-        id = old.titelid AND
-        (SELECT COUNT(DISTINCT objektid) FROM reltitel WHERE titelid = old.titelid) = 1  
-    );
-END;`;
-
-sqr[106] = `CREATE TRIGGER delete_ort BEFORE DELETE ON relobjtyp 
-BEGIN
-    DELETE FROM ort WHERE (
-        id != 0 AND 
-        id = old.ort AND
-        (SELECT COUNT(DISTINCT objektid) FROM relobjtyp WHERE ort = old.ort) = 1);
-END;`;
-
-sqr[107] = `create trigger if not exists trig_update_sgn after update of standort on objekt for each row 
+sqr[100] = `create trigger if not exists trig_update_sgn after update of standort on objekt for each row 
 begin 
     update objekt set sgn = ((select standortsgn from standort where standort.id = objekt.standort) || ' ' || objekt.id); 
 end;`;
 
-/*
-sqr[99] = `CREATE VIEW media_view AS 
-  SELECT objekt.id AS objektid, zeitschriftid, buchid, aufsatzid, 
-    jahr, preis, band, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, 
-    standortsgn, medium.medium, band, kuerzel AS zeitschrift, nr AS zeitschriftNr, sgn, hinweis, status, verlag, ort
-    FROM objekt 
-    INNER JOIN medium ON medium.id = objekt.medium 
-    INNER JOIN standort ON standort.id = objekt.standort 
-    INNER JOIN ( 
-        SELECT objektid, zeitschriftid, buchid, aufsatzid, 
-        jahr, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, kuerzel, nr, hinweis, ort
-        FROM relobjtyp 
-        LEFT OUTER JOIN (
-            SELECT id AS buchid, v AS verlag FROM buch
-            LEFT OUTER JOIN (
-                SELECT id AS i, verlag AS v FROM verlag
-            ) ON buch.verlag = i
-        ) USING (buchid)
-        LEFT OUTER JOIN ( 
-            SELECT objektid, zeitschriftid, buchid, aufsatzid, ort 
-            autornr, name ||", "|| vorname as autor 
-            FROM relautor 
-            INNER JOIN autor id ON relautor.autorid = id 
-        ) USING (objektid, zeitschriftid, buchid, aufsatzid) 
-        LEFT OUTER JOIN jahr ON jahr.id = relobjtyp.erscheinungsjahr 
-        LEFT OUTER JOIN ort ON ort.id = relobjtyp.ort
-        INNER JOIN ( 
-            SELECT objektid, zeitschriftid, buchid, aufsatzid, 
-            titel, titelnr, titeltyp 
-            FROM reltitel 
-            INNER JOIN titel id ON titelid = id 
-        ) USING (objektid, zeitschriftid, buchid, aufsatzid) 
-        LEFT OUTER JOIN ( 
-            SELECT zeitschriftid, kuerzel, nr 
-            FROM relzeitschrift 
-            INNER JOIN zeitschrift USING (id) 
-        ) USING (zeitschriftid) 
-    ) ON objekt.id = objektid AND zeitschriftid = zeitschriftid AND buchid = buchid AND aufsatzid = aufsatzid`;
-*/
+//To avoid unused rows after delete on relational tables
+sqr[101] = `CREATE TRIGGER clear_stichwort AFTER DELETE ON relstichwort
+WHEN (SELECT COUNT(old.stichwortid) FROM relstichwort WHERE stichwortid = old.stichwortid) = 0 AND old.stichwortid != 0
+BEGIN
+    DELETE FROM stichwort WHERE id = old.stichwortid;
+END;`;
+
+sqr[102] = `CREATE TRIGGER clear_verlag AFTER DELETE ON buch
+WHEN (SELECT COUNT(old.verlag) FROM buch WHERE verlag = old.verlag) = 0 AND old.verlag != 0
+BEGIN
+    DELETE FROM verlag WHERE id = old.verlag;
+END;`;
+
+sqr[103] = `CREATE TRIGGER clear_verlag2 AFTER UPDATE OF verlag ON buch
+WHEN (SELECT COUNT(old.verlag) FROM buch WHERE verlag = old.verlag) = 0 AND old.verlag != 0
+BEGIN
+    DELETE FROM verlag WHERE id = old.verlag;
+END;`;
+
+sqr[104] = `CREATE TRIGGER clear_ort AFTER DELETE ON relobjtyp
+WHEN (SELECT COUNT(old.ort) FROM relobjtyp WHERE ort = old.ort) = 0 AND old.ort != 0
+BEGIN
+    DELETE FROM ort WHERE id = old.ort;
+END;`;
+
+sqr[105] = `CREATE TRIGGER clear_ort2 AFTER UPDATE OF ort ON relobjtyp
+WHEN (SELECT COUNT(old.ort) FROM relobjtyp WHERE ort = old.ort) = 0 AND old.ort != 0
+BEGIN
+    DELETE FROM ort WHERE id = old.ort;
+END;`;
+
+sqr[106] = `CREATE TRIGGER clear_autor AFTER DELETE ON relautor
+WHEN (SELECT COUNT(old.autorid) FROM relautor WHERE autorid = old.autorid) = 0 AND old.autorid != 0
+BEGIN
+    DELETE FROM autor WHERE id = old.autorid;
+END;`;
+
+sqr[107] = `CREATE TRIGGER clear_titel AFTER DELETE ON reltitel
+WHEN (SELECT COUNT(old.titelid) FROM reltitel WHERE titelid = old.titelid) = 0 AND old.titelid != 0
+BEGIN
+    DELETE FROM titel WHERE id = old.titelid;
+END;`;
+
+sqr[108] = `CREATE TRIGGER clear_zeitschrift AFTER DELETE ON relzeitschrift
+WHEN (SELECT COUNT(old.id) FROM relzeitschrift WHERE id = old.id) = 0 AND old.id != 0
+BEGIN
+    DELETE FROM zeitschrift WHERE zeitschriftid = old.id;
+END;`;
+
+
 const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('src/db/ksbib.db', (err) => 
 {
