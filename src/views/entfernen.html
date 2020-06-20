@@ -9,6 +9,7 @@
     <script src="../app/validation.js"></script>
     <script src="../app/sql.js"></script>
     <script src="../app/findMedia.js"></script>
+    <script src="../app/sqlproc.js"></script>
 </head>         
 
 
@@ -25,7 +26,6 @@
             <a href="neuaufnahme.html">Hinzufügen</a>
             <a href="bearbeiten.html">Bearbeiten</a>
             <a href="entfernen.html">Entfernen</a>
-            <a href="../db/test.html">TEST</a>
         </div>
     </ul>
     <ul class="dropdown">
@@ -82,6 +82,7 @@
         FORMULARE
     */
 
+    let typeOfMedium;
     let delFrm = new cformular(document.getElementById("delFrm"), document.getElementById("delFrmWarnFld"), document.getElementById("outFld"), document.getElementById("delOKBtn"));
     delFrm.newSbmt( async function ()
     {
@@ -110,6 +111,7 @@
                 delFrm.btn[2].style.display = "";
                 delFrm.btn[1].focus();
 
+                typeOfMedium = resMedientyp;
                 return delFrm.outFld.innerHTML = "<b>" + resMedientyp + " mit ID " + resID + " löschen ?</b><p>" 
                 + resAutoren + resTitelUndVerweise + resJahr + " </p><p>" 
                 + "<br> Standort: " + result[0][5] + "<br> Status: " + result[0][6] + "</p>";
@@ -150,16 +152,33 @@
     }
     delFrm.onDelete = async function ()
     {
-        let id = delFrm.elements[0].value;
+        let id = Number(delFrm.elements[0].value);
         let confirm = window.confirm("Medium mit id " + id + " löschen?");
         if (confirm === true) {
-            let result = await dbRun(sql[32], id).catch(err => {return console.error(err)});
-            if (result) {
-                delFrm.reset();
-                return delFrm.warnFld.innerHTML = "Das Medium mit id " + id + " wurde gelöscht";
-            } else {
-                return false;
+            async function callback (boolean)
+            {
+                if (boolean) {
+                    delFrm.reset();
+                    return delFrm.warnFld.innerHTML = "Das Medium mit id " + id + " wurde gelöscht";
+                } else {
+                    delFrm.warnFld.innerHTML = "Das Medium mit id " + id + " konnte nicht gelöscht werden";
+                    return false;
+                }
             }
+            let procDelMedium = new cSQLProcessor(callback);
+            if (typeOfMedium === "Zeitschrift") {
+                procDelMedium.add(sql[80], [id], "zeitschriftid");
+                procDelMedium.add(sql[32], [id]); 
+                procDelMedium.add(sql[79], ["zeitschriftid"]);
+            } else if (typeOfMedium === "Buch") {
+                procDelMedium.add(sql[81], [id], "buchid");
+                procDelMedium.add(sql[32], [id]); 
+                procDelMedium.add(sql[82], ["buchid"]);
+            } else {
+                procDelMedium.add(sql[32], [id]); 
+            }
+
+            procDelMedium.run();
         } else {
             return false;
         }

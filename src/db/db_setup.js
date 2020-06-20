@@ -26,8 +26,11 @@ sqr[10] = `create table if not exists relsachgebiet
     PRIMARY KEY (objektid, sachgebietid))`;
 sqr[11] = `create table if not exists buch (id integer primary key, auflage integer, verlag integer references verlag, 
     isbn integer, check (length(isbn)=10 or length(isbn)=13), check (auflage >0 and auflage < 201))`;
-sqr[12] = `create table if not exists relzeitschrift (zeitschriftid integer primary key, nr integer, 
-    id integer references zeitschrift (id), unique(id, zeitschriftid))`;
+sqr[12] = `create table if not exists relzeitschrift 
+    (zeitschriftid integer primary key, 
+    nr integer, 
+    id integer references zeitschrift (id), 
+    unique(id, nr, zeitschriftid))`;
 sqr[13] = 'create table if not exists stichwort (id integer primary key, stichwort text unique)';
 // autortyp = 0 (autor) oder 1 (hrg)
 sqr[14] = `create table if not exists relobjtyp 
@@ -260,7 +263,7 @@ END;`;
 sqr[108] = `CREATE TRIGGER clear_zeitschrift AFTER DELETE ON relzeitschrift
 WHEN (SELECT COUNT(old.id) FROM relzeitschrift WHERE id = old.id) = 0 AND old.id != 0
 BEGIN
-    DELETE FROM zeitschrift WHERE zeitschriftid = old.id;
+    DELETE FROM zeitschrift WHERE id = old.id;
 END;`;
 
 

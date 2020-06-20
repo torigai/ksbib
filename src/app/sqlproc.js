@@ -65,7 +65,7 @@ function cSQLProcessor (callback)
 			{
 				db.get(sql, param, function (err, row) //Select
 				{
-					if (err) {reject(err);} 
+					if (err) {console.log(sql + " : " + param); reject(err);} 
 					else {
 						if (row === undefined) {
 							if (arr[2] !== undefined) {

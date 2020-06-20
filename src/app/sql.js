@@ -7,19 +7,7 @@ const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database(linkToDB, (err) => { if (err) { return console.log(err.message); } });
 db.exec('PRAGMA foreign_keys = ON;', (err) =>  { if (err){return console.error(err.message)} });
 
-/*
-function rollback (err)
-{
-    if (err) {
-        console.log(err.message);
-        db.run(`ROLLBACK`);
-        return "ERROR: Der Datensatz konnte nicht gespeichert werden, \
-        bitte kontaktiere kirsten.a@posteo.de";
-    } else {
-        return "";
-    }
-}
-*/
+
 function dbGet (sql, param)
 {
     return new Promise ((resolve, reject) =>
@@ -131,6 +119,7 @@ async function getMaxID (plus)
 {
     let x = [];
     x = await sqr("SELECT MAX(id) AS id FROM objekt", [], x);
+    if (x[0].id === null) {x[0].id = 0;}
     return (x[0].id + plus);
 }
 
@@ -138,13 +127,8 @@ async function getMaxID (plus)
     SQL
 */
 
-function insertData (sql, data)
-{
-
-}
-
 let sql = [];
-sql[0] = `SELECT MAX(buchid) + 1 AS id FROM relobjtyp`;
+sql[0] = `SELECT CASE WHEN MAX(buchid) IS NULL THEN 1 ELSE MAX(buchid) + 1 END AS id FROM relobjtyp`;
 sql[1] = `SELECT id AS jahrid FROM jahr WHERE jahr = ?`;
 sql[2] = `INSERT OR IGNORE INTO ort (id, ort) VALUES (NULL, ?)`;
 sql[3] = `INSERT INTO objekt (id, medium, standort, preis, band, status) 
@@ -170,13 +154,15 @@ sql[16] = `SELECT id AS verlagid FROM verlag WHERE verlag = ?`;
 sql[17] = `SELECT id AS ortid FROM ort WHERE ort = ?`;
 sql[18] = `INSERT INTO buch (id, auflage, verlag, isbn) VALUES (?, ?, ?, ?)`;
 sql[19] = `SELECT journal FROM zeitschrift WHERE journal LIKE ? Limit 5`
-sql[20] = `SELECT MAX(zeitschriftid) + 1 AS id FROM relobjtyp`;
+sql[20] = `SELECT CASE WHEN MAX(zeitschriftid) IS NULL THEN 1 ELSE MAX(zeitschriftid) + 1 END AS id FROM relobjtyp`;
 sql[21] = `INSERT OR IGNORE INTO zeitschrift (id, journal, kuerzel) VALUES (NULL, ?, ?)`;
 sql[22] = `SELECT id FROM zeitschrift WHERE journal = ?`;
 sql[23] = `INSERT OR IGNORE INTO relzeitschrift (id, zeitschriftid, nr) VALUES (?, ?, ?)`;
-sql[24] = `SELECT MAX(aufsatzid) + 1 AS id FROM relobjtyp`;
-sql[25] = `SELECT MAX(aufsatzid) + 1 AS aufsatzid FROM relobjtyp WHERE objektid = ? AND buchid = 0`; //Artikel
-sql[26] = `SELECT MAX(aufsatzid) + 1 AS aufsatzid FROM relobjtyp WHERE objektid = ? AND zeitschriftid = 0`; //Buchaufsatz
+sql[24] = `SELECT CASE WHEN MAX(aufsatzid) IS NULL THEN 1 ELSE MAX(aufsatzid) + 1 END AS id FROM relobjtyp`;
+sql[25] = `SELECT CASE WHEN MAX(aufsatzid) IS NULL THEN 1 ELSE MAX(aufsatzid) + 1 END AS aufsatzid 
+    FROM relobjtyp WHERE objektid = ? AND buchid = 0`; //Artikel
+sql[26] = `SELECT CASE WHEN MAX(aufsatzid) IS NULL THEN 1 ELSE MAX(aufsatzid) + 1 END AS aufsatzid 
+    FROM relobjtyp WHERE objektid = ? AND zeitschriftid = 0`; //Buchaufsatz
 sql[27] = `SELECT zeitschriftid FROM relobjtyp WHERE objektid = ? AND aufsatzid = 0`;
 sql[28] = `SELECT buchid FROM relobjtyp WHERE objektid = ? AND aufsatzid = 0`;
 sql[29] = `SELECT DISTINCT objektid, zeitschriftid, buchid, aufsatzid FROM media_view 
@@ -249,6 +235,10 @@ sql[75] = `INSERT OR IGNORE INTO stichwort (id, stichwort) VALUES (?,?)`;
 sql[76] = `INSERT OR IGNORE INTO titel (id, titel) VALUES (?, ?)`;
 sql[77] = `INSERT OR IGNORE INTO verlag (id, verlag) VALUES (?,?)`;
 sql[78] = `INSERT OR IGNORE INTO zeitschrift (id, journal, kuerzel) VALUES (?, ?, ?)`;
+sql[79] = `DELETE FROM relzeitschrift WHERE zeitschriftid = ?`;
+sql[80] = `SELECT zeitschriftid FROM relobjtyp WHERE objektid = ?`;
+sql[81] = `SELECT buchid FROM relobjtyp WHERE objektid = ?`;
+sql[82] = `DELETE FROM buch WHERE id = ?`;
 
 function sqlFindGap (table)
 {

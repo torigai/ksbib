@@ -126,6 +126,7 @@ function addEssay (data, callback)
         data.autoren.forEach(autor =>
         {
             autorenArr = autorToArr(autor);
+            let i = data.autoren.indexOf(autor);
             procMedium.add(sqlFindGap("autor"), []);
             procMedium.add(sql[72], function (result) 
             {
@@ -142,6 +143,7 @@ function addEssay (data, callback)
     //requires: data.titel is never null !
     data.titel.forEach(titel =>
     {
+        let i = data.titel.indexOf(titel);
         procMedium.add(sqlFindGap("titel"), []);
         procMedium.add(sql[76], function (result)
         {
