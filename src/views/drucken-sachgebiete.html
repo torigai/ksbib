@@ -4,6 +4,9 @@
   <meta charset="UTF-8"/>
   <title>ksbib | Sachgebietsliste</title>
   <link rel="stylesheet" href="../styles/print.css" type="text/css" media="all"/>
+  <script src="../app/main.js"></script>
+  <script src="../app/sql.js"></script>
+  <script src="../app/table.js"></script>
   <script>
     function printContent(content_div, printing_div) 
     {
@@ -13,17 +16,38 @@
   </script>
 </head>
 
-<body>
+<body name="printFrm">
 
 <div class="printer forscreen">
-    <input type="button" value="Drucken" onclick="printContent('content_div_id', 'printing_div_id')">
+    <input type="button" value="Drucken" onclick="printContent('content_div_id', 'printing_div_id')" id="printBtn">
 </div>
 
 <div class="article forscreen" id="content_div_id">
     <h1>Sachgebiete</h1>
+    <div id="outFld"></div>
 </div>
 
 <div id="printing_div_id" class="forprinter"></div>
 
 </body>
+<script src="../app/shortkeys.js"></script>
+<script>
+  document.getElementsByTagName("body")[0].onload = async function ()
+  {
+    let data = await dbAll(sql[84],[]).catch(err => {return console.error(err)});
+    function prepareData (data)
+    {
+      let arr = data.map(item => 
+      {
+        if (item.id%100 === 0) {
+          return [item.id, "<b>" + item.sachgebiet + "</b>"];
+        } else {
+          return [item.id, item.sachgebiet];
+        }
+      });
+      return arr;
+    }
+    cOutputTbl(document.getElementById("outFld"),"sgTbl",["Nr", "Sachgebiet"],prepareData(data));
+  }
+</script>
 </html>

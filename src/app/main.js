@@ -39,7 +39,8 @@ function xhr (url, cFunction)
 
 let gui = require('nw.gui');
 let win = gui.Window.get();
-function closeApp () {
+function closeApp () 
+{
     let conf = window.confirm("Programm Beenden ?");
     if (conf) {
         gui.App.closeAllWindows();
@@ -48,6 +49,11 @@ function closeApp () {
         return false;
     }
 };
+
+function closeWindow ()
+{
+    return win.close(true);
+}
 
 
 /* 

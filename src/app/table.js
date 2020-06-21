@@ -4,7 +4,7 @@
 */
 
 function cOutputTbl (container, tblName, headerNamesArr, entriesArr)
-{
+{   
     let i;
     let j = 1;
     let data = entriesArr;    // ist ein Array von Arrays: [[1,2,3],[4,5,6], ...]

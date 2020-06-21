@@ -1,7 +1,10 @@
+//Requires main.js
+
 
 let linkAltM = document.getElementById("navMedien");
 let linkAltS = document.getElementById("navSonstiges");
 let linkStrgQ = document.getElementById("navBeenden");
+let linkStrgP = document.getElementById("printBtn");
 
 function blurMenu ()
 {
@@ -45,26 +48,20 @@ function altS (event)
     }
 }
 
-function altB (event)
-{
-	if (event.altKey === true && event.keyCode === 66  || event.altKey === true && event.which === 66) {
-        event.preventDefault();
-        linkStrgQ.focus();
-        if (linkAltM.className === "active") {
-        	linkAltM.setAttribute("class", "");
-        }
-      	if (linkAltS.className === "active") {
-      		linkAltS.setAttribute("class", "");
-      	}
-    }	
-}
-
 function strgQ (event)
 {
 	if (event.ctrlKey === true && event.keyCode === 81 || event.ctrlKey === true && event.which === 81) {
 		event.preventDefault();
 		linkStrgQ.click();
 	}
+}
+
+function strgW (event)
+{
+	if (event.ctrlKey === true && event.keyCode === 87 || event.ctrlKey === true && event.which === 87) {
+		event.preventDefault();
+		return closeWindow();
+	}	
 }
 
 function down (event)
@@ -126,6 +123,14 @@ function checkboxEnter (event)
 	}
 }
 
+function strgP (event)
+{
+	if (event.ctrlKey === true && event.keyCode === 80 || event.ctrlKey === true && event.which === 80) {
+		event.preventDefault();
+		linkStrgP.click();
+	}
+}
+
 function onenterCheckbox ()
 {
 	let arr = Array.from(document.querySelectorAll("input[type='checkbox']"));
@@ -134,18 +139,23 @@ function onenterCheckbox ()
 }
 onenterCheckbox();
 
+if (document.getElementsByTagName("nav").length > 0) {
+	document.getElementsByTagName("ul")[0].addEventListener("keydown", down, false);
+	document.getElementsByTagName("ul")[0].addEventListener("keydown", up, false);
+	document.getElementsByTagName("ul")[0].addEventListener("keydown", rightAndLeft, false);
+	document.getElementsByTagName("ul")[0].addEventListener("focusout", blurMenu, false);
+	document.getElementsByTagName("ul")[1].addEventListener("keydown", down, false);
+	document.getElementsByTagName("ul")[1].addEventListener("keydown", up, false);
+	document.getElementsByTagName("ul")[1].addEventListener("keydown", rightAndLeft, false);
+	document.getElementsByTagName("ul")[1].addEventListener("focusout", blurMenu, false);
 
-document.getElementsByTagName("ul")[0].addEventListener("keydown", down, false);
-document.getElementsByTagName("ul")[0].addEventListener("keydown", up, false);
-document.getElementsByTagName("ul")[0].addEventListener("keydown", rightAndLeft, false);
-document.getElementsByTagName("ul")[0].addEventListener("focusout", blurMenu, false);
-document.getElementsByTagName("ul")[1].addEventListener("keydown", down, false);
-document.getElementsByTagName("ul")[1].addEventListener("keydown", up, false);
-document.getElementsByTagName("ul")[1].addEventListener("keydown", rightAndLeft, false);
-document.getElementsByTagName("ul")[1].addEventListener("focusout", blurMenu, false);
+	document.getElementsByTagName("body")[0].addEventListener("keydown", altM, false);
+	document.getElementsByTagName("body")[0].addEventListener("keydown", altS, false);
+	document.getElementsByTagName("body")[0].addEventListener("keydown", strgQ, false);
+}
 
-document.getElementsByTagName("body")[0].addEventListener("keydown", altM, false);
-document.getElementsByTagName("body")[0].addEventListener("keydown", altS, false);
-document.getElementsByTagName("body")[0].addEventListener("keydown", strgQ, false);
+if (linkStrgP !== null) { document.getElementsByTagName("body")[0].addEventListener("keydown", strgP, false); }
 
-
+if (document.getElementsByName("printFrm").length > 0) {
+	document.getElementsByTagName("body")[0].addEventListener("keydown", strgW, false);
+}

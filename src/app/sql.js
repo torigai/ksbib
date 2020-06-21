@@ -153,7 +153,7 @@ sql[15] = `INSERT INTO relsachgebiet (objektid, sachgebietid) VALUES (?, ?)`;
 sql[16] = `SELECT id AS verlagid FROM verlag WHERE verlag = ?`;
 sql[17] = `SELECT id AS ortid FROM ort WHERE ort = ?`;
 sql[18] = `INSERT INTO buch (id, auflage, verlag, isbn) VALUES (?, ?, ?, ?)`;
-sql[19] = `SELECT journal FROM zeitschrift WHERE journal LIKE ? Limit 5`
+sql[19] = `SELECT journal FROM zeitschrift WHERE journal LIKE ? Limit 5`;
 sql[20] = `SELECT CASE WHEN MAX(zeitschriftid) IS NULL THEN 1 ELSE MAX(zeitschriftid) + 1 END AS id FROM relobjtyp`;
 sql[21] = `INSERT OR IGNORE INTO zeitschrift (id, journal, kuerzel) VALUES (NULL, ?, ?)`;
 sql[22] = `SELECT id FROM zeitschrift WHERE journal = ?`;
@@ -239,6 +239,9 @@ sql[79] = `DELETE FROM relzeitschrift WHERE zeitschriftid = ?`;
 sql[80] = `SELECT zeitschriftid FROM relobjtyp WHERE objektid = ?`;
 sql[81] = `SELECT buchid FROM relobjtyp WHERE objektid = ?`;
 sql[82] = `DELETE FROM buch WHERE id = ?`;
+sql[83] = `SELECT standortsgn FROM standort WHERE standortsgn LIKE ? Limit 5`;
+sql[84] = `SELECT * FROM sachgebiet ORDER BY id ASC`;
+sql[85] = `SELECT * FROM standort ORDER BY standortsgn ASC`;
 
 function sqlFindGap (table)
 {
