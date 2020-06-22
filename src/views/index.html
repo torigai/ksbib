@@ -113,8 +113,8 @@
                     </select>
                 </div>
                 <div class='rTableCell'>
-                    <label for="sgn"> Sgn </label><br>
-                    <input type='text' id ='sgn' size='15' class="txt">
+                    <label for="id"> ID </label><br>
+                    <input type='text' id ='id' size='5' class="txt">
                 </div>
             </div>
             <div class='rTableRow'>
@@ -296,7 +296,7 @@
                 titel : elements[5],
                 verlag : elements[6],
                 standort : elements[7],
-                sgn : elements[8],
+                id : elements[8],
                 stichwort : elements[9],
                 hinweis : elements[10],
                 status : elements[11]
@@ -313,7 +313,7 @@
                     titel: conformAndValidateStr(data.titel, 5, false, 500), 
                     verlag: conformAndValidateStr(data.verlag, 6, false, 500),
                     standort: data.standort.value,
-                    sgn: conformAndValidateSgn(data.sgn, 8, false),
+                    id: conformAndValidateID(data.id, 8, false),
                     stichwort: conformAndValidateKeywords (data.stichwort, 9, false),
                     hinweis: conformAndValidateComment (data.hinweis, 10, false),
                     status: data.status.value
@@ -513,8 +513,8 @@ async function dsearchDBRequest (data, limit, offset)
             ) USING (zeitschriftid)";
         constraint.push("(verlag LIKE '%" + data.verlag + "%' OR journal LIKE '%" + data.verlag + "%')");
     }
-    if (data.sgn !== null) {
-        constraint.push("(sgn = '" + data.sgn + "')");
+    if (data.id !== null) {
+        constraint.push("(objektid = '" + data.id + "')");
     }
     if (data.stichwort !== null && data.stichwort.length > 0) {
         tablesToJoin += "LEFT OUTER JOIN ( \

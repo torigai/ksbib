@@ -61,7 +61,6 @@ function autorToArr (autor)
 
 function addIncollection (data, callback)
 {
-    let autorenArr = [];
     let procMedium = new cSQLProcessor(callback);
 
     // globals
@@ -71,8 +70,7 @@ function addIncollection (data, callback)
         procMedium.add(sqlFindGap("ort"),[]);
         procMedium.add(sql[71], function (result)
         {
-            let x = (result === undefined) ? NULL : result;
-            return [x, data.ort];
+            return [result, data.ort];
         });
     };
     procMedium.add(sql[17], [data.ort], "ortid");
@@ -90,8 +88,7 @@ function addIncollection (data, callback)
             procMedium.add(sqlFindGap("stichwort"),[]);
             procMedium.add(sql[75], function (result) 
             {
-                let x = (result === undefined) ? NULL : result;
-                return [x, stichwort];
+                return [result, stichwort];
             });
             procMedium.add(sql[12], [stichwort]);
             procMedium.add(sql[7], function (result)
@@ -103,13 +100,12 @@ function addIncollection (data, callback)
     if (data.autoren !== null) {
         data.autoren.forEach(autor =>
         {
-            autorenArr = autorToArr(autor);
+            let autorenArr = (autor.includes(",")) ? autor.split(",").map(strtrim) : [autor.toString(), ""];
             let i = data.autoren.indexOf(autor);
             procMedium.add(sqlFindGap("autor"), []);
             procMedium.add(sql[72], function (result) 
             {
-                let x = (result === undefined) ? NULL : result;
-                return [x, autorenArr[0], autorenArr[1]];
+                return [result, autorenArr[0], autorenArr[1]];
             });
             procMedium.add(sql[13], [autorenArr[0], autorenArr[1]]);
             procMedium.add(sql[9], function (result) 
@@ -125,7 +121,6 @@ function addIncollection (data, callback)
         procMedium.add(sqlFindGap("titel"), []);
         procMedium.add(sql[76], function (result)
         {
-            let x = (result === undefined) ? NULL : result;
             return [result, titel];
         });
         procMedium.add(sql[14], [titel]);
@@ -159,8 +154,7 @@ function updateIncollection (data, olddata, callback)
                 procMedium.add(sqlFindGap("ort"),[]);
                 procMedium.add(sql[71], function (result)
                 {
-                    let x = (result === undefined) ? NULL : result;
-                    return [x, data.ort];
+                    return [result, data.ort];
                 });
                 procMedium.add(sql[17], data.ort);
                 procMedium.add(sql[54], function (result)
@@ -193,8 +187,7 @@ function updateIncollection (data, olddata, callback)
                 procMedium.add(sqlFindGap("stichwort"),[]);
                 procMedium.add(sql[75], function (result) 
                 {
-                    let x = (result === undefined) ? NULL : result;
-                    return [x, stichwort];
+                    return [result, stichwort];
                 });
                 procMedium.add(sql[12], [stichwort]);
                 procMedium.add(sql[7], function (result)
@@ -207,7 +200,7 @@ function updateIncollection (data, olddata, callback)
         if (compareResult.autoren !== 0) {
             function rmAutorenFct (autor)
             {
-                autorenArr = autorToArr(autor);
+                let autorenArr = (autor.includes(",")) ? autor.split(",").map(strtrim) : [autor.toString(), ""];
                 procMedium.add(sql[13], [autorenArr[0], autorenArr[1]]);
                 procMedium.add(sql[69], function (result)
                 {
@@ -217,7 +210,7 @@ function updateIncollection (data, olddata, callback)
             function updateAutorenFct (autor)
             {
                 let i = data.autoren.indexOf(autor);
-                autorenArr = autorToArr(autor);
+                let autorenArr = (autor.includes(",")) ? autor.split(",").map(strtrim) : [autor.toString(), ""];
                 procMedium.add(sql[13], [autorenArr[0], autorenArr[1]]);
                 procMedium.add(sql[70], function (result)
                 {
@@ -227,12 +220,11 @@ function updateIncollection (data, olddata, callback)
             function addAutorenFct (autor)
             {
                 let i = data.autoren.indexOf(autor);
-                autorenArr = autorToArr(autor);
+                let autorenArr = (autor.includes(",")) ? autor.split(",").map(strtrim) : [autor.toString(), ""];
                 procMedium.add(sqlFindGap("autor"), []);
                 procMedium.add(sql[72], function (result) 
                 {
-                    let x = (result === undefined) ? NULL : result;
-                    return [x, autorenArr[0], autorenArr[1]]
+                    return [result, autorenArr[0], autorenArr[1]]
                 });
                 procMedium.add(sql[13], [autorenArr[0], autorenArr[1]]);
                 procMedium.add(sql[9], function (result) 
@@ -266,7 +258,6 @@ function updateIncollection (data, olddata, callback)
                 procMedium.add(sqlFindGap("titel"), []);
                 procMedium.add(sql[76], function (result)
                 {
-                    let x = (result === undefined) ? NULL : result;
                     return [result, titel];
                 });
                 procMedium.add(sql[14], [titel]);

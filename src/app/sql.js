@@ -118,9 +118,12 @@ async function cStandorteOptions (link)
 async function getMaxID (plus) 
 {
     let x = [];
-    x = await sqr("SELECT MAX(id) AS id FROM objekt", [], x);
-    if (x[0].id === null) {x[0].id = 0;}
-    return (x[0].id + plus);
+    let gap = await dbGet(sqlFindGap("objekt"), []);
+    let id = (gap[Object.keys(gap)[0]] === null) ? 0 : gap[Object.keys(gap)[0]];
+    return id;
+    //x = await sqr("SELECT MAX(id) AS id FROM objekt", [], x);
+    //if (x[0].id === null) {x[0].id = 0;}
+    //return (x[0].id + plus);
 }
 
 /*
@@ -243,12 +246,16 @@ sql[83] = `SELECT standortsgn FROM standort WHERE standortsgn LIKE ? Limit 5`;
 sql[84] = `SELECT * FROM sachgebiet ORDER BY id ASC`;
 sql[85] = `SELECT * FROM standort ORDER BY standortsgn ASC`;
 
-function sqlFindGap (table)
+function sqlFindGap (table) //Selects the first gap or if no gap exists return max(id) + 1
 {
-    return `SELECT id + 1 FROM ${table} mo WHERE 
+    return `SELECT CASE 
+        WHEN MIN(id) > 0 OR MIN(id) IS NULL THEN 1
+        ELSE id + 1 
+    END
+    FROM ${table} mo WHERE 
     NOT EXISTS (
         SELECT NULL FROM ${table} mi WHERE mi.id = mo.id + 1
-    ) ORDER BY id LIMIT 1`
+    ) ORDER BY id LIMIT 1`;
 }
 
 function sqlUpdate(table, columns, constraint)

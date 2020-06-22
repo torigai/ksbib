@@ -59,6 +59,23 @@ function conformAndValidateYear (el, i, j)
     }
 }
     
+function conformAndValidateID (el, i, j)
+{
+    let zahl = el.value.trim();
+    if (j == true && zahl == "") {
+        err[err.length] = i + "*" + message[0]("einen Wert");
+        return false;
+    }
+    if (j == false && zahl == "") {
+        return null;
+    }
+    if (zahl !== "" && zahlenPattern.test(zahl) == false) {
+        err[err.length] = i + "*" + message[2];
+        return false;
+    }
+    return Number(zahl);
+}
+
 function conformAndValidateNumber (el, i, j)
 {
     let zahl = el.value.trim();

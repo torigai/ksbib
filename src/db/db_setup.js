@@ -5,21 +5,21 @@
 
 let sqr = [];
 
-sqr[0] = `create table if not exists sachgebiet (id integer primary key, sachgebiet text not null, check (id < 9999))`;
-sqr[1] = 'create table if not exists medium (id integer primary key, medium text)';
-sqr[2] = 'create table if not exists standort (id integer primary key, standort text unique, standortsgn text unique)';
-sqr[3] = 'create table if not exists jahr (id integer primary key, jahr integer unique, check (jahr > 999 and jahr < 3001))';
-sqr[4] = 'create table if not exists zeitschrift (id integer primary key, journal text unique, kuerzel text unique)';
-sqr[5] = 'create table if not exists ort (id integer primary key, ort text unique)';
-sqr[6] = 'create table if not exists verlag (id integer primary key, verlag text unique)';
-sqr[7] = 'create table if not exists autor (id integer primary key, vorname text, name text, unique(vorname, name))';
-sqr[8] = 'create table if not exists titel (id integer primary key, titel text unique)';
-sqr[9] = `create table if not exists objekt (id integer primary key, aufnahmedatum text, 
-    medium integer references medium, 
-    standort integer references standort, 
-    sgn text unique, preis real, band integer, status integer default 0, 
-    check (id > 0), check (status >= 0 AND status <= 2))`;
-// status = 0 (vorhanden) = 1 (nicht vorhanden)
+sqr[0] = `CREATE TABLE IF NOT EXISTS sachgebiet 
+    (id INTEGER PRIMARY KEY, sachgebiet TEXT NOT NULL, CHECK (id < 9999))`;
+sqr[1] = `CREATE TABLE IF NOT EXISTS medium (id INTEGER PRIMARY KEY, medium TEXT UNIQUE)`;
+sqr[2] = `CREATE TABLE IF NOT EXISTS standort (id INTEGER PRIMARY KEY, standort TEXT UNIQUE, standortsgn TEXT UNIQUE)`;
+sqr[3] = `CREATE TABLE IF NOT EXISTS jahr (id INTEGER PRIMARY KEY, jahr INTEGER unique, CHECK(jahr > 999 AND jahr < 3001))`;
+sqr[4] = `CREATE TABLE IF NOT EXISTS zeitschrift (id INTEGER PRIMARY KEY, journal TEXT UNIQUE, kuerzel TEXT UNIQUE)`;
+sqr[5] = `CREATE TABLE IF NOT EXISTS ort (id INTEGER PRIMARY KEY, ort TEXT UNIQUE)`;
+sqr[6] = `CREATE TABLE IF NOT EXISTS verlag (id INTEGER PRIMARY KEY, verlag TEXT UNIQUE)`;
+sqr[7] = `CREATE TABLE IF NOT EXISTS autor (id INTEGER PRIMARY KEY, vorname TEXT, name TEXT, UNIQUE(vorname, name))`;
+sqr[8] = `CREATE TABLE IF NOT EXISTS titel (id INTEGER PRIMARY KEY, titel TEXT UNIQUE)`;
+sqr[9] = `CREATE TABLE IF NOT EXISTS objekt (id INTEGER PRIMARY KEY, aufnahmedatum TEXT, 
+    medium INTEGER REFERENCES medium, 
+    standort INTEGER REFERENCES standort, 
+    sgn TEXT UNIQUE, preis REAL, band INTEGER, status INTEGER DEFAULT 0, 
+    CHECK (id > 0), CHECK (status >= 0 AND status <= 2))`; // 0 vorhanden; 1 abhanden; 2 verliehen
 sqr[10] = `create table if not exists relsachgebiet 
     (objektid integer REFERENCES objekt ON DELETE CASCADE, 
     sachgebietid integer REFERENCES sachgebiet ON UPDATE CASCADE, 
@@ -31,7 +31,7 @@ sqr[12] = `create table if not exists relzeitschrift
     nr integer, 
     id integer references zeitschrift (id), 
     unique(id, nr, zeitschriftid))`;
-sqr[13] = 'create table if not exists stichwort (id integer primary key, stichwort text unique)';
+sqr[13] = 'CREATE TABLE IF NOT EXISTS stichwort (id INTEGER PRIMARY KEY, stichwort TEXT UNIQUE)';
 // autortyp = 0 (autor) oder 1 (hrg)
 sqr[14] = `create table if not exists relobjtyp 
     (objektid integer references objekt ON DELETE CASCADE, 
@@ -266,6 +266,8 @@ BEGIN
     DELETE FROM zeitschrift WHERE id = old.id;
 END;`;
 
+sqr[109] = `CREATE TABLE test (id INTEGER PRIMARY KEY, wert TEXT)`;
+sqr[110] = `INSERT INTO test (id, wert) VALUES (0, NULL)`;
 
 const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('src/db/ksbib.db', (err) => 

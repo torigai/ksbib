@@ -73,6 +73,7 @@ function cSQLProcessor (callback)
 							}
 							resolve(null);
 						} else {
+							console.log (sql + " : " + param + " : " + row[Object.keys(row)[0]]);
 							if (arr[2] !== undefined) {
 								globals.push([arr[2], row[Object.keys(row)[0]]]);	
 							}
@@ -88,7 +89,10 @@ function cSQLProcessor (callback)
 				db.run(sql, param, function (err)
 				{
 					if (err) {console.log(sql + " : " + param); db.run(`ROLLBACK`); reject(err);}
-					else {resolve(sql);}
+					else {
+						console.log(sql + " : " + param);
+						resolve(sql);
+					}
 				});
 			});
 		}

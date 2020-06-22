@@ -44,7 +44,9 @@
         let toRemove = [], toAdd = [];
         if (oldArr === null) {
             toAdd = newArr;
+            toRemove = [];
         } else if (newArr === null) {
+            toAdd = [];
             toRemove = oldArr;
         } else {
             toAdd = newArr.filter(entry => {return !oldArr.includes(entry)});
@@ -60,6 +62,7 @@
             let toLeave = [];
             toLeave = newArr.filter(entry => {return oldArr.includes(entry)});
             if (toLeave.length > 0) {
+                console.log("toLeave: " + toLeave);
                 toLeave.forEach(entry =>
                 {
                     return updateFct(entry);
