@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
     <script src="../app/main.js"></script>
     <script src="../app/validation.js"></script>
+    <script src="../app/sql.js"></script>
+    <script src="../app/table.js"></script>
+    <script src="../app/sachgebiete-u-standorte-bearbeiten.js"></script>
+    <script src="../app/sqlproc.js"></script>
 </head>         
 
 
@@ -32,6 +36,7 @@
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
             <a href="doku.html">Dokumentation</a>
+            <a href="filepath.html">Dateipfad</a>
         </div>
     </ul>
     <ul class="floatright">
@@ -41,75 +46,44 @@
 
 <article>
 
-    
+<h1 id="title">Sachgebiete bearbeiten</h1>
     <form id="sgFrm">
-        <table id="sgTbl" class="center">
-            <!--<tr>
-                <th>Sachgebiete</th>
-                <th></th>
-            </tr>-->
-            <tr>
-                <td><input type="text" value="Architektur" class="plain txt bf" name="osg"></td>
-                <td class="center"><input type="button" class="btn plain bf" value="+" name="sgPlusBtn"></td>
-            </tr>
-            <tr>
-                <td><input type="text" value="Theorie" class="plain txt"></td>
-                <td class="center"><input type="button" class="btn plain" name="sgMinusBtn" value="-"></td>
-            </tr>
-            <tr>
-                <td><input type="text" value="Geschichte" class="plain txt"></td>
-                <td class="center"><input type="button" class="btn plain" name="sgMinusBtn" value="-"></td>
-            </tr>
-            <tr>
-                <td><input type="text" value="Geschichte" class="plain txt bf" name="osg"></td>
-                <td class="center"><input type="button" class="btn plain bf" value="+" name="sgPlusBtn"></td>
-            </tr>
-            <tr>
-                <td><input type="text" value="Architektur" class="plain txt"></td>
-                <td class="center"><input type="button" class="btn plain" name="sgMinusBtn" value="-"></td>
-            </tr>
-        </table>
-        <div id="sgFrmWarnFld" class="warning center"></div>
-        <div class="center">
-            <input type="button" id="sgOKBtn" value="OK" class="btn">
-            <input type="button" id="sgAbbrBtn" value="Abbrechen" class="btn">
-        </div>
+        <div class='rTable'><div class='rTableBody'>
+            <div class='rTableRow'>
+                <div class="rTableCell middle">
+                    <label for="osgNr">Nr</label><br>
+                    <input type="text" id="osgNr" size="4" class = "txt" autofocus="autofocus">
+                </div>
+                <div class="rTableCell middle"><br>
+                    <input type="button" id="sgOKBtn" value="OK" class="btn">
+                </div>
+            </div>
+        </div></div>
+        <div id="sgWarnFld" class="warning center"></div>
     </form>
 
-    <div class = "info center margin">
-        <p>
-            Liste der aktuellen Sachgebiete <a href="drucken-sachgebiete.html" target="_blank">drucken</a>
-        </p>
+    <div id="outFld">
+    <div id="info" class="info">
+    <p>
+        Gib die Nummer eines Obersachgebietes ein, um dessen Untersachgebiete zu bearbeiten.
+        Falls Du die Obersachgebiete bearbeiten willst, laß das Eingabefeld leer.
+    </p>
+    <p>
+        Einträge in den Sachgebietstabellen kannst Du mit der Tastatur per Pfeiltasten ansteuern. 
+        Wenn Du "Shift" drückst oder mit der Maus auf ein Sachgebiet klickst, kannst Du die Sachgebietsnamen 
+        verändern. Indem Du auf "-" drückst, wird das Sachgebiet zum Löschen markiert (nochmal "-"" hebt die
+        Markierung wieder auf). Mit ESC gelangst Du zurück zum Eingabefeld.
+    </p>
+    <p>
+        Wenn Du ein Obersachgebiet löschst, werden alle darunterfallenden Untersachgebiete ebenfalls
+        gelöscht. Falls es noch Medien gibt, die mit dem zu löschenden Sachgebiet verknüpft sind, kann
+        das Sachgebiet nicht gelöscht werden. Dann musst Du erst die Verknüpfung zu dem Medium aufheben.
+    </p>
+    </div>
     </div>
 
-    <form id="osgFrm">
-        <div class="center">
-            <p>Neues Obersachgebiet hinzufügen oder löschen:</p>
-            <input type="text" class="txt" autofocus="autofocus">
-            <input type="button" id="osgPlusBtn" value="+" class="btn">
-            <input type="button" id="osgMinBtn" value="-" class="btn">
-        </div>
-        <div id="osgFrmWarnFld" class="warning center"></div>
-    </form>
-
-    <div id="outFld" class ="margin">
-        <div class="info">
-        <p>
-            Klicke auf ein Sachgebiet, um es zu verändern. Falls Du ein neues Untersachgebiet
-            hinzufügen willst, klicke bei dem entsprechenden Obersachgebiet auf "+".
-            Wenn Du ein Untersachgebiet löschen willst, klicke auf "-" im entsprechenden Eintrag. 
-            Wenn Du diese Aktion rückgängig machen willst, drücke nochmals auf "-".
-        </p>
-        <p>
-            Ein neues Obersachgebiet kannst Du hinzufügen, indem Du es in das Eingabefeld einträgst und
-            dort anschliessend auf "+" klickst. Um es zu löschen, verfahre analog; die zugehörigen
-            Untersachgebiete werden dann ebenfalls gelöscht.
-        </p>
-        <p>
-            Erst wenn Du auf "OK" klickst, werden sämtliche Änderungen gespeichert. Wenn 
-            Du "Abbrechen" anklickst oder die Seite verlässt, gehen alle Änderungen verloren.
-        </p>
-        </div>
+    <div class = "info center margin">
+        <p>Liste der aktuellen Sachgebiete <a href="drucken-sachgebiete.html" target="_blank">drucken</a></p>
     </div>
 
 </article>
@@ -117,31 +91,12 @@
 <script src="../app/shortkeys.js"></script>
 <script>
 
-/*  
-    --- To Do ---
-
-    = Laden der Daten
-    - Falls keine Sachgebiete eingetragen wurden, soll der erste Eintrag eine
-    Reihe sein mit Wert "neues Obersachgebiet".
-    
-    = Abbrechen
-
-    = Speichern
-    - Trimmen !!
-
-*/
-
-    var sgFrm = new cformular (
-        document.getElementById("sgFrm"), 
-        document.getElementById("sgFrmWarnFld"), 
+    let sgFrm = new cformular(
+        document.getElementById("sgFrm"),
+        document.getElementById("sgWarnFld"),
         document.getElementById("outFld"), 
-        document.getElementById("sgOKBtn")
+        document.getElementById("sgOKBtn")        
     );
-    sgFrm.rmColor = "grey";
-    sgFrm.noTxt = sgFrm.textFld.length;
-    sgFrm.tbl = document.getElementById("sgTbl");
-    sgFrm.minBtn = document.getElementsByName("sgMinusBtn");
-    //sgFrm.noReihe = sgFrm.minBtn.length;
     sgFrm.oninput = function ()
     {
         if (this.style.color == warnColor) {
@@ -149,358 +104,358 @@
         }
         sgFrm.warnFld.innerHTML = "";
     }
-    sgFrm.onfocusout = function ()
-    {
-        /*
-        Diese Funktion wird beim Verlassen eines Eingabefeldes ausgeführt.
-
-        Falls eine leere, neu hinzugefügte Reihe verlassen wird, soll diese 
-        gelöscht werden. Eine zuvor bestehende, geleerte Reihe soll beim
-        Verlassen wiederhergestellt werden.
-
-        Damit erst die Bedingungen geprüft werden und dann gelöscht wird, 
-        wird ein zeitlicher "delay" eingeführt
-        */
-
-        if (this.value.trim() !== "") { return; }
-        var noReihe = sgFrm.tbl.rows.length;
-        var reihe = this.parentNode.parentNode;
-        var i = reihe.rowIndex;
-        var x, z;
-        z = reihe.children[0].firstChild;
-        if (z.value.trim() == "") {
-            function rmReihe () 
-            {
-                var akt = document.activeElement; 
-                var aktReihe = akt.parentNode.parentNode;
-                if (akt.id == "sgAbbrBtn") { return; } else {
-                    switch (reihe.className) {
-                        case "neueReihe":
-                            sgFrm.tbl.deleteRow(i);
-                            if (i == noReihe - 1) {
-                                sgFrm.tbl.rows[i-1].firstElementChild.firstElementChild.select();
-                            } else {    
-                                sgFrm.tbl.rows[i].firstElementChild.firstElementChild.select();
-                            }
-                            break;
-                        default:
-                            z.value = z.defaultValue;
-                    }
-                }
-            }
-            function delay () {
-                x = setTimeout(rmReihe, 0);
-            }
-            delay();
-        } else { return; }
-    }
-    sgFrm.newReset ( function () 
-    {
-        /*
-        Abbrechen Button:
-        alle Änderungen werden rückgängig gemacht
-        */
-/*
-        osgFrm.textFld[0].value = "";
-        osgFrm.warnFld.innerHTML = "";
-        sgFrm.warnFld.innerHTML = "";
-        let i;
-        let reihe = sgFrm.tbl.rows;
-        let noReihe = reihe.length;
-        for (i = 1; i < noReihe; i++) {
-            if (reihe[i].className == "neueReihe") {   
-                sgFrm.tbl.deleteRow(i);
-                i = i - 1;
-                noReihe = noReihe - 1;
-            } else {
-                reihe[i].children[0].firstChild.value = reihe[i].children[0].firstChild.defaultValue;
-                reihe[i].children[0].firstChild.style.color = defaultColor;
-            }
-        }
-*/
-    })
-    sgFrm.newSbmt ( function () 
-    {
-        /*
-        OK Button:
-        */
-
-        let dataIn = Array.from(sgFrm.textFld);
-        function greyOnes (sg)
-        {
-            return sg.style.color !== sgFrm.rmColor;
-        }
-        function conformAndValidateSgFrm (dataArr) 
-        {
-            err = [];
-            let dataConformed = dataArr.map(conformAndValidateSachgebiet, dataArr);
-            return dataConformed;
-        }
-        data = conformAndValidateSgFrm(dataIn); 
-        if (err.length !== 0) {
-            let firstError = err[0].split("*");
-            dataIn[firstError[0]].style.color = warnColor;
-            dataIn[firstError[0]].select();
-            sgFrm.warnFld.innerHTML = firstError[1];
-        } else {
-            let conf = confirm("Änderungen speichern ?")
-            if (conf == false) { 
-                return; 
-            } else {
-                return;
-            }
-        }
-    })
     sgFrm.onenter = function (event)
     {
-        //Falls im Eingabefeld Enter gedrückt wird, soll gespeichert werden
-        if (event.keyCode == 13 || event.which == 13) {
-                sgFrm.sbmtBtn.click();
-            } else { return; }
+        if (event.keyCode === 13 || event.which === 13) {
+            event.preventDefault();
+            return sgFrm.sbmtBtn.click();
+        } else { return false; }
     }
-    sgFrm.minusBtn = function ()
+    sgFrm.newReset (function ()
     {
-        var sg = this.parentNode.parentNode.children[0].firstChild;
-        if (sg.style.color == sgFrm.rmColor) {
-            sg.style.color = defaultColor;
-        } else {
-            sg.style.color = sgFrm.rmColor;
-        }
-    }
-    sgFrm.plusBtn = function ()
+        sgFrm.outFld.innerHTML = `
+            <div id="info" class="info">
+                <p>
+                    Gib die Nummer eines Obersachgebietes ein, um dessen Untersachgebiete zu bearbeiten.
+                    Falls Du die Obersachgebiete bearbeiten willst, laß das Eingabefeld leer.
+                </p>
+                <p>
+                    Einträge in den Sachgebietstabellen kannst Du mit der Tastatur per Pfeiltasten ansteuern. 
+                    Wenn Du "Shift" drückst oder mit der Maus auf ein Sachgebiet klickst, kannst Du die Sachgebietsnamen 
+                    verändern. Indem Du auf "-" drückst, wird das Sachgebiet zum Löschen markiert (nochmal "-"" hebt die
+                    Markierung wieder auf). Mit ESC gelangst Du zurück zum Eingabefeld.
+                </p>
+                <p>
+                    Wenn Du ein Obersachgebiet löschst, werden alle darunterfallenden Untersachgebiete ebenfalls
+                    gelöscht. Falls es noch Medien gibt, die mit dem zu löschenden Sachgebiet verknüpft sind, kann
+                    das Sachgebiet nicht gelöscht werden. Dann musst Du erst die Verknüpfung zu dem Medium aufheben.
+                </p>
+            </div>`;
+        sgFrm.formular.style.display = "";
+        document.getElementById("title").innerHTML = "Sachgebiete bearbeiten";
+        sgFrm.textFld[0].value = "";
+        return sgFrm.textFld[0].focus();
+    })
+    sgFrm.newSbmt (async function () 
     {
-        /*
-        Anklicken eines Plus-Buttons:
-        Es soll eine leere Zeile an erster Stelle unterhalb des entsprechenden 
-        Obersachgebietes eingefügt werden. Die neue Zeile <tr class="neueZeile"> wird 
-        durch die Klasse markiert.
-        Die Anzahl der neuen USGe pro OSG wird auf 20 beschränkt
-        */
+        //REQUIRES validation.js
+        //err: Array from validation.js
+        err = [];
+        let choice;   // values "osg" OR "usg"
+        let sgnr = strtrim(sgFrm.textFld[0].value);
 
-        let osg = document.getElementsByName("osg");
-        let noOsg = osg.length;
-        let i;
-        let c = 1;
-        let j = this.parentNode.parentNode.rowIndex;
-        let k = typeof osg[i+1] !== 'undefined' ? 
-                osg[i+1].parentNode.parentNode.rowIndex : sgFrm.tbl.rows.length;
-        for (i=j; i<k; i++ ){
-            if (sgFrm.tbl.rows[i].className == "neueReihe" && sgFrm.tbl.rows[i].children[0].firstChild.name !== "osg") {
-                c++;
-            }
-        }
-        if ( c > 20 ){
-            sgFrm.warnFld.innerHTML = message[1]('20 Untersachgebiete je Obersachgebiet pro Durchlauf');
-            return;
-        }
-        let zelle = [];
-        let aktReihe = this.parentNode.parentNode;
-        i = aktReihe.rowIndex;
-        var btn = sgFrm.btn[0].cloneNode(true);
-        btn.removeAttribute("class");
-        btn.removeAttribute("value");
-        btn.removeAttribute("name");
-        btn.setAttribute("class", "btn plain");
-        btn.setAttribute("value", "-");
-        btn.addEventListener("click", sgFrm.minusBtn);
-        var reihe = sgFrm.tbl.insertRow(i+1);
-        reihe.setAttribute("class", "neueReihe");
-        var textFld = sgFrm.textFld[0].cloneNode(true);
-        textFld.addEventListener("input", sgFrm.oninput);
-        textFld.addEventListener("focusout", sgFrm.onfocusout);
-        textFld.addEventListener("keypress", sgFrm.onenter);
-        textFld.addEventListener("click", textFld.select);
-        textFld.removeAttribute("class");
-        textFld.removeAttribute("name");        
-        textFld.removeAttribute("value");
-        textFld.setAttribute("class", "plain txt");
-        textFld.style.fontWeight = "normal";
-        zelle[0] = reihe.insertCell(0);
-        zelle[0].appendChild(textFld);
-        zelle[0].firstChild.value = "";
-        zelle[0].firstChild.readonly = false;
-        zelle[0].firstChild.style.color = defaultColor;
-        zelle[0].firstChild.focus();
-        zelle[1] = reihe.insertCell(1);
-        zelle[1].setAttribute("class", "center");
-        zelle[1].appendChild(btn);
-    }
-
-    let i;
-    for (i=0; i < sgFrm.noTxt; i++) {
-        sgFrm.textFld[i].addEventListener("input", sgFrm.oninput); 
-        sgFrm.textFld[i].addEventListener("focusout", sgFrm.onfocusout);
-        sgFrm.textFld[i].addEventListener("click", sgFrm.textFld[i].select);
-        sgFrm.textFld[i].addEventListener("keypress", sgFrm.onenter);
-    }
-    document.getElementById("sgAbbrBtn").addEventListener("click", sgFrm.reset);
-    sgFrm.sbmtBtn.addEventListener("click", sgFrm.sbmt);
-    for (i = 0; i < sgFrm.minBtn.length; i++) {
-        sgFrm.minBtn[i].addEventListener("click", sgFrm.minusBtn);
-    }
-    let plus = document.getElementsByName("sgPlusBtn");
-    let noPlus = plus.length;
-    for (i=0; i < noPlus; i++) {
-        plus[i].addEventListener("click", sgFrm.plusBtn);
-    }
-
-
-    var osgFrm = new cformular (
-        document.getElementById("osgFrm"), 
-        document.getElementById("osgFrmWarnFld"), 
-        document.getElementById("outFld"), 
-        document.getElementById("osgPlusBtn")
-    );
-    osgFrm.newSbmt ( function () 
-    {
-        /*
-        "+" Button:
-        Das neue Obersachgebiet wird unten an die Tabelle angehängt.
-        Falls es bereits existiert, wird eine Fehlermeldung ausgegeben.
-        Es dürfen pro Arbeitsschritt nicht mehr als 50 Obersachgebiete hinzugefügt werden
-        */
-
-        var i;
-        let osgEl = osgFrm.textFld[0];
-        let osgArr = Array.from(document.getElementsByName("osg"));
-        function onlyNew (osg)
+        function prepareData (data)
         {
-            return osg.parentNode.parentNode.className === "neueReihe";
-        }
-        function conformAndValidateOsgFrm (osg) 
-        {
-            err = [];
-            function value (el) 
+            let arr = data.map(item => 
             {
-                return el.value;
+                if (item.id%100 === 0) {
+                    return [item.id, item.sachgebiet];
+                } else {
+                    return [item.id, item.sachgebiet];
+                }
+            });
+                return arr;
+        }
+        function createFormularCallback (choice)
+        {
+            sgFrm.formular.setAttribute("style", "display: none");
+            if (choice === "usg") {
+                document.getElementById("title").innerHTML = "Untersachgebiete bearbeiten";
+            } else {
+                document.getElementById("title").innerHTML = "Obersachgebiete bearbeiten";
             }
-            let vorhandeneOsg = Array.from(document.getElementsByName("osg")).map(value);
-            let osgConformed = conformAndValidateStr(osg, 0, true, 40);
-            let l = vorhandeneOsg.length;
-            vorhandeneOsg.push(osgConformed);
-            let newArr = vorhandeneOsg.filter(onlyUnique);
-            if (newArr.length !== l) {
-                return osgConformed;
+            return choice;
+        }
+
+        if (sgnr === "") { //Obersachgebiete bearbeiten (cf. trigger osg_exists: an osg always exists)
+            let osgArr = await dbAll(sql[33], []).catch(err => {return console.error(err)});
+            choice = await createFormular(sgFrm, "Neues OSG", function () {return createFormularCallback("osg")});
+            document.getElementById("fld").focus();
+            cOutputTbl(document.getElementById("outTbl"),"sgTbl",["Nr", "Obersachgebiet"],prepareData(osgArr), true);
+            tblAddEventListenerArrow();
+        } else { //Untersachgebiete zu einem OSG bearbeiten
+            if (Number(strtrim(sgFrm.textFld[0].value))%100 !== 0) {
+                sgFrm.warnFld.innerHTML = `Das ist keine Sachgebietsnummer eines Obersachgebietes`;
+                return false;
+            } 
+            sgnr = conformAndValidateSachgebietsnr(sgFrm.textFld[0],0, false);
+            if (err.length>0) {
+                let firstError = err[0].split("*");
+                sgFrm.warnFld.innerHTML = firstError[1];
+                return false;   
             }
-            else { 
-                err[err.length] = i + "*" + message[4]("Das Obersachgebiet"); 
+            let usgArr = await dbAll(sql[34], [sgnr]).catch(err => {return console.error(err)});
+            if (usgArr === undefined) {
+                sgFrm.warnFld.innerHTML = "Es gibt kein Obersachgebiet mit dieser Nr";
                 return false;
             }
+            selOSG = [usgArr[0].id, usgArr[0].sachgebiet];
+            usgArr = usgArr.filter(item => {return !(usgArr.indexOf(item) === 0)});
+            choice = await createFormular(sgFrm, "Neues USG", function () {return createFormularCallback("usg")});
+            document.getElementById("fld").focus();
+            cOutputTbl(document.getElementById("outTbl"),"sgTbl",[selOSG[0], selOSG[1]],prepareData(usgArr), true);
+            tblAddEventListenerArrow();
         }
 
-        if (osgArr.filter(onlyNew).length > 19) {
-            osgFrm.warnFld.innerHTML = message[1]("20 neue Obersachgebiete pro Durchlauf beschränkt");
-            osgFrm.textFld[0].select();
-            return;
-        } else {
-            newOsg = conformAndValidateOsgFrm(osgEl); 
-        }
-        if (err.length !== 0) {
-            firstError = err[0].split("*");
-            osgEl.style.color = warnColor;
-            osgEl.select();
-            osgFrm.warnFld.innerHTML = firstError[1];
-            return;
-        } else {
-            var zelle = [];
-            i = sgFrm.tbl.rows.length;
-            var btn = document.getElementsByName("sgPlusBtn")[0].cloneNode(true);
-            btn.addEventListener("click", sgFrm.plusBtn);
-            var reihe = sgFrm.tbl.insertRow(i);
-            reihe.setAttribute("class", "neueReihe");
-            var textFld = sgFrm.textFld[0].cloneNode(true);
-            textFld.addEventListener("input", sgFrm.oninput);
-            textFld.addEventListener("focusout", sgFrm.onfocusout);
-            zelle[0] = reihe.insertCell(0);
-            zelle[0].appendChild(textFld);
-            zelle[0].firstChild.value = newOsg;
-            zelle[0].firstChild.readonly = false;
-            zelle[0].firstChild.style.color = defaultColor;
-            zelle[0].firstChild.focus();
-            zelle[1] = reihe.insertCell(1);
-            zelle[1].setAttribute("class", "center");
-            zelle[1].appendChild(btn);
-            osgFrm.textFld[0].value = "";
-            osgFrm.textFld[0].select();
-        }
-    })
-    osgFrm.minusBtn = function () 
-    {
-        /*
-            "-" Button:
-            Falls nur eine einzige Reihe existiert, soll nichts passieren.
-            Falls die Eingabe des OSGs mit einem in der Tabelle bestehenden
-            OSG übereinstimmt, soll das OSG samt USG aus der Tabelle gelöscht werden.
-
-        */
-
-        var i, j, k;
-        var sel = osgFrm.textFld[0];
-        var osg = document.getElementsByName("osg");
-        var noOsg = osg.length;
-        for (i=0; i < noOsg; i++) {
-            if (strtrim(sel.value) == strtrim(osg[i].value)) {
-                var conf = window.confirm("Das Obersachgebiet und sämtliche Untersachgebiete aus der Vorschautabelle löschen?");
-                if (conf == true) {
-                    var a = osg[i].parentNode.parentNode.rowIndex;
-                    var b = typeof osg[i+1] !== 'undefined' ? 
-                        osg[i+1].parentNode.parentNode.rowIndex : sgFrm.tbl.rows.length;
-                    if (noOsg == 1) { 
-                        j = a + 1; 
-                        k = a + 1;
-                        osg[0].value = "neues Obersachgebiet";
-                        osg[0].select();
-                    } else { 
-                        j = a; 
-                        k = a;
-                        sel.select();
-                    }
-                    while (j < b) {
-                        sgFrm.tbl.deleteRow(k);
-                        j++
-                    }
-                    osgFrm.textFld[0].value = "";
-                    return;
+        let newDatum = document.getElementById("fld");
+        let warning = document.getElementById("warnTbl");
+        let plus = document.getElementById("OKBtn");
+        let abbr = document.getElementById("abbrBtn");
+        let save = document.getElementById("saveBtn");
+        let oldrows = Array.from(document.getElementsByName("sgTbl")[0].rows);
+        let updatedRows = [];        
+        let errRows = [];
+        
+        function addEventListenersToOldRows (updatedRows, oldrows, errRows)
+        {
+            oldrows.forEach(row =>
+            {
+                if (oldrows.indexOf(row) === 0) {
+                    return row;
                 } else {
-                    osgFrm.textFld[0].select();
-                    return;
+                    row.setAttribute("class", "hoverable");
                 }
+            });
+            if (oldrows.length > 1) {
+                Array.from(document.getElementsByName("tblBtn"))
+                    .forEach(btn => {return btn.addEventListener("keypress", function () 
+                        {
+                            return keypressBtn(event, btn, newDatum);
+                        })});
+                Array.from(document.getElementsByName("tblTxtFld")).forEach(sg => 
+                {
+                    sg.addEventListener("keypress", keypressSgInput);
+                    sg.addEventListener("input", function () 
+                    {
+                        if (sg.style.color = "red") {
+                            sg.style.color = "";
+                        }
+                        return warning.innerHTML = "";
+                    });
+                    sg.addEventListener("change", function ()
+                    {
+                        let change = strtrim(this.value);
+                        let changeRowIndex = oldrows.indexOf(this.parentElement.parentElement);
+                        let newrowsDataArr = Array.from(document.getElementsByClassName("neu"))
+                            .map(sg => {return sg.value});
+                        let n = Array.from(document.getElementsByName("tblTxtFld"))
+                            .map(element=>{return strtrim(element.value)})
+                            .filter(value => {return value === change}).length;
+                        if (change !== "") {
+                            if (newrowsDataArr.includes(change) || n > 1) {
+                                warning.innerHTML = "Das Sachgebiet kommt mehrfach vor";
+                                errRows.push(changeRowIndex);
+                                return this.select();       
+                            } else {
+                                err = [];
+                                change = conformAndValidateSachgebietName(this, 0, false, 100);
+                                if (err.length > 0 ) {
+                                    let firstError = err[0].split("*");
+                                    warning.innerHTML = firstError[1];
+                                    errRows.push(changeRowIndex);
+                                    return this.select();
+                                } else {
+                                    errRows = errRows.filter(i => {return (i !== changeRowIndex)});
+                                    updatedRows.push(changeRowIndex);
+                                    updatedRows = updatedRows.filter(onlyUnique);
+                                    return updatedRows;
+                                }
+                            }
+                        } else {
+                            return sg.parentElement.parentElement.style.backgroundColor = tblSelColor; 
+                        }
+                    });
+                });
             }
         }
-        osgFrm.warnFld.innerHTML = message[3]("Das Obersachgebiet");
-        osgFrm.textFld[0].select();
-    }
-    osgFrm.oninput = function ()
-    {
-        if (osgFrm.warnFld.innerHTML = "") {return;}
-        if (this.style.color == warnColor) {
-            this.style.color = defaultColor;
-        }
-        osgFrm.warnFld.innerHTML = "";
-    }
-    osgFrm.onenter = function (event) 
-    {
-        /*
-        Eventhandler: 
-        Falls im Eingabefeld "Enter" gedrückt wird
-        soll der "+" Button angeklickt werden
-        */
 
-        if (event.keyCode == 13 || event.which == 13) {
+        function addNewSgToTable ()
+        {
+            err = [];   //from validation.js
+            sachgebiet = conformAndValidateSachgebietName(newDatum, 0, true, 100);
+            let newrowsDataArr = Array.from(document.getElementsByClassName("neu"))
+                .map(sg => {return sg.value});
+            let oldrowsDataArr = Array.from(document.getElementsByName("tblTxtFld"))
+                .map(element=>{return element.value});
+            if (err.length > 0 ) {
+                let firstError = err[0].split("*");
+                warning.innerHTML = firstError[1];
+                return newDatum.select();
+            } else if (oldrowsDataArr.includes(sachgebiet) || newrowsDataArr.includes(sachgebiet)) {
+                warning.innerHTML = `Das Sachgebiet ist bereits in der Tabelle`;
+                return newDatum.select();
+            } else {
+                function addToTableCallback () 
+                {
+                    newDatum.value = "";
+                    return newDatum.focus(); 
+                }
+                return addToTable(["+", sachgebiet], "sgTbl", addToTableCallback, newDatum);
+            }
+        }
+
+        async function saveData (oldRows, updatedRows, tablename, choice, sgnr, errRows)
+        {
+            //to Remove, toUpdate: array of [ID, SGName]; toAdd: Array of SG names;
+            let toRemove = Array.from(document.getElementsByName(tablename)[0].rows)    
+                .filter(row => {return row.style.backgroundColor === tblSelColor})
+                .map(row => 
+                {
+                    return [row.firstElementChild.firstElementChild.value, row.lastElementChild.firstElementChild.value];
+                });
+            let toAdd = Array.from(document.getElementsByClassName("neu")).map(sg => {return sg.value});
+            let toUpdate = [];
+            updatedRows = updatedRows.filter(index => {return !(errRows.includes(index))});
+            updatedRows.forEach(index =>
+            {
+                if (oldrows[index].style.backgroundColor !== tblSelColor) {
+                    return toUpdate.push(
+                        [oldrows[index].firstElementChild.firstElementChild.value, 
+                        oldrows[index].lastElementChild.firstElementChild.value]
+                    );
+                } else {
+                    return false;
+                }
+            });
+            async function dbRequest (choice)
+            {
+                let nonRemovables = [];
+                function callback (boolean) 
+                {
+                    if (boolean) {
+                        if (nonRemovables.length > 0) {
+                            sgFrm.reset();
+                            sgFrm.warnFld.innerHTML = `Die Änderungen wurden gespeichert. 
+                                Folgende Sachgebiete konnten nicht gelöscht werden,
+                                da ihnen vorhandene Medien zugeordnet sind:`;
+                            sgFrm.outFld.innerHTML = "";
+                            return cOutputTbl(sgFrm.outFld,"nonRemovablesTbl",["Nr", "Sachgebiete"], nonRemovables);
+                        } else {
+                            sgFrm.warnFld.innerHTML = `Die Änderungen wurden gespeichert`;
+                            return sgFrm.reset();
+                        }
+                    }
+                }
+                let procMedium = new cSQLProcessor(callback);
+                 
+                if (toUpdate.length > 0) {
+                    toUpdate = await toUpdate.map(sgArr => {return procMedium.add(sql[87], [sgArr[1], sgArr[0]])});
+                }
+                if (toRemove.length > 0) {
+                    toRemove = await Promise.all(toRemove.map(async (sgArr) => 
+                    {
+                        let result = await dbGet(sql[89], sgArr[0]).catch(err => {return console.error(err)});
+                        if (result !== undefined) { // don't remove
+                            return nonRemovables.push(sgArr);
+                        } else {    // remove
+                            if (choice === "usg") {
+                                return procMedium.add(sql[86], [sgArr[0]]);
+                            } else {
+                                return procMedium.add(sql[90], [sgArr[0]]);
+                            }
+                        }
+                    }));
+                } 
+                if (toAdd.length > 0) {
+                    if (choice === "osg") {
+                        toAdd = await toAdd.map(sgName =>
+                        {
+                            procMedium.add(sqlFindGapOSGSachgebiete(), []);
+                            return procMedium.add(sql[88], function (result) {return [result, sgName]});
+                        });
+                    } else {
+                        toAdd = await toAdd.map(sgName =>
+                        {
+                            procMedium.add(sqlFindGapUSGSachgebiete(sgnr), []);
+                            return procMedium.add(sql[88], function (result) {return [result, sgName]});
+                        });
+                    }
+                }
+                let res = procMedium.run();
+                if (res === "No SQL Process") {
+                    if (nonRemovables.length > 0) {
+                        sgFrm.reset();
+                        sgFrm.warnFld.innerHTML = `Die Änderungen konnten nicht gespeichert werden. Folgende Sachgebiete wurden nicht nicht gelöscht, da ihnen vorhandene Medien zugeordnet sind:`;
+                        sgFrm.outFld.innerHTML = "";
+                        return cOutputTbl(sgFrm.outFld,"nonRemovablesTbl",["Nr", "Sachgebiete"], nonRemovables);
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            //Validation AND DBrequest
+            if (toRemove.length + toUpdate.length + toAdd.length + errRows.length === 0) {
+                warning.innerHTML = "Es wurden keine Änderungen vorgenommen";
+                return false;
+            } else if (errRows.length > 0) {
+                if (window.confirm("Einige der Änderungen sind ungültig und können nicht übernommen werden. Sachgebietsliste dennoch speichern ?")) {
+                    return dbRequest(choice);   
+                } else {
+                    errRows.forEach(index => 
+                    {
+                        return oldrows[index].lastElementChild.firstElementChild.style.color = "red"
+                    });
+                    return false;
+                }
+            } else {
+                if (window.confirm("Sachgebietsliste speichern ?")) {
+                    return dbRequest(choice);   
+                } else {
+                    return false;
+                }
+            }        
+        }
+
+        addEventListenersToOldRows(updatedRows, oldrows, errRows); 
+        newDatum.addEventListener("focus", onfocusNewInput);
+        newDatum.addEventListener("focusout", function () {return warning.innerHTML = ""});
+        newDatum.addEventListener("keypress", onEnterNewInput);
+        newDatum.addEventListener("keydown", function () { return enterTableOnArrowDown(event, "sgTbl") });
+        newDatum.addEventListener("input", function () {return warning.innerHTML = ""});
+        abbr.addEventListener("click", function () 
+        {
+            return sgFrm.reset(); 
+        });
+        plus.addEventListener("click", addNewSgToTable);
+        save.addEventListener("click", function () {return saveData(oldrows, updatedRows, "sgTbl", choice, sgnr, errRows)});
+        document.getElementsByTagName("body")[0]
+            .addEventListener("keydown", function () {return strgC(event, abbr)}, false);
+    })
+
+    sgFrm.sbmtBtn.addEventListener("click", sgFrm.sbmt);
+    Array.from(sgFrm.textFld).forEach(field => 
+    {
+        field.addEventListener("keypress",sgFrm.onenter);
+        field.addEventListener("keydown",  sgFrm.oninput);
+    });
+
+    // Shortkeys
+
+    function esc (event)
+    {
+        if (event.key === "Escape" || event.code === "Escape") {
             event.preventDefault();
-            osgFrm.sbmtBtn.click();
+            if (sgFrm.formular.style.display === "none") {
+                if (document.activeElement.parentElement.parentElement.style.backgroundColor === tblHoverColor) {
+                    document.activeElement.parentElement.parentElement.style.backgroundColor = tblDefaultColor;
+                }
+                document.getElementById("fld").select();
+            } else {
+                sgFrm.textFld[0].select();
+            }
         }
     }
-    
-    osgFrm.textFld[0].addEventListener("input", osgFrm.oninput); 
-    osgFrm.textFld[0].addEventListener("keypress", osgFrm.onenter);
-    osgFrm.sbmtBtn.addEventListener("click", osgFrm.sbmt);
-    osgFrm.btn[1].addEventListener("click", osgFrm.minusBtn);
 
-/*
-    TODO
-    - Es soll keine Untersachgebiete ohne Obersachgebiet geben! Am besten auf der Ebene der Datenbank implementieren
-*/
+    function gotoEingabeFrm (event)
+    {
+        if (event.shiftKey === true && event.keyCode === 40 || event.shiftKey === true && event.which === 40) {
+            event.preventDefault();
+            if (document.getElementsbyName(sgTbl)[0] !== "undefined") {newDatum.focus();}
+        }
+    }
+
+    document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
+    document.getElementsByTagName("body")[0].addEventListener("keydown", gotoEingabeFrm, false);
 
 </script>
 

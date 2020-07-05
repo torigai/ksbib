@@ -26,6 +26,7 @@ function showResult (result, outputFld, warnFld, nameOfTbl, nameOfSelect, getRes
     if (result === false) {
         tblOutputFld.innerHTML = "";
         outputFld.innerHTML = "";
+        document.getElementById("abbrBtn").focus();
         warnFld.innerHTML = "Kein Suchergebnis";
         return false;
     } else {
@@ -35,6 +36,7 @@ function showResult (result, outputFld, warnFld, nameOfTbl, nameOfSelect, getRes
             if (stopDBRequests === false) { // there may be open results
                 offset = offset + limit;
                 result = await getResultFct(limit, offset);
+                console.log(result);
                 if (result === false) {
                     offset = offset - limit;
                     stopDBRequests = true;

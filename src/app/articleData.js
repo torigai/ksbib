@@ -5,7 +5,7 @@
 
 let selectedID;
 
-function article (autoren, titel, jahr, ort, seiten, hinweis, stichworte) 
+function article (autoren, titel, jahr, ort, seiten, hinweis, stichworte, link) 
 {
     this.autoren = autoren;    
     this.titel = titel;
@@ -17,6 +17,7 @@ function article (autoren, titel, jahr, ort, seiten, hinweis, stichworte)
     this.autortyp = 0;  // Autor
     this.titeltyp = 1;  // Aufsatztitel
     this.buchid = 0;
+    this.link = link;
 }
 
 function conformAndValidateArticle(formular, article) 
@@ -37,7 +38,8 @@ function conformAndValidateArticle(formular, article)
         stichworte: conformAndValidateKeywords(article.stichworte, index(article.stichworte), false),
         autortyp: article.autortyp,
         titeltyp: article.titeltyp,
-        buchid: article.buchid
+        buchid: article.buchid,
+        link: conformAndValidateLink(article.link, index(article.link), false)
     };    
 }
 
@@ -50,7 +52,8 @@ function articleData (formular)
         document.getElementsByName("ort")[0],
         document.getElementsByName("seiten")[0],
         document.getElementsByName("hinweis")[0],
-        document.getElementsByName("stichworte")[0]
+        document.getElementsByName("stichworte")[0],
+        document.getElementsByName("link")[0]
     );
     return conformAndValidateArticle(formular, a);
 }
@@ -76,7 +79,7 @@ async function addArticle (data, callback)
     procMedium.add(sql[4], function (result) 
     {
         return [data.id, "zeitschriftid", data.buchid, "aufsatzid", 
-            data.autortyp, data.hinweis, data.seiten, result, "ortid"]
+            data.autortyp, data.hinweis, data.seiten, result, "ortid", data.link]
     });
 
     if (data.stichworte !== null) {
@@ -139,10 +142,10 @@ function updateArticle (data, olddata, callback)
     if (!Object.values(compareResult).includes(1)) { //no changes
         return callback(true);
     } else {
-        if (compareResult.hinweis !== 0 || compareResult.seiten !== 0) {
+        if (compareResult.hinweis !== 0 || compareResult.seiten !== 0 || compareResult.link !== 0) {
             procMedium.add(sqlUpdate(
                 "relobjtyp",
-                columsToUpdate(compareResult, data, ["hinweis", "seiten"]),
+                columsToUpdate(compareResult, data, ["hinweis", "seiten", "link"]),
                 "objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?"
                 ), [mediumData[0], mediumData[1], mediumData[2], mediumData[3]]
             );

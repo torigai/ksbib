@@ -18,8 +18,19 @@
                         cStandorteOptions(document.getElementById("standort"));
                     }
                     if (document.getElementsByName("id")[0] !== undefined) {
-                        bFrm.elements[0].value = await getMaxID(1);
+                        let minID = (await dbGet(`SELECT MIN(id) AS id FROM objekt`, [])).id;
+                        if ( minID > 1) {
+                            bFrm.elements[0].value = 1;
+                        } else {
+                            bFrm.elements[0].value = await getMaxID();
+                        }
                     }
+                    document.getElementsByTagName("body")[0]
+                        .addEventListener("keydown", function () 
+                        {
+                            return strgC(event, document.getElementById("abbrBtn"))
+                        }, false);
+
                 }
                 if (typeOfMedium === "Artikel" || typeOfMedium === "Buchaufsatz") {
                     if (document.forms.bFrm === undefined) { // only formular-selid.html is loaded
@@ -151,12 +162,25 @@
                     {
                         let i = Object.keys(dataObj).indexOf(fieldname);
                         if (document.getElementsByName(fieldname)[0] !== undefined) {
-                            return document.getElementsByName(fieldname)[0].value = 
-                                dataObj[Object.keys(dataObj)[i]];
+                            /*
+                            if (fieldname === "link" && filenamePattern.test(dataObj[Object.keys(dataObj)[i]]) === true) {
+                                return document.getElementsByName(fieldname)[0].defaultValue = 
+                                    (dataObj[Object.keys(dataObj)[i]] === null) ? "" : 
+                                    dataObj[Object.keys(dataObj)[i]].match(/[^\\/]+\.[^\\/]+$/)[0];
+                            } else {
+                            */
+                                return document.getElementsByName(fieldname)[0].defaultValue = 
+                                    (dataObj[Object.keys(dataObj)[i]] === null) ? "" : dataObj[Object.keys(dataObj)[i]];
+                            //}
                         }
                     }
 
                     await cBFrmObj();
+                    document.getElementsByTagName("body")[0]
+                        .addEventListener("keydown", function () 
+                        {
+                            return strgC(event, document.getElementById("abbrBtn"))
+                        }, false);
 
                     if (document.getElementsByName("id")[0] !== undefined) {
                         document.getElementsByName("id")[0].value = mediumData[0];
@@ -169,6 +193,7 @@
                     fillOutInputFlds("seiten", datacoll);
                     fillOutInputFlds("hinweis", datacoll);
                     fillOutInputFlds("preis", datacoll);
+                    fillOutInputFlds("link", datacoll);
                     if (datacoll.autortyp === 1 && document.getElementsByName("autortyp")[0] !== undefined) {
                         document.getElementsByName("autortyp")[0].checked = true;
                     }
@@ -194,9 +219,9 @@
                     }
                     if (typeOfMedium === "Zeitschrift") {
                         let zeitschrift = await dbGet(sql[43], mediumData[1]).catch(err => {return console.error(err)});
-                        document.getElementsByName("zeitschrift")[0].value = zeitschrift.journal;
-                        document.getElementsByName("zeitschriftkuerzel")[0].value = zeitschrift.kuerzel;
-                        document.getElementsByName("nr")[0].value = zeitschrift.nr;
+                        document.getElementsByName("zeitschrift")[0].defaultValue = zeitschrift.journal;
+                        document.getElementsByName("zeitschriftkuerzel")[0].defaultValue = zeitschrift.kuerzel;
+                        document.getElementsByName("nr")[0].defaultValue = zeitschrift.nr;
                     }
                     if (typeOfMedium === "Artikel") {
                         //selectedID is defined in articleData.js and there defines data.id
@@ -396,24 +421,34 @@
         }
         bFrm.newReset ( function () 
         {
-            /*
-                Abbrechen Button:
-                alle Änderungen werden rückgängig gemacht
-            */
-
-            bFrm.warnFld.innerHTML = "";
-            let elArr = Array.from(bFrm.elements);
-            elArr.forEach(element => 
-            {
-                if (element.name === "id") {
-                    return element;
-                }
-                if (element.type === "select-one" && element.item(0) !== null) {
-                    return element.item(0).selected = true;
-                } else {
-                    return element.value = element.defaultValue;
-                }
-            });
+            if (aktion === "hinzufügen") {
+                let elArr = Array.from(bFrm.elements);
+                elArr.forEach(element => 
+                {
+                    if (element.name === "id") {
+                        return element;
+                    }
+                    if (element.type === "select-one" && element.item(0) !== null) {
+                        return element.item(0).selected = true;
+                    } else {
+                        return element.value = element.defaultValue;
+                    }
+                });    
+                return bFrm.warnFld.innerHTML = "";
+            } 
+            if (aktion === "bearbeiten") {
+                bFrm.outFld.innerHTML = `
+                    <div class="info"><p>
+                        Bitte gib die ID des Mediums ein, das Du bearbeiten möchtest. Die ID ist der Zähler in
+                        der Signatur des Mediums, z.B. "400" bei dem Medium mit Signatur "CD-2 400". Falls Du
+                        die ID nicht kennst, kannst Du das Medium <a href="index.html">suchen</a> und von den
+                        Suchergebnissen aus die Maske zum Bearbeiten des Mediums öffnen.
+                    </p></div>`;
+                selFrm.textFld[0].value = "";
+                selFrm.textFld[1].value = "";
+                document.getElementById("headerTitel").innerHTML = "Medien bearbeiten"; 
+                return selFrm.textFld[0].focus();
+            }
         })
         bFrm.newSbmt(
             async function () 
@@ -475,21 +510,6 @@
                                     selFrm.textFld[0].value = "";
                                     selFrm.textFld[1].value = "";
                                     selFrm.textFld[0].focus();
-                                    /*
-                                    console.log(await dbAll(`SELECT * FROM autor`, []));
-                                    console.log(await dbAll(`SELECT * FROM relautor`, []));
-                                    console.log(await dbGet(`SELECT  id + 1 AS gap
-FROM    autor mo
-WHERE   NOT EXISTS
-        (
-        SELECT  NULL
-        FROM    autor mi 
-        WHERE   mi.id = mo.id + 1
-        )
-ORDER BY
-        id
-LIMIT 1`).gap);
-*/
                                     return selFrm.warnFld.innerHTML = "Der Datensatz wurde gespeichert";   
                                 }
                             } else {

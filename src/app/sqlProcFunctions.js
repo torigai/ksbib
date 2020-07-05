@@ -62,7 +62,6 @@
             let toLeave = [];
             toLeave = newArr.filter(entry => {return oldArr.includes(entry)});
             if (toLeave.length > 0) {
-                console.log("toLeave: " + toLeave);
                 toLeave.forEach(entry =>
                 {
                     return updateFct(entry);

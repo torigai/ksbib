@@ -34,6 +34,7 @@
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
             <a href="doku.html">Dokumentation</a>
+            <a href="filepath.html">Dateipfad</a>
         </div>
     </ul>
     <ul class="floatright">
@@ -65,7 +66,7 @@
         <div id="delFrmWarnFld" class="warning center"></div>
         <div id="outFld" class="info left" style="max-width: 600px">
             Bitte gib die ID des Mediums ein, das Du löschen möchtest. Die ID ist der Zähler in
-            der Signatur, z.B. "400" bei dem Medium mit Signatur "KA-S-2 400".
+            der Signatur, z.B. "400" bei dem Medium mit Signatur "WZ-S-1 400".
         </div>
         <div class="center margin">
             <input type="button" name="delDelBtn" value="Löschen" class="btn" style="display: none">
@@ -197,6 +198,10 @@
         } else {return false;}
     }
     document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
+    document.getElementsByTagName("body")[0].addEventListener("keydown", function () 
+    {
+        return strgC(event, document.getElementsByName("delAbbrBtn")[0])
+    }, false);
 
 
 

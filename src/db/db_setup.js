@@ -18,7 +18,7 @@ sqr[8] = `CREATE TABLE IF NOT EXISTS titel (id INTEGER PRIMARY KEY, titel TEXT U
 sqr[9] = `CREATE TABLE IF NOT EXISTS objekt (id INTEGER PRIMARY KEY, aufnahmedatum TEXT, 
     medium INTEGER REFERENCES medium, 
     standort INTEGER REFERENCES standort, 
-    sgn TEXT UNIQUE, preis REAL, band INTEGER, status INTEGER DEFAULT 0, 
+    sgn TEXT UNIQUE, preis REAL, band INTEGER, status INTEGER DEFAULT 0,
     CHECK (id > 0), CHECK (status >= 0 AND status <= 2))`; // 0 vorhanden; 1 abhanden; 2 verliehen
 sqr[10] = `create table if not exists relsachgebiet 
     (objektid integer REFERENCES objekt ON DELETE CASCADE, 
@@ -38,7 +38,7 @@ sqr[14] = `create table if not exists relobjtyp
     zeitschriftid integer references relzeitschrift (zeitschriftid), 
     buchid integer references buch, aufsatzid integer, 
     autortyp integer not null, hinweis text, seiten text, erscheinungsjahr integer references jahr, 
-    ort integer references ort, primary key (objektid, zeitschriftid, buchid, aufsatzid), 
+    ort integer references ort, link TEXT, primary key (objektid, zeitschriftid, buchid, aufsatzid), 
     check (autortyp = 0 OR autortyp = 1))`;
 // titeltyp = 0 (buchtitel/zeitschrifttitel) oder 1 (aufsatztitel/artikeltitel)
 sqr[15] = `create table if not exists reltitel 
@@ -175,13 +175,13 @@ sqr[99] = `CREATE VIEW media_view AS
   SELECT objekt.id AS objektid, zeitschriftid, buchid, aufsatzid, 
     jahr, preis, band, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, 
     standortsgn, medium.medium, band, kuerzel AS zeitschrift, nr AS zeitschriftNr, 
-    sgn, hinweis, status, ort, verlag
+    sgn, hinweis, status, ort, verlag, link
     FROM objekt 
     INNER JOIN medium ON medium.id = objekt.medium 
     INNER JOIN standort ON standort.id = objekt.standort 
     INNER JOIN ( 
         SELECT objektid, zeitschriftid, buchid, aufsatzid, 
-        jahr, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, kuerzel, nr, hinweis, o AS ort, verlag
+        jahr, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, kuerzel, nr, hinweis, o AS ort, verlag, link
         FROM relobjtyp 
         LEFT OUTER JOIN ( 
             SELECT objektid, zeitschriftid, buchid, aufsatzid, 
@@ -266,8 +266,17 @@ BEGIN
     DELETE FROM zeitschrift WHERE id = old.id;
 END;`;
 
-sqr[109] = `CREATE TABLE test (id INTEGER PRIMARY KEY, wert TEXT)`;
-sqr[110] = `INSERT INTO test (id, wert) VALUES (0, NULL)`;
+sqr[109] = `CREATE TRIGGER at_least_one_osg_exists AFTER DELETE ON sachgebiet
+WHEN (SELECT MIN(id) FROM sachgebiet) IS NULL
+BEGIN
+    INSERT INTO sachgebiet (id, sachgebiet) VALUES (0, 'N.N.');
+END`;
+
+sqr[110] = `CREATE TABLE IF NOT EXISTS filepath 
+    (id INTEGER PRIMARY KEY, path TEXT, CHECK (id = 0))`;
+
+sqr[111] = `INSERT INTO filepath (id, path) VALUES (0, NULL)`;
+
 
 const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('src/db/ksbib.db', (err) => 

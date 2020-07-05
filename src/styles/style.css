@@ -197,7 +197,7 @@ article div {margin: auto;}
 article a {color: black; text-decoration-line: underline; text-decoration-style: dashed;}
 article label {font-size: 9pt}
 
-article div .info {
+.info {
 	margin-top: 20px;
 	max-width: 80%;
 }
@@ -222,20 +222,23 @@ article div .info {
 .center {text-align: center;}
 .left {text-align: left;}
 .distance {margin-left: 2em; margin-right: 2em;}
+.middle {vertical-align: middle;}
+
 form {padding-top: 10px;}
 
 table {
   border-collapse: collapse;
   max-width: 100%;
 }
+table a {color: #5F9EA0; text-decoration: none;}
 table.center {
 	margin: auto;
 }
 table .hoverable {
-  background-color: white;
+  background-color: "transparent";
 }
 table .hoverable:hover {
-  background-color: #e6e6e6;
+  background-color: rgb(230, 230, 230);
 }
 table, td {
 	border: solid 1px #4995A7;

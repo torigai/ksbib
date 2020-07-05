@@ -35,6 +35,7 @@
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
             <a href="doku.html">Dokumentation</a>
+            <a href="filepath.html">Dateipfad</a>
         </div>
     </ul>
     <ul class="floatright">
@@ -66,6 +67,10 @@
         <tr>
             <td> Alt + s </td>
             <td> Öffnet das Menu "Sonstiges" </td>
+        </tr>
+        <tr>
+            <td> Strg + c </td>
+            <td> Click auf den Abbrechen Button </td>
         </tr>
         <tr>
             <td> Pfeiltasten </td>
@@ -118,32 +123,38 @@
         </tr>
     </table>
 
-    <h1>Signatur</h1>
-    <p>
-        Die Signatur wird durch das Programm automatisch vergeben und kombiniert den Standort
-        und die ID des Mediums. Das Medium mit ID 112 am Standort WZ-S-1 (Wohnzimmer Südwand Regal 1)
-        hat entsprechend eine Signatur WZ-S-1 112
-    </p>
+    <div class="info">
+        <h1>Signatur</h1>
+        <p>
+            Die Signatur wird durch das Programm automatisch vergeben und kombiniert den Standort
+            und die ID des Mediums. Das Medium mit ID 112 am Standort WZ-S-1 (Wohnzimmer Südwand Regal 1)
+            hat entsprechend eine Signatur WZ-S-1 112. Lücken in der ID, die durch das Löschen eines Mediums
+            entstehen, werden vom Programm automatisch aufgefüllt.
+        </p>
 
-    <h1>Sachgebiete</h1>
-    <p>
-        Es wird in Ober- und Untersachgebiete unterschieden. Beide sind durch
-        Sachgebietsnummern gekennzeichnet, die automatisch vergeben werden. 
-        <br>
-        Hier wird kurz die Logik dieser Nummernvergabe beschrieben: Obersachgebiete haben die
-        Sachgebietsnummern 0, 100, 200, ... , 9'900. Z.B. könnte es ein Obersachgebiet
-        "0 Architektur" geben. Die Untersachgebiete zu dem Obersachgebiet "0 Architektur"
-        haben die Nummern 1, 2, ... , 99. Zu jedem der möglichen 100 Obersachgebiete können
-        99 Untersachgebiete vergeben werden. 
-        <br>
-        Ein neues Buch könnte dem Untersachgebiet "5 Geschichte" aus dem Obersachgebiet 
-        "0 Architektur" zugeordnet werden. Es gehört dann automatisch auch zum Obersachgebiet 
-        Architektur und kann darunter gesucht werden.
-        <br>
-        Für die Neuaufnahme von Medien müssen die Sachgebietsnummern eingegeben werden. Diese
-        können auf einer <a href="drucken-sachgebiete.html" target="_blank">Liste der Sachgebiete</a> 
-        nachgeschlagen werden.
-    </p>
+        <h1>Sachgebiete</h1>
+        <p>
+            Es wird in Ober- und Untersachgebiete unterschieden. Beide sind durch
+            Sachgebietsnummern gekennzeichnet, die automatisch vergeben werden. Erst nachdem die
+            Sachgebiete eingegeben wurden, können sie an Medien vergeben werden!
+        </p>
+        <p>
+            Hier wird kurz die Logik der automatischen Nummernvergabe beschrieben: 
+            Obersachgebiete haben die Sachgebietsnummern 0, 100, 200, ... , 9'900. 
+            Z.B. könnte es ein Obersachgebiet "0 Architektur" geben. Die Untersachgebiete 
+            zu dem Obersachgebiet "0 Architektur" haben die Nummern 1, 2, ... , 99. Zu jedem 
+            der möglichen 100 Obersachgebiete können 99 Untersachgebiete vergeben werden. 
+        </p>
+        <p>
+            Ein neues Buch könnte dem Untersachgebiet "5 Geschichte" aus dem Obersachgebiet 
+            "0 Architektur" zugeordnet werden. Es gehört dann automatisch auch zum Obersachgebiet 
+            Architektur und kann darunter gesucht werden.
+        </p>
+        <p>
+            Hier findest Du eine Liste der aktuell vorhandenen Sachgebiete:
+            <a href="drucken-sachgebiete.html" target="_blank">Liste der Sachgebiete</a> 
+        </p>
+    </div>
 
 
 </article>

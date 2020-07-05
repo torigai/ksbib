@@ -37,6 +37,7 @@
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
             <a href="doku.html">Dokumentation</a>
+            <a href="filepath.html">Dateipfad</a>
         </div>
     </ul>
     <ul class="floatright">
@@ -154,7 +155,7 @@
         <p>
             <br>Du kannst mit der Schnellsuche: <br><br>
             nach einem Autor- oder Titel suchen: "Geschichte der Zeit"<br>
-            nach Autor- UND Titel suchen: "Kubler @ Zeit" <br> 
+            nach Autor- und Titel suchen: "Kubler @ Zeit" <br> 
             nach einem Autor suchen: "Kubler @" <br>
             nach einem Titel suchen: "@ Form der Zeit"
         </p>
@@ -223,7 +224,11 @@
                     let offset = 0;
                     function getResult (limit, offset) { return qsearchDBRequest(data, limit, offset); }
                     let result = await getResult(limit, offset);
-                    showResult (result, qsearchFrm.outFld, qsearchFrm.warnFld, "qResTbl", "qSortSel", getResult, limit, offset);
+                    if (result === false) {
+                        qsearchFrm.warnFld.innerHTML = "Kein Suchergebnis";
+                    } else {
+                        showResult (result, qsearchFrm.outFld, qsearchFrm.warnFld, "qResTbl", "qSortSel", getResult, limit, offset);
+                    }
                 })();
                 return true;
             }
@@ -374,7 +379,11 @@
                     let offset = 0;
                     function getResult (limit, offset) { return dsearchDBRequest(data, limit, offset); }
                     let result = await getResult(limit, offset);
-                    showResult (result, qsearchFrm.outFld, dsearchFrm.warnFld, "dResTbl", "dSortSel", getResult, limit, offset);
+                    if (result === false) {
+                        dsearchFrm.warnFld.innerHTML = "Kein Suchergebnis";
+                    } else {
+                        showResult (result, qsearchFrm.outFld, dsearchFrm.warnFld, "dResTbl", "dSortSel", getResult, limit, offset);
+                    }
                 })();
                 return true;
             }
@@ -457,15 +466,15 @@ async function qsearchDBRequest (searchStr, limit, offset)
         matchingIDs = await sqr(sqlTitelID(searchStr, limit, offset), [], matchingIDs);
         matchingIDs = await sqr(sqlAutorID(searchStr, limit, offset), [], matchingIDs);
     } else {
-        if (searchStr[0] === "") { //autor
-            matchingIDs = await sqr(sqlAutorID(searchStr[1], limit, offset), [], matchingIDs);
+        if (searchStr[1] === "") { //autor
+            matchingIDs = await sqr(sqlAutorID(searchStr[0], limit, offset), [], matchingIDs);
         }
-        if (searchStr[1] === "") { //titel
-            matchingIDs = await sqr(sqlTitelID(searchStr[0], limit, offset), [], matchingIDs);
+        if (searchStr[0] === "") { //titel
+            matchingIDs = await sqr(sqlTitelID(searchStr[1], limit, offset), [], matchingIDs);
         }
         if (searchStr[0] !== "" && searchStr[1] !== "") { //titel und autor
-            matchingIDs = await sqr(sqlTitelID(searchStr[0], limit, offset), [], matchingIDs);
-            matchingIDs = await sqr(sqlAutorID(searchStr[1], limit, offset), [], matchingIDs);
+            matchingIDs = await sqr(sqlTitelID(searchStr[1], limit, offset), [], matchingIDs);
+            matchingIDs = await sqr(sqlAutorID(searchStr[0], limit, offset), [], matchingIDs);
         }
     }
     matchingIDs = matchingIDs.map((item) => {return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid].toString(); }).filter(onlyUnique).map((item) => {return item.split(",").map(Number)});

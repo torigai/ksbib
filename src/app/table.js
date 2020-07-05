@@ -3,14 +3,21 @@
     for an array of arrays of data as obtained from findMedia.js.   
 */
 
-function cOutputTbl (container, tblName, headerNamesArr, entriesArr)
+let tblSelColor = "rgb(255, 77, 77)";
+let tblHoverColor = "rgb(230, 230, 230)";
+let tblDefaultColor = "initial";
+
+function cOutputTbl (container, tblName, headerNamesArr, entriesArr, boolean) 
 {   
+    //boolean: undefined, true
+    //true: the cells contain all input fields
+    //undefined: the first cell contains a button, the others no input fields
     let i;
     let j = 1;
     let data = entriesArr;    // ist ein Array von Arrays: [[1,2,3],[4,5,6], ...]
     let noCols = headerNamesArr.length;
     let noRows = data.length; 
-    let th = [], td = [], tr = [], btn = [];
+    let th = [], td = [], tr = [], btn = [], txt = [];
     let table = document.createElement("table");
     table.setAttribute("class", "center");
     table.setAttribute("name", tblName);
@@ -27,6 +34,13 @@ function cOutputTbl (container, tblName, headerNamesArr, entriesArr)
         for (i=0; i < noCols; i++) {
             td[i] = tr[j].insertCell(i);
             td[i].setAttribute("class", "tableCell");
+            if (boolean === true) {
+                txt[i] = document.createElement("input");
+                txt[i].setAttribute("type", "text");
+                txt[i].setAttribute("class", "plain txt");
+                txt[i].setAttribute("name", "tblTxtFld");
+                txt[i].setAttribute("tabindex", "-1");
+            }
             if (i === 0) {
                 btn[j] = document.createElement("input");
                 btn[j].setAttribute("type", "button");
@@ -36,7 +50,12 @@ function cOutputTbl (container, tblName, headerNamesArr, entriesArr)
                 btn[j].value = data[j-1][i];
                 td[i].appendChild(btn[j]);
             } else {
-                td[i].innerHTML = data[j-1][i];
+                if (boolean === true) {
+                    txt[i].value = data[j-1][i];
+                    td[i].appendChild(txt[i]);
+                } else {
+                    td[i].innerHTML = data[j-1][i];
+                }
             }
         }
         j++;
@@ -106,4 +125,72 @@ function cForwardAndBackwardBtns (container, onForward, onBackward)
     div.appendChild(zuruckBtn);
     div.appendChild(vorwartsBtn);
     container.appendChild(div);
+}
+
+function tblOnArrow (event)
+{
+    let elements = (document.activeElement.type === "text") ? 
+        Array.from(document.getElementsByName("tblTxtFld")) : Array.from(document.getElementsByName("tblBtn"));
+    let l = elements.length;
+    let i = elements.indexOf(document.activeElement);
+    let activeRow = elements[i].parentElement.parentElement;
+    
+    if (event.key === "ArrowDown" || event.code === "ArrowDown") {
+        event.preventDefault();
+        let nextRow = (elements[i+1] !== undefined) ? 
+            elements[i+1].parentElement.parentElement : elements[0].parentElement.parentElement;
+        let nextEl = (elements[i+1] !== undefined) ? elements[i+1] : elements[0];
+        if (activeRow.style.backgroundColor == tblSelColor) {
+            activeRow.style.backgroundColor = tblSelColor;
+        } else {
+            activeRow.removeAttribute("style");
+        }
+        nextRow.style.backgroundColor = (nextRow.style.backgroundColor == tblSelColor) ? 
+            tblSelColor : tblHoverColor;
+        nextEl.focus();
+    }
+    if (event.key === "ArrowUp" || event.code === "ArrowUp") {
+        event.preventDefault();
+        let nextRow = (elements[i-1] !== undefined) ? 
+            elements[i-1].parentElement.parentElement : elements[l-1].parentElement.parentElement;
+        let nextEl = (elements[i-1] !== undefined) ? elements[i-1] : elements[l-1];
+        if (activeRow.style.backgroundColor == tblSelColor) {
+            activeRow.style.backgroundColor = tblSelColor;
+        } else {
+            activeRow.removeAttribute("style");
+        }
+        nextRow.style.backgroundColor = (nextRow.style.backgroundColor == tblSelColor) ? 
+            tblSelColor : tblHoverColor;
+        nextEl.focus();
+    }
+}
+
+function enterTableOnArrowDown (event, tblName) 
+{
+    if (event.key === "ArrowDown" || event.code === "ArrowDown") {
+        event.preventDefault();
+        if (document.getElementsByName(tblName)[0] !== undefined) {
+            let btns = Array.from(document.getElementsByName("tblBtn"));
+            let row = btns[0].parentElement.parentElement;
+            row.style.backgroundColor = (row.style.backgroundColor == tblSelColor) ? tblSelColor : tblHoverColor;
+            btns[0].focus();
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+function tblAddEventListenerArrow ()
+{
+    Array.from(document.getElementsByName("tblBtn")).forEach(btn => 
+    {
+        return btn.addEventListener("keydown", tblOnArrow)
+    });
+    if (document.getElementsByName("tblTxtFld")[0] !== undefined) {
+        Array.from(document.getElementsByName("tblTxtFld")).forEach(fld => 
+        {
+            return fld.addEventListener("keydown", tblOnArrow)
+        });
+    }
 }

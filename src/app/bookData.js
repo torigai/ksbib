@@ -1,8 +1,9 @@
 //REQUIRES validation.js
 //REQUIRES sqlproc.js
 //REQUIRES sql.js
+//REQUIRES main.js
 
-function buch (id, standort, autoren, autortyp, titel, jahr, ort, verlag, auflage, band, seiten, isbn, preis, sachgebietsnr, hinweis, stichworte, status)
+function buch (id, standort, autoren, autortyp, titel, jahr, ort, verlag, auflage, band, seiten, isbn, preis, sachgebietsnr, hinweis, stichworte, status, link)
 {
     this.id = id;
     this.standort = standort;
@@ -25,6 +26,7 @@ function buch (id, standort, autoren, autortyp, titel, jahr, ort, verlag, auflag
     this.titeltyp = 0;  //buchtitel
     this.zeitschriftid = 0;
     this.aufsatzid = 0;
+    this.link = link;
 }
 function conformAndValidateBook(formular, book) 
 {
@@ -54,7 +56,8 @@ function conformAndValidateBook(formular, book)
         medientyp: book.medientyp,
         titeltyp: book.titeltyp,
         zeitschriftid: book.zeitschriftid,
-        aufsatzid: book.aufsatzid      
+        aufsatzid: book.aufsatzid,
+        link: conformAndValidateLink(book.link, index(book.link), false)
     };
 }  
 function bookData (formular)
@@ -76,7 +79,8 @@ function bookData (formular)
         document.getElementsByName("sachgebietsnr")[0],
         document.getElementsByName("hinweis")[0],
         document.getElementsByName("stichworte")[0],
-        document.getElementById("status")
+        document.getElementById("status"),
+        document.getElementsByName("link")[0]
     );
     return conformAndValidateBook(formular, b);
 }
@@ -120,7 +124,7 @@ function addBook (data, callback)
     procMedium.add(sql[4], function (result) 
     {
         return [data.id, data.zeitschriftid, "buchid", data.aufsatzid, 
-            data.autortyp, data.hinweis, data.seiten, result, "ortid"]
+            data.autortyp, data.hinweis, data.seiten, result, "ortid", data.link]
     });
     if (data.sachgebietsnr.length !== 0) {
         data.sachgebietsnr.forEach(sgnr =>
@@ -184,7 +188,6 @@ function updateBook (data, olddata, callback)
 {
     let compareResult = {};    //intended: with keys as in data and values 0 (unchanged), 1 (changed)
     let procMedium = new cSQLProcessor(callback);
-
     compareResult = compare(olddata, data);
     if (!Object.values(compareResult).includes(1)) { //no changes
         return callback(true);
@@ -253,10 +256,11 @@ function updateBook (data, olddata, callback)
                 procMedium.add(sql[54], [0, mediumData[0], mediumData[1], mediumData[2], mediumData[3]]);
             }
         }
-        if (compareResult.autortyp !== 0 || compareResult.hinweis !== 0 || compareResult.seiten !== 0) {
+        if (compareResult.autortyp !== 0 || compareResult.hinweis !== 0 
+                || compareResult.seiten !== 0 || compareResult.link !== 0) {
             procMedium.add(sqlUpdate(
                 "relobjtyp",
-                columsToUpdate(compareResult, data, ["autortyp", "hinweis", "seiten"]),
+                columsToUpdate(compareResult, data, ["autortyp", "hinweis", "seiten", "link"]),
                 "objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?"
                 ), [mediumData[0], mediumData[1], mediumData[2], mediumData[3]]
             );

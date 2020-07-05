@@ -99,7 +99,10 @@ function cSQLProcessor (callback)
 	}
 	this.run = function ()
 	{
-		if (this.dataArr.length === 0) {return console.error("No sql to process");}
+		if (this.dataArr.length === 0) {
+			console.error("No sql to process");
+			return "No SQL Process";
+		}
 		else {
 			db.serialize (()=>
 			{	
@@ -112,6 +115,35 @@ function cSQLProcessor (callback)
 					console.log("Data insertion completed"); 
 					db.run(`COMMIT`);
 					callback(true);
+					return "Commit";
+				})
+				.catch(error => 
+				{
+					console.error(error); 
+					db.run(`ROLLBACK`);
+					callback(false);
+					return "Rollback";
+				});
+			});
+		}
+	}
+	this.test = function ()
+	{
+		if (this.dataArr.length === 0) {return console.error("No sql to process");}
+		else {
+			db.serialize (()=>
+			{	
+				this.dataArr.reduce( (p, item) => 
+				{
+					return p.then(result => 
+					{
+						return this.promisify(item, result)});
+				}, Promise.resolve(db.run(`BEGIN TRANSACTION`)))
+				.then(result => 
+				{
+					console.log("Data insertion completed"); 
+					db.run(`ROLLBACK`);
+					callback(true);
 				})
 				.catch(error => 
 				{
@@ -121,10 +153,6 @@ function cSQLProcessor (callback)
 				});
 			});
 		}
-	}
-	this.test = function ()
-	{
-		console.log(this.dataArr);
 	}
 /*
 	this.promisifyAllSerially = function (array)

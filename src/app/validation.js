@@ -10,7 +10,7 @@ let message = [];
 */
 
 const sachgebietsnrPattern = /^0$|[1-9]{1}[0-9]{0,4}$/;  //[0,99999]
-const textPattern = /^[\d\wÄÖÜäüöß\s.,:!°?"\-'()#+;]*$/;  //Normaler Text
+const textPattern = /^[\d\wÄÖÜäüöß\s.,:!°?"\-'()#+\/;]*$/;  //Normaler Text
 const buchstabenPattern = /^[a-zäüöß\s]*$/i;          //Buchstaben und Leerzeichen
 const zahlenPattern = /^\d+$/;
 //const zahlenPattern = /^0$|^[1-9]{1}[0-9]{0,2}$/;     //ganze Zahlen [0,999]
@@ -20,6 +20,9 @@ const seitenPattern = /^[xiv]+(\s?-\s?[xiv]+)?$|^[1-9]{1}[0-9]{0,4}(\s?-\s?[1-9]
 const isbnPattern = /^(\d{10}|\d{13})$/;              //10 oder 13 stellige ganze Zahl > 0
 const namenPattern = /^[a-züöäß]+(,\s[a-zäüöß]+(\s[a-zäüöß].){0,2})?$/i;  // "Müller, Adam" oder "Müller, Adam A." 
                                                                         // oder "Müller, Adam A. B." oder "Müller"
+const urlPattern = /^(ftp|http|https):\/\/[^ "<>]+$/;
+const filenamePattern = /[a-zäüöß\-\_\+]+(.pdf)/i;
+
 
 
 /*
@@ -40,6 +43,28 @@ message[4] = function (string) { return string + " exisitert bereits"; }
     el ist ein formularelement, i dessen index
 */
 
+function conformAndValidateLink (el, i, j) {
+    //Requires main.js
+    let link = strtrim(el.value);
+    if (j === true && link === "") {
+        err[err.length] = i + "*" + message[0]("einen Wert");
+        return false;
+    }
+    if (j === false && link === "") {
+        return null;
+    }
+    if (link !== "" && urlPattern.test(link) === false) {
+        if (filenamePattern.test(link) === false) {
+            err[err.length] = i + "*" + message[2];
+            return false;    
+        } else {
+            return link;
+        }
+    } 
+    if (link !== "" && urlPattern.test(link) === true) {
+        return link;
+    }
+}
 
 function conformAndValidateYear (el, i, j)     
 {
@@ -278,8 +303,8 @@ function conformAndValidateSgnr (el, i, j)
             err[err.length] = i + "*" + message[2];
             return false;
         }
-        if (x > 29999) {
-            err[err.length] = i + "*" + message[1]("29'999");
+        if (x > 9999) {
+            err[err.length] = i + "*" + message[1]("9'999");
             return false;
         }
         return Number(x);
@@ -336,6 +361,27 @@ function conformAndValidateStr (el, i, j, l)
     }
     return strtrim(el.value);
 }
+
+function conformAndValidateSachgebietName (el, i, j, l)
+{
+    if (j == true && strtrim(el.value) == "") {
+        err[err.length] = i + "*" + message[0]("einen Wert");
+        return false;
+    }
+    if (j == false && strtrim(el.value) == "") {
+        return null;
+    }
+    if (buchstabenPattern.test(strtrim(el.value)) == false) {
+        err[err.length] = i + "*" + message[2];
+        return false;
+    } 
+    if (el.value.length > l) {
+        err[err.length] = i + "*" + message[2];
+        return false;  
+    }
+    return strtrim(el.value);
+}
+
 
 function conformAndValidateISBN (el, i, j)
 {
@@ -425,7 +471,30 @@ function conformAndValidateStandortSgnArr (el)
     return conformAndValidateStr (el, "sgn" + this.indexOf(el), false, 15);
 }
 
-function conformAndValidateSachgebiet (el)
+function conformAndValidateSachgebiet (el, elColl, j)
 {
-    return conformAndValidateStr(el, this.indexOf(el), true, 100);
+    //j true: el.value not ""! j false: el.value can be ""
+    //elArr is a HTML collection of elements
+    return conformAndValidateSachgebietName(el, Array.from(elColl).indexOf(el), j, 100);
+}
+
+function conformAndValidateSachgebietsnr (el, i, j)
+{
+    let val = strtrim(el.value);
+    if (j === true && val === "") {
+        err[err.length] = i + "*" + message[0]("einen Wert");
+        return false;
+    } else if (j === false && val === "") {
+        return null;
+    } else {
+        if (val > 9999) {
+            err[err.length] = i + "*" + message[1]("9'999");
+            return false;
+        } else if (sachgebietsnrPattern.test(val) === false) {
+            err[err.length] = i + "*" + message[2];
+            return false;
+        } else {
+            return Number(val);       
+        }
+    }
 }

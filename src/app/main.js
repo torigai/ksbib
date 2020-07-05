@@ -1,3 +1,5 @@
+const filepathDefault = "../../files/";
+
 function strtrim (str) { return str.replace(/\s+/g,' ').trim(); }
 function stringNotEmpty (str) { return strtrim(str) !== ""; }
 function onlyUnique (value, index, self) { return self.indexOf(value) === index; }

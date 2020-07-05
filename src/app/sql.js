@@ -96,35 +96,6 @@ function showDatalist (value, link, sql, data)
         })
     }
 
-/*
-    Functions to fill up the value of inventarnummer, standorte, sachgebiete
-*/
-
-async function cStandorteOptions (link)
-{
-    let standorte = [];
-    let option = [];
-    let sel = link;
-    let i = 0;  
-    standorte = await sqr(sqlStandorteSgn(), [], standorte);
-    for (i = 0; i < standorte.length; i++) {
-        option[i] = document.createElement("option");
-        option[i].setAttribute("value", standorte[i].id);
-        option[i].innerHTML = standorte[i].standortsgn;
-        sel.appendChild(option[i]);
-    }
-}
-
-async function getMaxID (plus) 
-{
-    let x = [];
-    let gap = await dbGet(sqlFindGap("objekt"), []);
-    let id = (gap[Object.keys(gap)[0]] === null) ? 0 : gap[Object.keys(gap)[0]];
-    return id;
-    //x = await sqr("SELECT MAX(id) AS id FROM objekt", [], x);
-    //if (x[0].id === null) {x[0].id = 0;}
-    //return (x[0].id + plus);
-}
 
 /*
     SQL
@@ -137,8 +108,8 @@ sql[2] = `INSERT OR IGNORE INTO ort (id, ort) VALUES (NULL, ?)`;
 sql[3] = `INSERT INTO objekt (id, medium, standort, preis, band, status) 
     VALUES (?, ?, ?, ?, ?, ?)`;
 sql[4] = `INSERT INTO relobjtyp 
-    (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr, ort)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    (objektid, zeitschriftid, buchid, aufsatzid, autortyp, hinweis, seiten, erscheinungsjahr, ort, link)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 sql[5] = `INSERT OR IGNORE INTO verlag (id, verlag) VALUES (NULL, ?)`;
 sql[6] = `INSERT OR IGNORE INTO stichwort (id, stichwort) VALUES (NULL, ?)`;
 sql[7] = `INSERT INTO relstichwort (objektid, zeitschriftid, buchid, aufsatzid, stichwortid) VALUES (?, ?, ?, ?, ?)`;
@@ -245,12 +216,40 @@ sql[82] = `DELETE FROM buch WHERE id = ?`;
 sql[83] = `SELECT standortsgn FROM standort WHERE standortsgn LIKE ? Limit 5`;
 sql[84] = `SELECT * FROM sachgebiet ORDER BY id ASC`;
 sql[85] = `SELECT * FROM standort ORDER BY standortsgn ASC`;
+sql[86] = `DELETE FROM sachgebiet WHERE id = ?`;
+sql[87] = `UPDATE sachgebiet SET sachgebiet = ? WHERE id = ?`;
+sql[88] = `INSERT OR IGNORE INTO sachgebiet (id, sachgebiet) VALUES (?, ?)`;
+sql[89] = `SELECT objektid FROM relsachgebiet WHERE sachgebietid = ? LIMIT 1`;
+sql[90] = `DELETE FROM sachgebiet WHERE ( (id/100 - ?/100) BETWEEN 0 AND 0.99)`;
+sql[91] = `UPDATE filepath SET path = ? WHERE id = 0`;
+
+
+function sqlFindGapOSGSachgebiete ()
+{
+    return `SELECT id + 100
+    FROM sachgebiet mo WHERE 
+        id%100 = 0 AND NOT EXISTS (
+            SELECT NULL FROM sachgebiet mi WHERE mi.id = mo.id + 100
+        ) 
+    ORDER BY id LIMIT 1`;
+}
+
+function sqlFindGapUSGSachgebiete (OSGID)
+{
+    return `SELECT id + 1
+    FROM sachgebiet mo WHERE 
+        ( (id/100 - ${OSGID}/100) BETWEEN 0 AND 0.99 )
+        AND NOT EXISTS (
+            SELECT NULL FROM sachgebiet mi WHERE mi.id = mo.id + 1
+        ) 
+    ORDER BY id LIMIT 1`;    
+}
 
 function sqlFindGap (table) //Selects the first gap or if no gap exists return max(id) + 1
-{
+{                           // min(id) null is possible only for table objekt
     return `SELECT CASE 
-        WHEN MIN(id) > 0 OR MIN(id) IS NULL THEN 1
-        ELSE id + 1 
+        WHEN MIN(id) IS NULL THEN 1
+        ELSE id + 1
     END
     FROM ${table} mo WHERE 
     NOT EXISTS (
@@ -307,7 +306,7 @@ function sqlSearchForMediumData (idArr)
     let aufsatzid = idArr[3];
     return `SELECT objektid, zeitschriftid, buchid, aufsatzid, 
     jahr, preis, band, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, 
-    standortsgn, medium, band, zeitschrift, zeitschriftNr, hinweis, status, ort, verlag
+    standortsgn, medium, band, zeitschrift, zeitschriftNr, hinweis, status, ort, verlag, link
     FROM media_view
     WHERE objektid = '${id}' AND zeitschriftid = '${zeitschriftid}' AND buchid = '${buchid}' AND aufsatzid = '${aufsatzid}'
     ORDER BY objektid, zeitschriftid, buchid, aufsatzid, titeltyp, titelnr, autortyp, autornr ASC`;
@@ -332,4 +331,31 @@ function sqlCollectionBelongingToArticle (idArr)
     FROM media_view
     WHERE objektid = '${id}' AND zeitschriftid = '${zeitschriftid}' AND buchid = '${buchid}' AND aufsatzid = '${aufsatzid}'
     ORDER BY titeltyp, titelnr, autortyp, autornr ASC`;
+}
+
+/*
+    Functions to fill up the value of inventarnummer, standorte, sachgebiete
+*/
+
+async function cStandorteOptions (link)
+{
+    let standorte = [];
+    let option = [];
+    let sel = link;
+    let i = 0;  
+    standorte = await sqr(sqlStandorteSgn(), [], standorte);
+    for (i = 0; i < standorte.length; i++) {
+        option[i] = document.createElement("option");
+        option[i].setAttribute("value", standorte[i].id);
+        option[i].innerHTML = standorte[i].standortsgn;
+        sel.appendChild(option[i]);
+    }
+}
+
+async function getMaxID () 
+{
+    let x = [];
+    let gap = await dbGet(sqlFindGap("objekt"), []);
+    let id = (gap[Object.keys(gap)[0]] === null) ? 0 : gap[Object.keys(gap)[0]];
+    return id;
 }

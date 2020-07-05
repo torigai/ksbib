@@ -121,6 +121,15 @@
                     </select>
                 </div>
             </div>
+            <div class='rTableRow'>
+                <div class="rTableCell left">
+                    <label onclick="
+                        window.alert('Die Datei muss ein PDF sein und ihr Name darf nur +, -, _ als Sonderzeichen enthalten. Eine URL muss einen Anfang haben wie z.B. http://')">
+                        Dateiname oder URL *
+                    </label><br>
+                    <input type="text" class="txt" name="link" value="" size="25">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -129,7 +138,7 @@
 
     <div>
         <input type="button" class="btn" id="bOKBtn" value="Speichern">
-        <input type="button" class="btn" value="Abbrechen">
+        <input type="button" class="btn" value="Abbrechen" id="abbrBtn">
     </div>
 </form>
 

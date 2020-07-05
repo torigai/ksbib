@@ -46,7 +46,7 @@ async function findMediaResultArr (matchingIDs)
     let parentsIDs = [], parents = [];  // Zu Buchaufsätzen zugehörige Bücher
     let promises = [];
 
-    function outputArray (object) 
+    async function outputArray (object) 
     {
         let i, titelUndVerweise, medientyp;
         let autortyp = (object.autortyp === 0) ? "" : " (Hrg.)";
@@ -70,6 +70,21 @@ async function findMediaResultArr (matchingIDs)
         let hinweis = (object.hinweis !== null) ? "<p><i>Hinweis</i>: " + object.hinweis + "</p>" : "";
         let ort = (object.ort !== null) ? ", " + object.ort : "";
         let verlag = (object.verlag !== null) ? ", " + object.verlag : ""; 
+        let link = "";
+        if (object.link !== null) {
+            if (filenamePattern.test(object.link)) {
+                let filepath = (await dbGet(`SELECT path FROM filepath`, [])).path;
+                if (filepath === null) { //filepathDefault from main.js
+                    link = "<br><a href='"+filepathDefault+object.link+"' target='_blank'>" + object.link + "</a>";
+                } else {
+                    link = "<br><a href='"+filepath+object.link+"' target='_blank'>" + object.link + "</a>";
+                }
+            } else {
+                link = "<br><a href='"+object.link+"' target='_blank'>" + object.link + "</a>";
+            }
+        } else {
+            link = "";
+        }
         let status;
         if (object.status === 0) {
             status = "vorhanden";
@@ -80,28 +95,28 @@ async function findMediaResultArr (matchingIDs)
         }
 
         if (object.buchid !== 0 && object.aufsatzid === 0) {    // Buch   
-            titelUndVerweise = object.titel + band + verlag + ort + preis + hinweis;
+            titelUndVerweise = object.titel + band + verlag + ort + preis  + link + hinweis;
             medientyp = "Buch";
         }
         if (object.buchid !== 0 && object.aufsatzid !== 0) {     // Buchaufsatz
             i = parents.indexOf(parents.find( ({objektid}) => objektid === object.objektid ));   
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
             titelUndVerweise = object.titel + " <i> In: " + parents[i].autor + 
-                " (Hrg): " + parents[i].titel + "</i>" + band + verlag + ort + preis + hinweis;
+                " (Hrg): " + parents[i].titel + "</i>" + band + verlag + ort + preis + link + hinweis;
             medientyp = "Buchaufsatz";
         }
         if (object.zeitschriftid !== 0 && object.aufsatzid === 0) { // Zeitschrift
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
-            titelUndVerweise = object.titel + " <i>" + object.zeitschrift + band + nr + "</i>" + preis + hinweis;
+            titelUndVerweise = object.titel + " <i>" + object.zeitschrift + band + nr + "</i>" + preis + link + hinweis;
             medientyp = "Zeitschrift"; 
         }
         if (object.zeitschriftid !== 0 && object.aufsatzid !== 0) { // Artikel
             if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
-            titelUndVerweise = object.titel + " <i>" + object.zeitschrift + band + nr + seiten + "</i>" + hinweis;
+            titelUndVerweise = object.titel + " <i>" + object.zeitschrift + band + nr + seiten + "</i>" + link + hinweis;
             medientyp = "Artikel";
         }
         if (object.zeitschriftid === 0 && object.buchid === 0) { // Aufsatz
-            titelUndVerweise = object.titel + ort + seiten + "</i>" + hinweis;
+            titelUndVerweise = object.titel + ort + seiten + "</i>" + link + hinweis;
             medientyp = "Aufsatz";
         }
         return [id, autoren, titelUndVerweise, jahr, medientyp, standort, status];
@@ -150,6 +165,6 @@ async function findMediaResultArr (matchingIDs)
     }
     parents = parents.map(compose).filter(onlyComposedResults);
     result = result.map(compose).filter(onlyComposedResults).map(outputArray);
-
+    result = Promise.all(result);
     return result;
 }

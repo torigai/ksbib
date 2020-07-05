@@ -64,6 +64,18 @@ function strgW (event)
 	}	
 }
 
+function strgC (event, abbrBtn)
+{
+	if (abbrBtn === null) {
+		return false;
+	} else {
+		if (event.ctrlKey === true && event.keyCode === 67 || event.ctrlKey === true && event.which === 67) {
+			event.preventDefault();
+			return abbrBtn.click();
+		}	
+	}	
+}
+
 function down (event)
 {
 	if (event.keyCode === 40 || event.which === 40) {

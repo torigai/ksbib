@@ -24,7 +24,7 @@
 <body onunload="selFrm.reset();">
 
 <header>
-    <h1 id="headerTitel">Medien Bearbeiten</h1>
+    <h1 id="headerTitel">Medien bearbeiten</h1>
 </header>
 
 <nav>
@@ -43,6 +43,7 @@
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
             <a href="doku.html">Dokumentation</a>
+            <a href="filepath.html">Dateipfad</a>
         </div>
     </ul>
     <ul class="floatright">
@@ -56,16 +57,15 @@
         <div class='rTable'>
         <div class='rTableBody'>
             <div class='rTableRow'>
-                <div class="rTableCell">
-                    <label for="selId">ID</label>
-                </div>
-                <div class='rTableCell'>
+                <div class="rTableCell left middle">
+                    <label for="selId">ID</label><br>
                     <input type="text" id="selId" class="txt" size="5" autofocus>
                 </div>
-                <div class='rTableCell'>
+                <div class="rTableCell left middle">
+                    <label for="selTitel">Titel</label><br>
                     <input type="text" id="selTitel" class="txt" size="5" autofocus>
                 </div>
-                <div class='rTableCell'>
+                <div class='rTableCell middle'><br>
                     <input type="button" id="selOKBtn" class="btn" value="OK">
                 </div>
             </div>
@@ -78,10 +78,9 @@
     <div id="outFld">
         <div class="info">
             <p>
-                Bitte gib die ID des Mediums ein, das Du bearbeiten möchtest. Die ID ist der Zähler in
-                der Signatur des Mediums, z.B. "400" bei dem Medium mit Signatur "CD-2 400". Falls Du
-                die ID nicht kennst, kannst Du das Medium <a href="index.html">suchen</a> und von den
-                Suchergebnissen aus die Maske zum Bearbeiten des Mediums öffnen.
+                Bitte gib die ID und / oder ein Titelfragment des Mediums ein, das Du bearbeiten möchtest. 
+                Die ID ist der Zähler in der Signatur des Mediums, z.B. "400" bei dem Medium mit Signatur 
+                "WZ-S-1 400". Falls Du die ID nicht kennst, kannst Du das Medium <a href="index.html">suchen</a>.
             </p>
         </div>
     </div>
@@ -154,6 +153,7 @@
         if (matchingIDs.length > 1) {
             result = await findMediaResultArr(matchingIDs);
             selFrm.outFld.innerHTML = "";
+            document.getElementById("headerTitel").innerHTML = "Medien " + aktion; 
             cOutputTbl (selFrm.outFld, "selTbl", 
                 ["ID", "Autoren", "Titel und Verweise", "Jahr", "Typ", "Standort", "Status"], result);
             tblArr = Array.from(document.getElementsByName("selTbl")[0].rows);
@@ -172,6 +172,7 @@
                     }));
                 }
             });
+            tblAddEventListenerArrow();
         } else {
             mediumData = matchingIDs[0];
             return callFormularBearbeiten(mediumData);
@@ -181,7 +182,7 @@
     selFrm.onenter = function (event) 
     {
         function checkKey (event) {
-            if (event.key === "Enter" || event.code === "Enter") {
+            if (event.keyCode === 13 || event.which === 13) {
                 event.preventDefault();
                 selFrm.sbmtBtn.click();
             }
@@ -214,52 +215,10 @@
     }
     document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
 
-    function tblBtn_onArrow (event)
-    {
-        let btns = Array.from(document.getElementsByName("tblBtn"));
-        let l = btns.length;
-        let i = btns.indexOf(document.activeElement);
-        if (event.key === "ArrowDown" || event.code === "ArrowDown") {
-            event.preventDefault();
-            btns[i].parentElement.parentElement.removeAttribute("style", "background-color");
-            if (i === l-1) {
-                btns[0].parentElement.parentElement.setAttribute("style", "background-color: #e6e6e6");
-                return btns[0].focus();
-            } else {
-                btns[i+1].parentElement.parentElement.setAttribute("style", "background-color: #e6e6e6");
-                return btns[i+1].focus();
-            }
-        }
-        if (event.key === "ArrowUp" || event.code === "ArrowUp") {
-            event.preventDefault();
-            btns[i].parentElement.parentElement.removeAttribute("style", "background-color");
-            if (i === 0) {
-                btns[l-1].parentElement.parentElement.setAttribute("style", "background-color: #e6e6e6");
-                return btns[l-1].focus();
-            } else {
-                btns[i-1].parentElement.parentElement.setAttribute("style", "background-color: #e6e6e6");
-                return btns[i-1].focus();
-            }
-        }
-    }
-    function arrowDown (event)
-    {
-        if (event.key === "ArrowDown" || event.code === "ArrowDown") {
-            event.preventDefault();
-            if (document.getElementsByName("selTbl")[0] !== undefined) {
-                let btns = Array.from(document.getElementsByName("tblBtn"));
-                btns[0].parentElement.parentElement.setAttribute("style", "background-color: #e6e6e6");
-                btns[0].focus();
-                btns.forEach(btn => {return btn.addEventListener("keydown", tblBtn_onArrow)});
-                return boolean = true;
-            } else {
-                return boolean = false;
-            }
-        }
-    }
-    selFrm.textFld[0].addEventListener("keydown", arrowDown);
-    selFrm.textFld[1].addEventListener("keydown", arrowDown);
-     
+    
+    selFrm.textFld[0].addEventListener("keydown", function () {return boolean = enterTableOnArrowDown(event, "selTbl")});
+    selFrm.textFld[1].addEventListener("keydown", function () {return boolean = enterTableOnArrowDown(event, "selTbl")});
+    
 </script>
 
 </body>
