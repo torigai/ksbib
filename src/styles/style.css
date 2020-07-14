@@ -111,8 +111,13 @@ nav .floatright {
 /* BEGIN Main Text */
 
 input, select {
-		font-family: "console", veranda, sans-serif;
+    font-family: "console", veranda, sans-serif;
     background: white;
+    border: 1px solid gray;
+}
+input:focus, textarea:focus, select:focus, a:focus{
+    border-color: rgb(77, 169, 255);
+    outline: none;
 }
 input[list="zeitschriftenDL"] {
       width: 12em;
