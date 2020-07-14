@@ -1,6 +1,6 @@
 # ksbib
-ksbib is a simple library software named after the architect Karsten Schlüter. 
-You can use for personal purposes or even for small archives. You can handle books, 
+ksbib is a simple library software that you can use for personal purposes or 
+even for small archives. You can handle books, 
 articles, journals, incollections, link them to pdf-files and url's search for 
 media etc, just as you would expect of any library software. The software does 
 not include rental options and user management, if you are interested in that, 
