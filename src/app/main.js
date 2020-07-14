@@ -47,6 +47,7 @@ function closeApp ()
 {
     let conf = window.confirm("Programm Beenden ?");
     if (conf) {
+        db.close();
         gui.App.closeAllWindows();
         win.close(true);
     } else {
