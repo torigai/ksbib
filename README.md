@@ -1,21 +1,31 @@
 # ksbib
-library software
+ksbib is a simple library software that you can use for personal purposes or even 
+for small archives. You can handle books, articles, journals, incollections and link them
+to pdf-files and url's etc., just as you would expect of a library software. The 
+software does not yet include rental options and user management, if you are 
+interested in that, feel invited to send me a note or add your own code.
 
-# Installation
+ksbib is meant as a desktop programm for your local computer. For that
+purpose sqlite seemed to be the perfect choice. The security measures 
+(like user roles) that would be appropriate for a public web application 
+are therefore not implemented.
+
+
+## Installation
 
 npm install -g nw-gyp \
 npm install nw --nwjs_build_type=normal --save \
 npm install nwjs-builder-phoenix --save-dev \
 npm install sqlite3 --build-from-source --runtime=node-webkit --target-arch=x64  --target="0.46.4" --save 
 
-(target = "0.46.4" denotes the nwjs version. You can change this to the actual version but then take
-that change into account in package.json as well)
+(target = "0.46.4" is the nwjs version. The version is also documented in package.json for the build process.
+To find out the actual version visit https://nwjs.io/)
 
-# Try out
+## Try out
 
 npm run dev
 
-# Build a desktop app
+## Build a desktop app
 
 npm run dist
 
