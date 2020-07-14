@@ -3,7 +3,7 @@ library software
 
 # Installation
 
-npm install -g nw-gyp
+npm install -g nw-gyp \
 npm install nw --nwjs_build_type=normal --save 
 npm install nwjs-builder-phoenix --save-dev
 npm install sqlite3 --build-from-source --runtime=node-webkit --target-arch=x64  --target="0.46.4" --save
