@@ -175,21 +175,16 @@ function updateEssay (data, olddata, callback)
             );
         }
         if (compareResult.sachgebietsnr !== 0) {
-            if (data.sachgebietsnr.length === olddata.sachgebietsnr.length) { //Update
-                data.sachgebietsnr.forEach(nr => 
+            //Delete all relations, then insert new relations
+            // ! Don't change or add triggers like if_usg_also_osg !
+            if (olddata.sachgebietsnr !== null) {
+                procMedium.add(sql[51], [data.id]);   
+            }
+            if (data.sachgebietsnr !== null) {
+                data.sachgebietsnr.forEach(nr =>    
                 {
-                    return procMedium.add(sql[45], [nr, data.id]);
+                    return procMedium.add(sql[15], [data.id, nr]);
                 });
-            } else { //Delete all relations, then insert new relations
-                if (olddata.sachgebietsnr !== null) {
-                    procMedium.add(sql[51], [data.id]);   
-                }
-                if (data.sachgebietsnr !== null) {
-                    data.sachgebietsnr.forEach(nr =>    
-                    {
-                        return procMedium.add(sql[15], [data.id, nr]);
-                    });
-                }
             }
         }
         if (compareResult.ort !== 0) {

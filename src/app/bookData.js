@@ -2,6 +2,7 @@
 //REQUIRES sqlproc.js
 //REQUIRES sql.js
 //REQUIRES main.js
+//REQUIRES sqlProcFunctions.js
 
 function buch (id, standort, autoren, autortyp, titel, jahr, ort, verlag, auflage, band, seiten, isbn, preis, sachgebietsnr, hinweis, stichworte, status, link)
 {
@@ -202,21 +203,16 @@ function updateBook (data, olddata, callback)
             );
         }
         if (compareResult.sachgebietsnr !== 0) {
-            if (data.sachgebietsnr.length === olddata.sachgebietsnr.length) { //Update
-                data.sachgebietsnr.forEach(nr => 
+            //Delete all relations, then insert new relations
+            // ! Don't change or add triggers like if_usg_also_osg !
+            if (olddata.sachgebietsnr !== null) {
+                procMedium.add(sql[51], [mediumData[0]]);   
+            }
+            if (data.sachgebietsnr !== null) {
+                data.sachgebietsnr.forEach(nr =>    
                 {
-                    return procMedium.add(sql[45], [nr, mediumData[0]]);
+                    return procMedium.add(sql[15], [mediumData[0], nr]);
                 });
-            } else { //Delete all relations, then insert new relations
-                if (olddata.sachgebietsnr !== null) {
-                    procMedium.add(sql[51], [mediumData[0]]);   
-                }
-                if (data.sachgebietsnr !== null) {
-                    data.sachgebietsnr.forEach(nr =>    
-                    {
-                        return procMedium.add(sql[15], [mediumData[0], nr]);
-                    });
-                }
             }
         }
         if (compareResult.verlag !== 0) {

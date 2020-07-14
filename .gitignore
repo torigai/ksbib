@@ -1,5 +1,4 @@
 $ cat .gitignore
 node_modules/
 package-lock.json
-src/db/test.html
 *~

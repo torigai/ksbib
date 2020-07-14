@@ -185,21 +185,16 @@ function updateJournal (data, olddata, callback)
             );
         }
         if (compareResult.sachgebietsnr !== 0) {
-            if (data.sachgebietsnr.length === olddata.sachgebietsnr.length) { //Update
-                data.sachgebietsnr.forEach(nr => 
+            //Delete all relations, then insert new relations
+            // ! Don't change or add triggers like if_usg_also_osg !
+            if (olddata.sachgebietsnr !== null) {
+                procMedium.add(sql[51], [mediumData[0]]);   
+            }
+            if (data.sachgebietsnr !== null) {
+                data.sachgebietsnr.forEach(nr =>    
                 {
-                    return procMedium.add(sql[45], [nr, mediumData[0]]);
+                    return procMedium.add(sql[15], [mediumData[0], nr]);
                 });
-            } else { //Delete all relations, then insert new relations
-                if (olddata.sachgebietsnr !== null) {
-                    procMedium.add(sql[51], [mediumData[0]]);   
-                }
-                if (data.sachgebietsnr !== null) {
-                    data.sachgebietsnr.forEach(nr =>    
-                    {
-                        return procMedium.add(sql[15], [mediumData[0], nr]);
-                    });
-                }
             }
         }
         if (compareResult.zeitschrift !== 0 || compareResult.zeitschriftkuerzel !== 0) {

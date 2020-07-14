@@ -165,8 +165,8 @@ input[type="button"]:focus:valid {
   border: none;
   resize: none;
   white-space: pre;
-  text-overflow: ellipsis;
   overflow-x: hidden;
+  text-overflow: ellipsis;
 }
 
 select { 
@@ -245,17 +245,28 @@ table, td {
 }
 th, td {
   padding-left: 7px;
-  padding-right: 4px;
+  padding-right: 7px;
   position: relative;
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 300px;
-  min-height: : 5em;
+  min-height: 5em;
 }
-td {
+td input[type="text"] {
+  min-width: 18em;
   vertical-align: bottom;
   font-size: 9pt;
-  color: "#232627";
+  color: #232627;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+td {
+  vertical-align: middle;
+  font-size: 9pt;
+  color: #232627;
   text-align: left;
 }
 td.button {
@@ -269,16 +280,13 @@ td.button input:hover{
   color: white;
 }
 td.button:hover {
-  /*background-color: #454243;*/
   background-color: #e6e6e6;
-  /*color: white;*/
 }
 th {
   padding-top: 10px;
   padding-bottom: 10px;
   text-align: left;
   vertical-align: middle;
-  /*background-color: #e6e6e6;*/
 }
 
 .tableHeader {
@@ -292,6 +300,7 @@ th {
   padding-top: 5px;
   padding-bottom: 5px;
   vertical-align: top;
+  overflow-wrap: normal;
 }
 
 /* END Main Text */

@@ -75,8 +75,10 @@ async function findMediaResultArr (matchingIDs)
             if (filenamePattern.test(object.link)) {
                 let filepath = (await dbGet(`SELECT path FROM filepath`, [])).path;
                 if (filepath === null) { //filepathDefault from main.js
+                    console.log(filepathDefault+object.link);
                     link = "<br><a href='"+filepathDefault+object.link+"' target='_blank'>" + object.link + "</a>";
                 } else {
+                    console.log(filepath+object.link);
                     link = "<br><a href='"+filepath+object.link+"' target='_blank'>" + object.link + "</a>";
                 }
             } else {

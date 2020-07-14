@@ -43,7 +43,6 @@
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
             <a href="doku.html">Dokumentation</a>
-            <a href="filepath.html">Dateipfad</a>
         </div>
     </ul>
     <ul class="floatright">
@@ -80,7 +79,7 @@
             <p>
                 Bitte gib die ID und / oder ein Titelfragment des Mediums ein, das Du bearbeiten möchtest. 
                 Die ID ist der Zähler in der Signatur des Mediums, z.B. "400" bei dem Medium mit Signatur 
-                "WZ-S-1 400". Falls Du die ID nicht kennst, kannst Du das Medium <a href="index.html">suchen</a>.
+                "WS-1 400". Falls Du die ID nicht kennst, kannst Du das Medium <a href="index.html">suchen</a>.
             </p>
         </div>
     </div>
@@ -208,7 +207,12 @@
             event.preventDefault();
             if (boolean === true ) {
                 let btns = Array.from(document.getElementsByName("tblBtn"));
-                btns.forEach(btn => {return btn.removeEventListener("keydown", tblBtn_onArrow)});
+                btns.forEach(btn => 
+                {
+                    if (btn.parentElement.parentElement.style.backgroundColor === tblHoverColor) {
+                        return btn.parentElement.parentElement.removeAttribute("style");
+                    }
+                });
             }
             return document.getElementById("selId").select();
         }

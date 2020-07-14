@@ -123,7 +123,7 @@ sql[11] = `INSERT INTO reltitel (objektid, zeitschriftid, buchid, aufsatzid, tit
 sql[12] = `SELECT id FROM stichwort WHERE stichwort = ?`;
 sql[13] = `SELECT id FROM autor WHERE name = ? AND vorname = ?`;
 sql[14] = `SELECT id FROM titel WHERE titel = ?`;
-sql[15] = `INSERT INTO relsachgebiet (objektid, sachgebietid) VALUES (?, ?)`;
+sql[15] = `INSERT OR IGNORE INTO relsachgebiet (objektid, sachgebietid) VALUES (?, ?)`;
 sql[16] = `SELECT id AS verlagid FROM verlag WHERE verlag = ?`;
 sql[17] = `SELECT id AS ortid FROM ort WHERE ort = ?`;
 sql[18] = `INSERT INTO buch (id, auflage, verlag, isbn) VALUES (?, ?, ?, ?)`;
@@ -222,7 +222,12 @@ sql[88] = `INSERT OR IGNORE INTO sachgebiet (id, sachgebiet) VALUES (?, ?)`;
 sql[89] = `SELECT objektid FROM relsachgebiet WHERE sachgebietid = ? LIMIT 1`;
 sql[90] = `DELETE FROM sachgebiet WHERE ( (id/100 - ?/100) BETWEEN 0 AND 0.99)`;
 sql[91] = `UPDATE filepath SET path = ? WHERE id = 0`;
-
+sql[92] = `SELECT * FROM standort ORDER BY standort DESC`;
+sql[93] = `UPDATE standort SET standort = ?, standortsgn = ? WHERE id = ?`;
+sql[94] = `SELECT id FROM objekt WHERE standort = ?`;
+sql[95] = `DELETE FROM standort WHERE id = ?`;
+sql[96] = `INSERT OR IGNORE INTO standort (id, standort, standortsgn) VALUES (?,?,?)`;
+sql[97] = `UPDATE filepath SET path = ? WHERE id = 0`;
 
 function sqlFindGapOSGSachgebiete ()
 {

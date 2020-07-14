@@ -129,6 +129,7 @@ function cForwardAndBackwardBtns (container, onForward, onBackward)
 
 function tblOnArrow (event)
 {
+    //move either from button to button or from text-field to text-field
     let elements = (document.activeElement.type === "text") ? 
         Array.from(document.getElementsByName("tblTxtFld")) : Array.from(document.getElementsByName("tblBtn"));
     let l = elements.length;
@@ -139,7 +140,6 @@ function tblOnArrow (event)
         event.preventDefault();
         let nextRow = (elements[i+1] !== undefined) ? 
             elements[i+1].parentElement.parentElement : elements[0].parentElement.parentElement;
-        let nextEl = (elements[i+1] !== undefined) ? elements[i+1] : elements[0];
         if (activeRow.style.backgroundColor == tblSelColor) {
             activeRow.style.backgroundColor = tblSelColor;
         } else {
@@ -147,6 +147,7 @@ function tblOnArrow (event)
         }
         nextRow.style.backgroundColor = (nextRow.style.backgroundColor == tblSelColor) ? 
             tblSelColor : tblHoverColor;
+        let nextEl = (elements[i+1] !== undefined) ? elements[i+1] : elements[0];    
         nextEl.focus();
     }
     if (event.key === "ArrowUp" || event.code === "ArrowUp") {

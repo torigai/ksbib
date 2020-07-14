@@ -36,7 +36,6 @@ function showResult (result, outputFld, warnFld, nameOfTbl, nameOfSelect, getRes
             if (stopDBRequests === false) { // there may be open results
                 offset = offset + limit;
                 result = await getResultFct(limit, offset);
-                console.log(result);
                 if (result === false) {
                     offset = offset - limit;
                     stopDBRequests = true;

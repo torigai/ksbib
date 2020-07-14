@@ -5,7 +5,6 @@
     <title>ksbib | Dokumentation</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
-    <!--<script src="../db/db_setup.js"></script>-->
     <script src="../app/main.js"></script>
     <script src="../app/table.js"></script>
     <script src="../app/validation.js"></script>
@@ -35,7 +34,6 @@
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
             <a href="doku.html">Dokumentation</a>
-            <a href="filepath.html">Dateipfad</a>
         </div>
     </ul>
     <ul class="floatright">
@@ -57,7 +55,7 @@
             <td> Beendet das Programm </td>
         </tr>
         <tr>
-            <td> Strg + w </td>
+            <td> Strg + w / Shift + WIN + c</td>
             <td> Schließt ein Fenster </td>
         </tr>
         <tr>
@@ -78,7 +76,7 @@
                 <ul>
                     <li>Innerhalb des Menus: Auswahl der Seiten</li>
                     <li>Auf der Seite "Hinzufügen" im Formular "Auswahl der Medienarten": Auswahl der Medienarten</li>
-                    <li>Auf der Seite "Bearbeiten" gelangt man mit den Pfeiltasten in die Auswahltabelle</li>
+                    <li>Auf den Seiten "Bearbeiten", "Standorte" und "Sachgebiete" gelangt man mit den Pfeiltasten in die Auswahltabelle</li>
                 </ul> 
             </td>
         </tr>
@@ -117,18 +115,22 @@
                 Bringt das Formular in einen Ausgangszustand zurück oder wirkt als "reset"
             </td>
         </tr>
-        <tr>
-            <td> + </td>
-            <td> In Standorte: fügt ein leeres Standortfeld hinzu </td>
-        </tr>
     </table>
 
     <div class="info">
+        <h1>Standorte</h1>
+        <p>
+            Jedes Medium hat einen Standort. Falls kein Standort ausgewählt wird, ist das automatisch "N.N."
+            Vor der Medieneingabe sollten also die <a href="standorte.html">Standorte</a> in der Datenbank eingegeben 
+            werden. Anstelle von Standorten, könnte man natürlich auch Kategorien eingeben. Die Standorte sind ein 
+            Grundbestandteil der Signatur der Medien.
+        </p>
+
         <h1>Signatur</h1>
         <p>
             Die Signatur wird durch das Programm automatisch vergeben und kombiniert den Standort
-            und die ID des Mediums. Das Medium mit ID 112 am Standort WZ-S-1 (Wohnzimmer Südwand Regal 1)
-            hat entsprechend eine Signatur WZ-S-1 112. Lücken in der ID, die durch das Löschen eines Mediums
+            und die ID des Mediums. Das Medium mit ID 112 am Standort WS-1 (Wohnzimmer Südwand Regal 1)
+            hat entsprechend eine Signatur WS-1 112. Lücken in der ID, die durch das Löschen eines Mediums
             entstehen, werden vom Programm automatisch aufgefüllt.
         </p>
 
@@ -136,7 +138,7 @@
         <p>
             Es wird in Ober- und Untersachgebiete unterschieden. Beide sind durch
             Sachgebietsnummern gekennzeichnet, die automatisch vergeben werden. Erst nachdem die
-            Sachgebiete eingegeben wurden, können sie an Medien vergeben werden!
+            <a href="sachgebiete.html">Sachgebiete</a> eingegeben wurden, können sie an Medien vergeben werden!
         </p>
         <p>
             Hier wird kurz die Logik der automatischen Nummernvergabe beschrieben: 
@@ -154,10 +156,19 @@
             Hier findest Du eine Liste der aktuell vorhandenen Sachgebiete:
             <a href="drucken-sachgebiete.html" target="_blank">Liste der Sachgebiete</a> 
         </p>
+        <h1>Dateien und URLs</h1>
+        <p>
+            Du kannst jeden Medientyp mit einem PDF verlinken, das auf Deinem Computer liegt, oder
+            mit der URL einer Website. Dazu müssen die PDFs in das Standardverzeichnis <b>/ksbib/files/</b>
+            abgelegt werden.
+            <!--Du kannst auch ein anderes Verzeichnis <a href="filepath.html">wählen</a>.-->
+        </p>
     </div>
 
 
 </article>
 <script src="../app/shortkeys.js"></script>
 </body>
+<footer>
+</footer>
 </html>

@@ -21,8 +21,8 @@ const isbnPattern = /^(\d{10}|\d{13})$/;              //10 oder 13 stellige ganz
 const namenPattern = /^[a-züöäß]+(,\s[a-zäüöß]+(\s[a-zäüöß].){0,2})?$/i;  // "Müller, Adam" oder "Müller, Adam A." 
                                                                         // oder "Müller, Adam A. B." oder "Müller"
 const urlPattern = /^(ftp|http|https):\/\/[^ "<>]+$/;
-const filenamePattern = /[a-zäüöß\-\_\+]+(.pdf)/i;
-
+const filenamePattern = /[a-zäüöß0-9\-\_\+]+(.pdf)/i;
+const filepathPattern = /^(..\/)+[a-zäüöß0-9\-\_\+]+(\/)/i;
 
 
 /*
@@ -42,6 +42,21 @@ message[4] = function (string) { return string + " exisitert bereits"; }
     der Index j ist true, falls die Eingabe Pflicht ist, sonst false
     el ist ein formularelement, i dessen index
 */
+
+function conformAndValidateFilepath (el)
+{
+    let link = strtrim(el.value);
+    if (link === "") {
+        err[0] = message[0]("einen Wert");
+        return false;
+    } 
+    if (filepathPattern.test(link)) {
+        return link;
+    } else {
+        err[0] = message[2];
+        return false;
+    }
+}
 
 function conformAndValidateLink (el, i, j) {
     //Requires main.js

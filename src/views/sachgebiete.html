@@ -36,7 +36,6 @@
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
             <a href="doku.html">Dokumentation</a>
-            <a href="filepath.html">Dateipfad</a>
         </div>
     </ul>
     <ul class="floatright">
@@ -71,7 +70,7 @@
     <p>
         Einträge in den Sachgebietstabellen kannst Du mit der Tastatur per Pfeiltasten ansteuern. 
         Wenn Du "Shift" drückst oder mit der Maus auf ein Sachgebiet klickst, kannst Du die Sachgebietsnamen 
-        verändern. Indem Du auf "-" drückst, wird das Sachgebiet zum Löschen markiert (nochmal "-"" hebt die
+        verändern. Indem Du auf "Entf" drückst, wird das Sachgebiet zum Löschen markiert (nochmal "Entf hebt die
         Markierung wieder auf). Mit ESC gelangst Du zurück zum Eingabefeld.
     </p>
     <p>
@@ -121,9 +120,10 @@
                 </p>
                 <p>
                     Einträge in den Sachgebietstabellen kannst Du mit der Tastatur per Pfeiltasten ansteuern. 
-                    Wenn Du "Shift" drückst oder mit der Maus auf ein Sachgebiet klickst, kannst Du die Sachgebietsnamen 
-                    verändern. Indem Du auf "-" drückst, wird das Sachgebiet zum Löschen markiert (nochmal "-"" hebt die
-                    Markierung wieder auf). Mit ESC gelangst Du zurück zum Eingabefeld.
+                    Wenn Du die "Leertaste" drückst oder mit der Maus auf ein Sachgebiet klickst, kannst Du 
+                    die Sachgebietsnamen verändern. Indem Du auf "Entf" drückst, wird das Sachgebiet zum Löschen 
+                    markiert (nochmal "Entf hebt die Markierung wieder auf). Mit ESC gelangst Du zurück zum 
+                    Eingabefeld.
                 </p>
                 <p>
                     Wenn Du ein Obersachgebiet löschst, werden alle darunterfallenden Untersachgebiete ebenfalls
@@ -154,7 +154,7 @@
                     return [item.id, item.sachgebiet];
                 }
             });
-                return arr;
+            return arr;
         }
         function createFormularCallback (choice)
         {
@@ -205,8 +205,9 @@
         let oldrows = Array.from(document.getElementsByName("sgTbl")[0].rows);
         let updatedRows = [];        
         let errRows = [];
+        let p = [];
         
-        function addEventListenersToOldRows (updatedRows, oldrows, errRows)
+        function addEventListenersToOldRows ()
         {
             oldrows.forEach(row =>
             {
@@ -217,14 +218,22 @@
                 }
             });
             if (oldrows.length > 1) {
-                Array.from(document.getElementsByName("tblBtn"))
-                    .forEach(btn => {return btn.addEventListener("keypress", function () 
+                Array.from(document.getElementsByName("tblBtn")).forEach(btn => 
+                    {
+                        btn.addEventListener("keypress", function () 
                         {
                             return keypressBtn(event, btn, newDatum);
-                        })});
+                        });
+                        btn.addEventListener("focusout", function () 
+                        {
+                            if (btn.parentElement.parentElement.style.backgroundColor === tblHoverColor) {
+                                btn.parentElement.parentElement.removeAttribute("style");
+                            }
+                        });
+                    });
                 Array.from(document.getElementsByName("tblTxtFld")).forEach(sg => 
                 {
-                    sg.addEventListener("keypress", keypressSgInput);
+                    sg.addEventListener("keydown", keypressSgInput);
                     sg.addEventListener("input", function () 
                     {
                         if (sg.style.color = "red") {
@@ -237,7 +246,7 @@
                         let change = strtrim(this.value);
                         let changeRowIndex = oldrows.indexOf(this.parentElement.parentElement);
                         let newrowsDataArr = Array.from(document.getElementsByClassName("neu"))
-                            .map(sg => {return sg.value});
+                            .map(btn => {return btn.parentElement.parentElement.children[1].firstElementChild.value});
                         let n = Array.from(document.getElementsByName("tblTxtFld"))
                             .map(element=>{return strtrim(element.value)})
                             .filter(value => {return value === change}).length;
@@ -256,9 +265,7 @@
                                     return this.select();
                                 } else {
                                     errRows = errRows.filter(i => {return (i !== changeRowIndex)});
-                                    updatedRows.push(changeRowIndex);
-                                    updatedRows = updatedRows.filter(onlyUnique);
-                                    return updatedRows;
+                                    return updatedRows.push(changeRowIndex);
                                 }
                             }
                         } else {
@@ -272,9 +279,9 @@
         function addNewSgToTable ()
         {
             err = [];   //from validation.js
-            sachgebiet = conformAndValidateSachgebietName(newDatum, 0, true, 100);
+            let sachgebiet = conformAndValidateSachgebietName(newDatum, 0, true, 100);
             let newrowsDataArr = Array.from(document.getElementsByClassName("neu"))
-                .map(sg => {return sg.value});
+                .map(btn => {return btn.parentElement.parentElement.children[1].firstElementChild.value});
             let oldrowsDataArr = Array.from(document.getElementsByName("tblTxtFld"))
                 .map(element=>{return element.value});
             if (err.length > 0 ) {
@@ -296,6 +303,11 @@
 
         async function saveData (oldRows, updatedRows, tablename, choice, sgnr, errRows)
         {
+            /*
+                Notice: the remove procedure requires that when media are added or changed in the database
+                and related to a usg, it will always automatically also be related to the respective osg
+            */
+
             //to Remove, toUpdate: array of [ID, SGName]; toAdd: Array of SG names;
             let toRemove = Array.from(document.getElementsByName(tablename)[0].rows)    
                 .filter(row => {return row.style.backgroundColor === tblSelColor})
@@ -303,9 +315,10 @@
                 {
                     return [row.firstElementChild.firstElementChild.value, row.lastElementChild.firstElementChild.value];
                 });
-            let toAdd = Array.from(document.getElementsByClassName("neu")).map(sg => {return sg.value});
+            let toAdd = Array.from(document.getElementsByClassName("neu"))
+                .map(btn => {return btn.parentElement.parentElement.children[1].firstElementChild.value});
             let toUpdate = [];
-            updatedRows = updatedRows.filter(index => {return !(errRows.includes(index))});
+            updatedRows = updatedRows.filter(onlyUnique).filter(index => {return !(errRows.includes(index))});
             updatedRows.forEach(index =>
             {
                 if (oldrows[index].style.backgroundColor !== tblSelColor) {
@@ -337,7 +350,6 @@
                     }
                 }
                 let procMedium = new cSQLProcessor(callback);
-                 
                 if (toUpdate.length > 0) {
                     toUpdate = await toUpdate.map(sgArr => {return procMedium.add(sql[87], [sgArr[1], sgArr[0]])});
                 }
@@ -358,11 +370,24 @@
                 } 
                 if (toAdd.length > 0) {
                     if (choice === "osg") {
-                        toAdd = await toAdd.map(sgName =>
-                        {
-                            procMedium.add(sqlFindGapOSGSachgebiete(), []);
-                            return procMedium.add(sql[88], function (result) {return [result, sgName]});
-                        });
+                        let minid = (await dbGet(`SELECT MIN(id) AS id FROM sachgebiet`,[])).id;
+                        if (minid === 0) {
+                            toAdd = await toAdd.map(sgName =>
+                            {
+                                procMedium.add(sqlFindGapOSGSachgebiete(), []);
+                                return procMedium.add(sql[88], function (result) {return [result, sgName]});
+                            });
+                        } else {
+                            toAdd = await toAdd.map(sgName =>
+                            {
+                                if (toAdd.indexOf(sgName)===0) {
+                                    return procMedium.add(sql[88], [0, sgName]);    
+                                } else {
+                                    procMedium.add(sqlFindGapOSGSachgebiete(), []);
+                                    return procMedium.add(sql[88], function (result) {return [result, sgName]});
+                                }
+                            });
+                        }
                     } else {
                         toAdd = await toAdd.map(sgName =>
                         {
@@ -406,17 +431,15 @@
             }        
         }
 
-        addEventListenersToOldRows(updatedRows, oldrows, errRows); 
-        newDatum.addEventListener("focus", onfocusNewInput);
+        addEventListenersToOldRows(); 
+        newDatum.addEventListener("focus", function () {return onfocusNewInput("sgTbl")});
         newDatum.addEventListener("focusout", function () {return warning.innerHTML = ""});
         newDatum.addEventListener("keypress", onEnterNewInput);
         newDatum.addEventListener("keydown", function () { return enterTableOnArrowDown(event, "sgTbl") });
         newDatum.addEventListener("input", function () {return warning.innerHTML = ""});
-        abbr.addEventListener("click", function () 
-        {
-            return sgFrm.reset(); 
-        });
+        abbr.addEventListener("click", function () {return sgFrm.reset()});
         plus.addEventListener("click", addNewSgToTable);
+        save.addEventListener("focus", function () {return onfocusNewInput("sgTbl")});
         save.addEventListener("click", function () {return saveData(oldrows, updatedRows, "sgTbl", choice, sgnr, errRows)});
         document.getElementsByTagName("body")[0]
             .addEventListener("keydown", function () {return strgC(event, abbr)}, false);
@@ -436,7 +459,8 @@
         if (event.key === "Escape" || event.code === "Escape") {
             event.preventDefault();
             if (sgFrm.formular.style.display === "none") {
-                if (document.activeElement.parentElement.parentElement.style.backgroundColor === tblHoverColor) {
+                if (document.activeElement.parentElement.parentElement !== null &&
+                    document.activeElement.parentElement.parentElement.style.backgroundColor === tblHoverColor) {
                     document.activeElement.parentElement.parentElement.style.backgroundColor = tblDefaultColor;
                 }
                 document.getElementById("fld").select();
@@ -446,16 +470,7 @@
         }
     }
 
-    function gotoEingabeFrm (event)
-    {
-        if (event.shiftKey === true && event.keyCode === 40 || event.shiftKey === true && event.which === 40) {
-            event.preventDefault();
-            if (document.getElementsbyName(sgTbl)[0] !== "undefined") {newDatum.focus();}
-        }
-    }
-
     document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
-    document.getElementsByTagName("body")[0].addEventListener("keydown", gotoEingabeFrm, false);
 
 </script>
 

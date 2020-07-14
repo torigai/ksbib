@@ -162,16 +162,8 @@
                     {
                         let i = Object.keys(dataObj).indexOf(fieldname);
                         if (document.getElementsByName(fieldname)[0] !== undefined) {
-                            /*
-                            if (fieldname === "link" && filenamePattern.test(dataObj[Object.keys(dataObj)[i]]) === true) {
-                                return document.getElementsByName(fieldname)[0].defaultValue = 
-                                    (dataObj[Object.keys(dataObj)[i]] === null) ? "" : 
-                                    dataObj[Object.keys(dataObj)[i]].match(/[^\\/]+\.[^\\/]+$/)[0];
-                            } else {
-                            */
                                 return document.getElementsByName(fieldname)[0].defaultValue = 
                                     (dataObj[Object.keys(dataObj)[i]] === null) ? "" : dataObj[Object.keys(dataObj)[i]];
-                            //}
                         }
                     }
 
@@ -427,6 +419,9 @@
                 {
                     if (element.name === "id") {
                         return element;
+                    }
+                    if (element.name === "autortyp") {
+                        return element.checked = false;
                     }
                     if (element.type === "select-one" && element.item(0) !== null) {
                         return element.item(0).selected = true;
