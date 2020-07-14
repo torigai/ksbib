@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ksbib | Sonstiges</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
+    <script src="../app/main.js"></script>
+</head>         
+
+
+<body>
+
+<header>
+    <h1 id="headerTitel">Sonstiges</h1>
+</header>
+
+<nav>
+    <ul class="dropdown">
+        <a href="index.html" id="navMedien">Medien</a>
+        <div class="dropdown-content">
+            <a href="sachgebietssuche.html">Sachgebietssuche</a>
+            <a href="neuaufnahme.html">Hinzufügen</a>
+            <a href="bearbeiten.html">Bearbeiten</a>
+            <a href="entfernen.html">Entfernen</a>
+        </div>
+    </ul>
+    <ul class="dropdown">
+        <a href="sonstiges.html" id="navSonstiges">Sonstiges</a>
+        <div class="dropdown-content">
+            <a href="standorte.html">Standorte</a>
+            <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="doku.html">Dokumentation</a>
+        </div>
+    </ul>
+    <ul class="floatright">
+        <a id="navBeenden" onclick="closeApp()">&#x23FC;</a>
+    </ul>    
+</nav>
+
+<article>
+
+    <h1>Standorte und Sachgebiete verwalten</h1>
+    <div class="info">
+    <p>
+        Jedem Medium sind ein Standort und eine Standortsignatur zugewiesen (diese
+        kannst Du selbstvertändlich auch wie eine Kategorie behandeln). 
+        Beispielsweise "Wohnzimmer Süden Regal 2" mit Standortsignatur "WS-2". 
+        Die Standorte und Standortsignaturen musst Du jedoch zuvor selbst eintragen. 
+        Dies kannst Du hier tun:
+        <p>
+            <a href="standorte.html">Standorte</a>
+        </p>
+        Jedes Medium hat auch eine ID, die automatisch generiert wird und eindeutig ist. 
+        Aus dieser ID und der Standortsignatur generiert das Programm eine Signatur für Dein Medium. 
+        Zum Beispiel wird das Buch mit der ID 412, das in Deinem Wohnzimmer im zweiten Regal 
+        auf der Südseite steht, die Signatur "WS-2 412" haben. Du kannst Deine Medien also
+        entweder mit der Signatur im Regal kennzeichnen oder mit der ID.
+    </p>
+    <p>
+        Die Sachgebiete sind in Ober- und Untersachgebiete aufgeteilt. In der Logik der
+        Datenbank werden Obersachgebiete in Hunderterschritten {0, 100, 200 ...} indiziert.
+        Ein Obersachgebiet kann dann 99 Untersachgebiete haben. Zum Beispiel könnte ein 
+        Obersachgebiet "Architektur" mit Index 0 ein Untersachgebiet "Theorie" mit Index 1 
+        und ein Untersachgebiet "Geschichte" mit Index 2 haben. Die Indizierung wird
+        automatisch vorgenommen, aber die Sachgebiete musst Du selbst eintragen:
+        <p>
+            <a href="sachgebiete.html">Sachgebiete</a>
+        </p>
+    </p>
+    </div>
+
+</article>
+<script src="../app/shortkeys.js"></script>
+
+</body>
+
+<footer>
+</footer>
+
+</html>

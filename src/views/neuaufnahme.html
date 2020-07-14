@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ksbib | Neuaufnahme</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
+    <script src="../app/main.js"></script>
+    <script src="../app/neuaufnahme-und-bearbeiten.js"></script>
+    <script src="../app/validation.js"></script>
+    <script src="../app/journalData.js"></script>
+    <script src="../app/bookData.js"></script>
+    <script src="../app/essayData.js"></script>
+    <script src="../app/articleData.js"></script>
+    <script src="../app/incollectionData.js"></script>
+    <script src="../app/sql.js"></script>
+    <script src="../app/sqlproc.js"></script>
+</head>         
+
+
+<body onunload="selFrm.reset();">
+
+<header>
+    <h1 id="headerTitel">Medien Hinzufügen</h1>
+</header>
+
+<nav>
+    <ul class="dropdown">
+        <a href="index.html" id="navMedien">Medien</a>
+        <div class="dropdown-content">
+            <a href="sachgebietssuche.html">Sachgebietssuche</a>
+            <a href="neuaufnahme.html">Hinzufügen</a>
+            <a href="bearbeiten.html">Bearbeiten</a>
+            <a href="entfernen.html">Entfernen</a>
+        </div>
+    </ul>
+    <ul class="dropdown">
+        <a href="sonstiges.html" id="navSonstiges">Sonstiges</a>
+        <div class="dropdown-content">
+            <a href="standorte.html">Standorte</a>
+            <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="doku.html">Dokumentation</a>
+        </div>
+    </ul>
+    <ul class="floatright">
+        <a id="navBeenden" onclick="closeApp()">&#x23FC;</a>
+    </ul>    
+</nav>
+
+<article>
+    <form id='selFrm' class="center">
+        <div class='rTable'>
+        <div class='rTableBody'>
+            <div class='rTableRow'>
+                <div class="rTableCell">
+                    <input type="button" id="Buch" class="btn margin" value="Buch" autofocus>
+                </div>
+                <div class="rTableCell">
+                    <input type="button" id="Zeitschrift" class="btn margin" value="Zeitschrift">
+                </div>
+                <div class="rTableCell">
+                    <input type="button" id="Aufsatz" class="btn margin" value="Aufsatz">
+                </div>
+                <div class="rTableCell">
+                    <input type="button" id="Artikel" class="btn margin" value="Artikel">
+                </div>
+                <div class="rTableCell">
+                    <input type="button" id="Buchaufsatz" class="btn margin" value="Buchaufsatz">
+                </div>
+            </div>
+        </div>
+        </div>
+    </form>
+
+
+    <div id="outFld" class="margin">
+        <div class="info">
+            <p>
+                Bücher, Aufsätze und Zeitschriften sind Datenbankobjekte mit einer eigenständigen Signatur / 
+                Inventarnummer.
+            </p>
+            <p>
+                Für Bücher und Zeitschriften, die bereits in der Datenbank aufgenommen sind, können Buchaufsätze bzw. 
+                Artikel gespeichert werden. Diese sind in der Datenbank such- und bearbeitbar, haben jedoch keine 
+                eigene Signatur.
+            </p>
+            <p>
+                Mit "Shift + &#x2191;" kommst Du vom Eingabeformular zum Formular der Medienauswahl zurück. Analog
+                mit "Shift + &#x2193;" zum Eingabeformular.
+            </p>
+        </div>
+    </div>
+</article>
+
+<script src="../app/shortkeys.js"></script>
+<script>
+
+    let buchBtn = document.getElementById("Buch");
+    let zeitschriftBtn = document.getElementById("Zeitschrift");
+    let aufsatzBtn = document.getElementById("Aufsatz");
+    let buchaufsatzBtn = document.getElementById("Buchaufsatz");
+    let artikelBtn = document.getElementById("Artikel");
+    let arrBtn = Array.from(selFrm.elements);
+    let typeOfMedium;
+    let aktion = "hinzufügen"; //variable is relevant for neuaufnahme-und-bearbeiten.js
+    
+    let xhttpResponse = function (xhttp)
+    {
+        document.getElementById("outFld").innerHTML = xhttp.responseText;
+        onenterCheckbox();  //requires shortkeys,js
+    }
+    function pressBtn (type, link) 
+    {
+        typeOfMedium = type;
+        for (let item of selFrm.elements) {item.setAttribute("style", "");}
+        document.getElementById(type).setAttribute("style","background-color: #e6e6e6");
+        document.getElementById("headerTitel").innerHTML = typeOfMedium + " " + aktion; 
+        return xhr(link, xhttpResponse);
+    }
+
+    buchBtn.onclick = (()=> pressBtn("Buch", "formular-buch.html"));
+    zeitschriftBtn.onclick = (()=> pressBtn("Zeitschrift", "formular-zeitschrift.html"));
+    aufsatzBtn.onclick = (()=> pressBtn("Aufsatz", "formular-aufsatz.html"));
+    buchaufsatzBtn.onclick = (()=> pressBtn("Buchaufsatz", "formular-selid.html"));
+    artikelBtn.onclick = (()=> pressBtn("Artikel", "formular-selid.html"));
+
+    /*
+        Shortkeys for this view
+    */    
+
+    function rightAndLeftArrow (event)
+    {
+        if (event.keyCode === 39 || event.which === 39) {
+            event.preventDefault();
+            if (arrBtn.indexOf(document.activeElement) === arrBtn.length - 1) {
+                arrBtn[0].focus();
+            } else {
+                arrBtn[arrBtn.indexOf(document.activeElement)+1].focus();
+            }
+        }
+        if (event.keyCode === 37 || event.which === 37) {
+            event.preventDefault();
+            if (arrBtn.indexOf(document.activeElement) === 0) {
+                arrBtn[arrBtn.length-1].focus();
+            } else {
+                arrBtn[arrBtn.indexOf(document.activeElement)-1].focus();
+            }    
+        }
+    }
+
+    function gotoSelFrm (event)
+    {
+        if (event.shiftKey === true && event.keyCode === 38 || event.shiftKey === true && event.which === 38)  {
+            event.preventDefault();
+            arrBtn[0].focus();
+        }
+    }
+
+    function gotoEingabeFrm (event)
+    {
+        if (event.shiftKey === true && event.keyCode === 40 || event.shiftKey === true && event.which === 40) {
+            event.preventDefault();
+            if (typeof bFrm !== "undefined") {bFrm.elements[1].focus();}
+        }
+    }
+
+    arrBtn.forEach((btn) => 
+    {
+        btn.addEventListener("keydown", rightAndLeftArrow, false);
+        btn.addEventListener("keydown", gotoEingabeFrm, false);
+    });
+    document.getElementsByTagName("body")[0].addEventListener("keydown", gotoSelFrm, false);
+
+    function esc (event, callback)
+    {
+        if (event.keyCode === 27 || event.which === 27) {
+            event.preventDefault();
+            return buchBtn.focus();
+        } else {return false;}
+    }
+    document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
+</script>
+</body>
+
+<footer>
+</footer>
+
+</html>

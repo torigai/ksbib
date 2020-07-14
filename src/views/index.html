@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ksbib | Startseite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
+    <!--<script src="../db/db_setup.js"></script>-->
+    <script src="../app/main.js"></script>
+    <script src="../app/table.js"></script>
+    <script src="../app/validation.js"></script>
+    <script src="../app/sql.js"></script>
+    <script src="../app/findMedia.js"></script>
+    <script src="../app/ctableOfMedia.js"></script>
+</head>         
+
+
+<body onunload="qsearchFrm.reset(); dsearchFrm.reset(); db.close();">
+
+<header>
+    <h1 id="headerTitel">Suche nach Medien</h1>
+</header>
+
+<nav>
+    <ul class="dropdown">
+        <a href="index.html" id="navMedien">Medien</a>
+        <div class="dropdown-content">
+            <a href="sachgebietssuche.html">Sachgebietssuche</a>
+            <a href="neuaufnahme.html">Hinzufügen</a>
+            <a href="bearbeiten.html">Bearbeiten</a>
+            <a href="entfernen.html">Entfernen</a>
+        </div>
+    </ul>
+    <ul class="dropdown">
+        <a href="sonstiges.html" id="navSonstiges">Sonstiges</a>
+        <div class="dropdown-content">
+            <a href="standorte.html">Standorte</a>
+            <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="doku.html">Dokumentation</a>
+        </div>
+    </ul>
+    <ul class="floatright">
+        <a id="navBeenden" onclick="closeApp()">&#x23FC;</a>
+    </ul>    
+</nav>
+
+<article>
+
+    <form id='qsearchFrm' class="center">
+        <div class='rTable'>
+        <div class='rTableBody'>
+            <div class='rTableRow'>
+                <div class='rTableCell'>
+                    <input type="text" id="qsearchStr" class="txt" size="30" autofocus>
+                </div>
+                <div class='rTableCell'>
+                    <input type="button" id="qsearchBtn" class="btn" value="OK">
+                    <input type="button" id="go2dsearchBtn" class="btn" value="Detailsuche">
+                </div>
+            </div>
+        </div>
+        </div>
+        <div id="qsearchFrmWarnFld" class="warning center"></div>
+    </form>    
+
+
+    <form id="dsearchFrm">
+        <div class='rTable center'>
+        <div class='rTableBody'>
+            <div class='rTableRow'>
+                <div class='rTableCell'>
+                    <label for="autor1" onclick="window.alert(
+                        'Müller ODER Claudia ODER Müller, Claudia E. F.'
+                    )"> Autor 1 *</label><br>
+                    <input type='text' id ='autor1' size='15' class="txt">
+                </div>
+                <div class='rTableCell'>
+                    <label for="autor2" onclick="window.alert(
+                        'Müller ODER Claudia ODER Müller, Claudia E. F.'
+                    )"> Autor 2 *</label><br>
+                    <input type='text' id ='autor2' size='15' class="txt">
+                </div>
+            </div>
+            <div class='rTableRow'>
+                <div class='rTableCell'>
+                    <label for="jahr"> Erscheinungsjahr </label><br>
+                    <input type='text' id ='jahr' size = '15' class="txt">
+                </div>
+                <div class='rTableCell'>
+                    <label for="zeitspanne"> Zeitspanne </label><br>
+                    <div id="zeitspanne">
+                        <input type='text' id ='zeitspanne1' size='4' class="txt"> -
+                        <input type='text' id ='zeitspanne2' size='4' class="txt">
+                    </div>
+                </div>
+            </div>
+            <div class='rTableRow'>
+                <div class='rTableCell'>
+                    <label for="titel"> Titel </label><br>
+                    <input type='text' id ='titel' size='15' class="txt">
+                </div>
+                <div class='rTableCell'>
+                    <label for="verlag"> Verlag / Journal </label><br>
+                    <input type='text' id ='verlag' size='15' class="txt">
+                </div>
+            </div>
+            <div class='rTableRow'>
+                <div class='rTableCell'>
+                    <label for="standort"> Standort </label><br>
+                    <select id='standort'>
+                        <option value="" selected="selected" style="color: gray"></option>
+                        <option value="0">n.A.</option>
+                    </select>
+                </div>
+                <div class='rTableCell'>
+                    <label for="id"> ID </label><br>
+                    <input type='text' id ='id' size='5' class="txt">
+                </div>
+            </div>
+            <div class='rTableRow'>
+                <div class='rTableCell'>
+                    <label for="titel"> Stichwort </label><br>
+                    <input type='text' id ='titel' size='15' class="txt">
+                </div>
+                <div class='rTableCell'>
+                    <label for="hinweis"> Anmerkung </label><br>
+                    <input type='text' id ='hinweis' size='15' class="txt">
+                </div>
+            </div>
+            <div class="rTableRow">
+                <div class='rTableCell'>
+                    <label for="status"> Status </label><br>
+                    <select id='status'>
+                        <option value="" selected="selected" style="color: gray"></option>
+                        <option value="0">vorhanden</option>
+                        <option value="1">abhanden</option>
+                        <option value="2">verliehen</option>
+                    </select>
+                </div>    
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+    <div id="dsearchFrmWarnFld" class="warning center"></div>
+    <div class="center">
+        <input type='button' value='OK' id='dsearchBtn' class="btn">
+        <input type='button' value='Schnellsuche' id="go2qsearchBtn" class="btn">
+    </div>
+    </form>
+
+    <div id="outFld" class = "info">
+        <div id="infoFld" class="info">
+        <p>
+            <br>Du kannst mit der Schnellsuche: <br><br>
+            nach einem Autor- oder Titel suchen: "Geschichte der Zeit"<br>
+            nach Autor- und Titel suchen: "Kubler @ Zeit" <br> 
+            nach einem Autor suchen: "Kubler @" <br>
+            nach einem Titel suchen: "@ Form der Zeit"
+        </p>
+
+        <p>
+            <b>Detailsuche: </b><br>
+            Die Detailsuche bietet Möglichkeiten, die Suche einzuschränken. Zwischen
+            Detail- und Schnellsuche kannst Du auch  mit der Tastenkombination "Ctrl/Strg + d"
+            bzw. "Ctrl/Strg + s" wechseln.
+        </p>
+
+        <p>
+            <b>Sachgebietssuche:</b><br>
+            Ferner gibt es eine Sachgebietssuche:
+            <a href = "sachgebietssuche.html"> Suche nach Sachgebieten</a>.
+        </p>
+
+        <p>
+            Hier kannst Du Deine Suche mit Hilfe der Liste der Sachgebiete 
+            einschränken. Bitte beachte, dass es in der Bibliothek auch Bücher geben 
+            kann, die keinem Sachgebiet zugeordnet sind und die in der Sachgebietssuche
+            nicht angezeigt werden.
+        </p>
+
+        <p>
+            Mit der Tastenkombination "Alt + m" gelangst Du ins Menu "Medien", mit "Alt + s" ins
+            Menu "Sonstiges".
+        </p>
+        </div>
+    </div>
+
+</article>
+
+<script src="../app/shortkeys.js"></script>
+<script>
+    // Schnellsuche Formular qsearchFrm 
+
+    let qsearchFrm = new cformular(document.getElementById("qsearchFrm"), document.getElementById("qsearchFrmWarnFld"), document.getElementById("outFld"), document.getElementById("qsearchBtn"));
+    qsearchFrm.data = "";
+    qsearchFrm.newSbmt(
+        function () 
+        {
+            let warnung = qsearchFrm.warnFld;
+            let data = qsearchFrm.inFld[0];
+            function conformAndValidateQSearchFrm (data) {
+                err = [];
+                return conformAndValidateSearchStr(data, 0, true);
+            }
+            data = conformAndValidateQSearchFrm(data); // str->[str], str@->[str,], @str->[,str], str@str->[str,str] 
+            if (err.length !== 0) {
+                let firstError = err[0].split("*");
+                qsearchFrm.warnFld.innerHTML = firstError[1];
+                return false;
+            } else {
+                qsearchFrm.outFld.innerHTML = "";
+                ( async () =>
+                {
+                    let limit = 100;
+                    let offset = 0;
+                    function getResult (limit, offset) { return qsearchDBRequest(data, limit, offset); }
+                    let result = await getResult(limit, offset);
+                    if (result === false) {
+                        qsearchFrm.warnFld.innerHTML = "Kein Suchergebnis";
+                    } else {
+                        showResult (result, qsearchFrm.outFld, qsearchFrm.warnFld, "qResTbl", "qSortSel", getResult, limit, offset);
+                    }
+                })();
+                return true;
+            }
+        }
+    )
+    qsearchFrm.sbmtBtn.addEventListener("click", qsearchFrm.sbmt);
+    qsearchFrm.onenter = function (event)
+    {
+        if (event.keyCode === 13 || event.which === 13) {
+            event.preventDefault();
+                qsearchFrm.sbmtBtn.click();
+            } else { return false; }
+    }
+    qsearchFrm.elements[0].addEventListener("keypress", qsearchFrm.onenter);
+    qsearchFrm.oninput = function () {
+        var i = 0;
+        function clear () {qsearchFrm.warnFld.innerHTML = "";}
+        for (i=0; i < qsearchFrm.textFld.length; i++) {
+            qsearchFrm.textFld[i].addEventListener("input", clear); 
+        }
+    }
+    qsearchFrm.oninput();
+    qsearchFrm.openDetailsuche = function (event) 
+    {
+        /*
+        Eventhandler: 
+        Falls im qsearchFrm Eingabefeld auf der Tastatur "strg + enter" gedrückt wird
+        soll der "Detailsuche" Button angeklickt werden
+        */
+
+        if (event.ctrlKey === true && event.keyCode === 68 || event.ctrlKey === true && event.which === 68) {
+            event.preventDefault();
+            qsearchFrm.btn[1].click();
+        }
+    }
+    //qsearchFrm.elements[0].addEventListener("keydown", qsearchFrm.openDetailsuche, false);
+    qsearchFrm.go2dsearchBtn = function () {
+        qsearchFrm.formular.style.display = "none";
+        qsearchFrm.reset();
+        qsearchFrm.outFld.innerHTML = "";
+        dsearchFrm.formular.style.display = "";
+        dsearchFrm.elements[0].focus();
+    }
+    qsearchFrm.btn[1].addEventListener("click", qsearchFrm.go2dsearchBtn);    
+    qsearchFrm.smallScreen = function () {
+        var br = document.createElement("br");
+        if (screen.width < 550) { 
+            qsearchFrm.elements[0].size = "15";
+        } else {
+            qsearchFrm.elements[0].size = "30";
+        }
+    }
+    qsearchFrm.smallScreen();
+
+
+    // Detailsuche Formular dsearchFrm 
+
+    let dsearchFrm = new cformular(document.getElementById("dsearchFrm"), document.getElementById("dsearchFrmWarnFld"), document.getElementById("outFld"), document.getElementById("dsearchBtn"));
+    dsearchFrm.formular.style.display = "none";
+    dsearchFrm.newSbmt(
+        function () 
+        {
+            let elements = dsearchFrm.elements;
+            let data = {
+                autor1 : elements[0],
+                autor2 : elements[1],
+                jahr : elements[2],
+                t1 : elements[3], 
+                t2 : elements[4],
+                titel : elements[5],
+                verlag : elements[6],
+                standort : elements[7],
+                id : elements[8],
+                stichwort : elements[9],
+                hinweis : elements[10],
+                status : elements[11]
+            }
+            function conformAndValidateDSearchFrm(data) 
+            {
+                err = [];
+                let dataConformed = {
+                    autor1: conformAndValidateAuthor(data.autor1, 0, false),
+                    autor2: conformAndValidateAuthor(data.autor2, 1, false),
+                    jahr: conformAndValidateYear(data.jahr, 2, false),
+                    t1: conformAndValidateYear(data.t1, 3, false), 
+                    t2: conformAndValidateYear(data.t2, 4, false),
+                    titel: conformAndValidateStr(data.titel, 5, false, 500), 
+                    verlag: conformAndValidateStr(data.verlag, 6, false, 500),
+                    standort: data.standort.value,
+                    id: conformAndValidateID(data.id, 8, false),
+                    stichwort: conformAndValidateKeywords (data.stichwort, 9, false),
+                    hinweis: conformAndValidateComment (data.hinweis, 10, false),
+                    status: data.status.value
+                };
+                //Bedingung an die Zeitspanne:
+                function checkIfNull ()
+                {
+                    delete dataConformed.standort;
+                    delete dataConformed.status;
+                    return Object.values(dataConformed).every(o => o === null);
+                }
+                if (dataConformed.standort == "" && dataConformed.status == "") {
+                    let r = checkIfNull();
+                    if (r) {
+                        err[err.length] = "<null>" + "*" + "Bitte gib einen Suchbegriff ein";
+                    }
+                }
+                if ( dataConformed.t1 !== false && dataConformed.t2 !== false ) {
+                    if ( (dataConformed.t1 !== null && dataConformed.t2 == null) || (dataConformed.t2 !== null && dataConformed.t1 == null) || (dataConformed.t2 - dataConformed.t1 < 0) ) {
+                        err[err.length] = "timespan" + "*" + message[2];
+                        return false;         
+                    } 
+                    if (dataConformed.jahr !== false && dataConformed.jahr !== null && dataConformed.t1 !== null) {
+                        err[err.length] = "year" + "*" + message[1]("die Eingabe eines Erscheinungsjahres ODER eine Zeitspanne");
+                        return false;
+                    }
+                }
+                return dataConformed;
+            }
+        
+            data = conformAndValidateDSearchFrm(data); // typeof data = object
+            if (err.length !== 0) {
+                let firstError = err[0].split("*");
+                if (firstError[0] == "timespan") {
+                    elements[3].style.color = warnColor;
+                    elements[4].style.color = warnColor;
+                } else if (firstError[0] == "year") {
+                    elements[2].style.color = warnColor;
+                    elements[3].style.color = warnColor;
+                    elements[4].style.color = warnColor;
+                    elements[2].select();
+                } else {
+                    if (firstError[0] == "<null>") {
+                        elements[0].select();
+                    } else {
+                        elements[firstError[0]].style.color = warnColor;
+                        elements[firstError[0]].select();
+                    }
+                }
+                dsearchFrm.warnFld.innerHTML = firstError[1];
+                return false;
+            } else {
+                dsearchFrm.warnFld.innerHTML = "";
+                qsearchFrm.outFld.innerHTML = "";
+                (async () =>
+                {
+                    let limit = 100;
+                    let offset = 0;
+                    function getResult (limit, offset) { return dsearchDBRequest(data, limit, offset); }
+                    let result = await getResult(limit, offset);
+                    if (result === false) {
+                        dsearchFrm.warnFld.innerHTML = "Kein Suchergebnis";
+                    } else {
+                        showResult (result, qsearchFrm.outFld, dsearchFrm.warnFld, "dResTbl", "dSortSel", getResult, limit, offset);
+                    }
+                })();
+                return true;
+            }
+        }
+    )
+    dsearchFrm.onenter = function (event) 
+    {
+        let i = 0;
+        function checkKey (event) 
+        {
+            if (event.keyCode == 13 || event.which == 13) {
+                dsearchFrm.sbmtBtn.click();
+            }
+        }
+        for (i = 0; i < dsearchFrm.inFld.length; i++) {
+            dsearchFrm.inFld[i].addEventListener("keypress", checkKey);
+        }
+    }
+    dsearchFrm.openSchnellsuche = function (event) 
+    {
+        /*
+        Eventhandler: 
+        Falls in dsearchFrm Eingabefeld auf der Tastatur "strg + enter" gedrückt wird
+        soll der "Schnellsuche" Button angeklickt werden
+        */
+
+        if (event.ctrlKey === true && event.keyCode === 83 || event.ctrlKey === true && event.which == 83) {
+            event.preventDefault();
+            dsearchFrm.btn[1].click();
+        }
+    }
+    dsearchFrm.oninput = function () {
+            if (this.style.color == warnColor) { 
+                if (this == dsearchFrm.elements[3] || this == dsearchFrm.elements[4]) {
+                    dsearchFrm.elements[3].style.color = defaultColor;
+                    dsearchFrm.elements[4].style.color = defaultColor;
+                } else if (this == dsearchFrm.elements[2] && 
+                    (dsearchFrm.elements[3].style.color == warnColor || dsearchFrm.elements[4].style.color == warnColor)) {
+                    dsearchFrm.elements[2].style.color = defaultColor;
+                    dsearchFrm.elements[3].style.color = defaultColor;
+                    dsearchFrm.elements[4].style.color = defaultColor;
+                } else {
+                    this.style.color = defaultColor; 
+                }
+            }
+            if (dsearchFrm.warnFld !== undefined) { dsearchFrm.warnFld.innerHTML = ""; }
+    }
+    dsearchFrm.go2qsearchBtn = function () {
+        dsearchFrm.formular.style.display = "none";
+        dsearchFrm.reset();
+        dsearchFrm.outFld.innerHTML = "";
+        qsearchFrm.warnFld.innerHTML = "";
+        qsearchFrm.formular.style.display = "";
+        qsearchFrm.elements[0].focus();
+    }
+
+    dsearchFrm.onenter(event);
+    dsearchFrm.sbmtBtn.addEventListener("click", dsearchFrm.sbmt);
+    dsearchFrm.btn[1].addEventListener("click", dsearchFrm.go2qsearchBtn);
+    for (var i = 0; i < dsearchFrm.textFld.length; i++) {
+        dsearchFrm.textFld[i].addEventListener("input", dsearchFrm.oninput); 
+        //dsearchFrm.elements[i].addEventListener("keydown", dsearchFrm.openSchnellsuche);
+    }
+
+/*
+    General Event listeners
+*/
+
+document.getElementsByTagName("body")[0].addEventListener("keydown", qsearchFrm.openDetailsuche, false);
+document.getElementsByTagName("body")[0].addEventListener("keydown", dsearchFrm.openSchnellsuche, false);
+
+/* 
+    DATABASE REQUEST
+*/
+
+async function qsearchDBRequest (searchStr, limit, offset) 
+{
+    let matchingIDs = [];
+    if (searchStr.length === 1) { //titel oder autor
+        matchingIDs = await sqr(sqlTitelID(searchStr, limit, offset), [], matchingIDs);
+        matchingIDs = await sqr(sqlAutorID(searchStr, limit, offset), [], matchingIDs);
+    } else {
+        if (searchStr[1] === "") { //autor
+            matchingIDs = await sqr(sqlAutorID(searchStr[0], limit, offset), [], matchingIDs);
+        }
+        if (searchStr[0] === "") { //titel
+            matchingIDs = await sqr(sqlTitelID(searchStr[1], limit, offset), [], matchingIDs);
+        }
+        if (searchStr[0] !== "" && searchStr[1] !== "") { //titel und autor
+            matchingIDs = await sqr(sqlTitelID(searchStr[1], limit, offset), [], matchingIDs);
+            matchingIDs = await sqr(sqlAutorID(searchStr[0], limit, offset), [], matchingIDs);
+        }
+    }
+    matchingIDs = matchingIDs.map((item) => {return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid].toString(); }).filter(onlyUnique).map((item) => {return item.split(",").map(Number)});
+
+    if (matchingIDs.length === 0) { // No entry in DB found
+        return false;
+    } else {
+        return findMediaResultArr(matchingIDs);
+    }
+}
+
+async function dsearchDBRequest (data, limit, offset)
+{
+    let i = 0;
+    let matchingIDs = [];   
+    let tablesToJoin = "";
+    let constraint = [];
+
+    if (data.autor1 !== null && data.autor2 === null) {
+        constraint.push("(autor LIKE '%" + data.autor1 + "%')");
+    }
+    if (data.autor2 !== null && data.autor1 === null) {
+        constraint.push("(autor LIKE '%" + data.autor2 + "%')");
+    }
+    if (data.autor1 !== null && data.autor2 !== null) {
+        tablesToJoin += "LEFT OUTER JOIN ( \
+            SELECT objektid, zeitschriftid, buchid, aufsatzid, \
+            autornr, name ||', '|| vorname as autor2 \
+            FROM relautor \
+            INNER JOIN autor id ON autorid = id \
+            ) USING (objektid, zeitschriftid, buchid, aufsatzid)";
+        constraint.push("(autor LIKE '%" + data.autor1 + "%' AND autor2 LIKE '%" + data.autor2 + "%')");
+    }
+    if (data.jahr !== null) {
+        constraint.push("(jahr = " + data.jahr + ")");
+    } else if (data.t1 !== null && data.t2 !== null) {
+        constraint.push("(jahr >= " + data.t1 + " AND jahr <= " + data.t2 + ")");
+    }
+    if (data.verlag !== null) {
+        tablesToJoin += "LEFT OUTER JOIN ( \
+            SELECT zeitschriftid, j AS journal FROM relzeitschrift \
+                LEFT OUTER JOIN ( \
+                    SELECT id AS i, journal AS j FROM zeitschrift \
+                ) ON relzeitschrift.id = i \
+            ) USING (zeitschriftid)";
+        constraint.push("(verlag LIKE '%" + data.verlag + "%' OR journal LIKE '%" + data.verlag + "%')");
+    }
+    if (data.id !== null) {
+        constraint.push("(objektid = '" + data.id + "')");
+    }
+    if (data.stichwort !== null && data.stichwort.length > 0) {
+        tablesToJoin += "LEFT OUTER JOIN ( \
+            SELECT objektid, zeitschriftid, buchid, aufsatzid, stichwort FROM relStichwort \
+            INNER JOIN stichwort id ON id = stichwortID \
+            ) USING (objektid, zeitschriftid, buchid, aufsatzid)";
+        constraint.push("(stichwort LIKE '%" + data.stichwort[0] + "%')");
+    }
+    if (data.hinweis !== null) {
+        constraint.push("(hinweis LIKE '%" + data.hinweis + "%')");
+    }
+    if (data.titel !== null) {
+        constraint.push("(titel LIKE '%" + data.titel + "%')");
+    }
+    if (data.standort !== undefined) {
+        if (data.standort !== "") {
+            constraint.push("(standortsgn = '" + 
+                document.getElementById('standort')
+                .options[document.getElementById('standort').options.selectedIndex]
+                .innerHTML + "')");
+        }
+    }
+    if (data.status !== undefined) {
+        if (data.status !== "") {
+            constraint.push("(status = '" + 
+                document.getElementById('status')
+                .options[document.getElementById('status').options.selectedIndex]
+                .value + "')");
+        }
+    }
+    constraint = constraint.join(" AND ");
+    matchingIDs = await sqr(sqlDetailedSearchID(tablesToJoin, constraint, limit, offset), [], matchingIDs);
+    matchingIDs = matchingIDs.map((obj) => {return [obj.objektid, obj.zeitschriftid, obj.buchid, obj.aufsatzid]
+        .toString();}).filter(onlyUnique).map((item) => {return item.split(",").map(Number)});
+    if (matchingIDs.length === 0) { // No entry in DB found
+        return false;
+    } else {
+        return findMediaResultArr(matchingIDs);
+    }
+}
+
+cStandorteOptions(document.getElementById("standort"));
+
+function esc (event)
+{
+    if (event.keyCode === 27 || event.which === 27) {
+        event.preventDefault();
+        if (qsearchFrm.formular.style.display === "none") {
+            return dsearchFrm.elements[0].select();
+        } else {
+            return qsearchFrm.elements[0].select();
+        }
+    } else {return false;}
+}
+document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
+</script>
+
+</body>
+
+<footer>
+</footer>
+
+</html>

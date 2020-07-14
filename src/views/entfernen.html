@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ksbib | Medien Löschen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
+    <script src="../app/main.js"></script>
+    <script src="../app/validation.js"></script>
+    <script src="../app/sql.js"></script>
+    <script src="../app/findMedia.js"></script>
+    <script src="../app/sqlproc.js"></script>
+</head>         
+
+
+<body onunload="delFrm.reset();">
+
+<header>
+    <h1 id="headerTitel">Medien Löschen</h1>
+</header>
+<nav>
+    <ul class="dropdown">
+        <a href="index.html" id="navMedien">Medien</a>
+        <div class="dropdown-content">
+            <a href="sachgebietssuche.html">Sachgebietssuche</a>
+            <a href="neuaufnahme.html">Hinzufügen</a>
+            <a href="bearbeiten.html">Bearbeiten</a>
+            <a href="entfernen.html">Entfernen</a>
+        </div>
+    </ul>
+    <ul class="dropdown">
+        <a href="sonstiges.html" id="navSonstiges">Sonstiges</a>
+        <div class="dropdown-content">
+            <a href="standorte.html">Standorte</a>
+            <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="doku.html">Dokumentation</a>
+        </div>
+    </ul>
+    <ul class="floatright">
+        <a id="navBeenden" onclick="closeApp()">&#x23FC;</a>
+    </ul>    
+</nav>
+
+<article>
+
+    <form id='delFrm' class="center">
+        <div class='rTable'>
+        <div class='rTableBody'>
+            <div class='rTableRow'>
+                <div class="rTableCell">
+                    <label for="delStr">ID</label>
+                </div>
+                <div class='rTableCell'>
+                    <input type="text" id="delStr" class="txt" size="5" autofocus>
+                </div>
+                <div class='rTableCell'>
+                    <input type="button" id="delOKBtn" class="btn" value="OK">
+                </div>
+                <div class='rTableCell'>
+                    Medium ID <a href="index.html">suchen</a>
+                </div>
+            </div>
+        </div>
+        </div>
+        <div id="delFrmWarnFld" class="warning center"></div>
+        <div id="outFld" class="info left" style="max-width: 600px">
+            Bitte gib die ID des Mediums ein, das Du löschen möchtest. Die ID ist der Zähler in
+            der Signatur, z.B. "400" bei dem Medium mit Signatur "WS-1 400".
+        </div>
+        <div class="center margin">
+            <input type="button" name="delDelBtn" value="Löschen" class="btn" style="display: none">
+            <input type="button" name="delAbbrBtn" value="Abbrechen" class="btn" style="display: none">
+        </div>
+    </form>
+        
+
+</article>
+
+<script src="../app/shortkeys.js"></script>
+<script>
+    /*
+        FORMULARE
+    */
+
+    let typeOfMedium;
+    let delFrm = new cformular(document.getElementById("delFrm"), document.getElementById("delFrmWarnFld"), document.getElementById("outFld"), document.getElementById("delOKBtn"));
+    delFrm.newSbmt( async function ()
+    {
+        delFrm.outFld.innerHTML = "";
+        let id = delFrm.elements[0].value;
+        if (id === "") {
+            return delFrm.warnFld.innerHTML = "Bitte gib eine ID ein";
+        } else {
+            delFrm.warnFld.innerHTML = "";
+            let result = await dbGet(sql[29],id).catch(err => 
+                {
+                    console.log(err); 
+                    return delFrm.warnFld.innerHTML = "Zu der ID gibt es kein Medium in der Datenbank";
+                });
+            if (delFrm.warnFld.innerHTML === "") {
+                result = [[result.objektid, result.zeitschriftid, result.buchid, result.aufsatzid]];
+                result = await findMediaResultArr(result);
+                
+                let resID = result[0][0]; 
+                let resMedientyp = result[0][4];
+                let resAutoren = (result[0][1] === "") ? "<br>" : result[0][1] + "<br>";
+                let resTitelUndVerweise = "<i>" + result[0][2] + "</i> ";
+                let resJahr = (result[0][6] === "") ? "" : result[0][3];
+
+                delFrm.btn[1].style.display = "";
+                delFrm.btn[2].style.display = "";
+                delFrm.btn[1].focus();
+
+                typeOfMedium = resMedientyp;
+                return delFrm.outFld.innerHTML = "<b>" + resMedientyp + " mit ID " + resID + " löschen ?</b><p>" 
+                + resAutoren + resTitelUndVerweise + resJahr + " </p><p>" 
+                + "<br> Standort: " + result[0][5] + "<br> Status: " + result[0][6] + "</p>";
+            } else {
+                delFrm.elements[0].select();
+                return false;
+            }
+        }
+    });
+    delFrm.newReset(() =>
+    {
+        delFrm.outFld.innerHTML = "";
+        delFrm.elements[0].value = "";
+        delFrm.btn[1].style.display = "none";
+        delFrm.btn[2].style.display = "none";
+        delFrm.elements[0].focus();
+        return "reset";
+    });
+    delFrm.onenter = function (event) 
+    {
+        function checkKey (event) {
+            if (event.keyCode == 13 || event.which == 13) {
+                event.preventDefault();
+                delFrm.sbmtBtn.click();
+            } else {return;}
+        }
+        delFrm.textFld[0].addEventListener("keypress", checkKey);
+    }
+    delFrm.oninput = function ()
+    {
+        return delFrm.elements[0].addEventListener("input", ()=>
+        {
+            delFrm.btn[1].style.display = "none";
+            delFrm.btn[2].style.display = "none";
+            delFrm.outFld.innerHTML = "";
+            return delFrm.warnFld.innerHTML = "";
+        });
+    }
+    delFrm.onDelete = async function ()
+    {
+        let id = Number(delFrm.elements[0].value);
+        let confirm = window.confirm("Medium mit id " + id + " löschen?");
+        if (confirm === true) {
+            async function callback (boolean)
+            {
+                if (boolean) {
+                    delFrm.reset();
+                    return delFrm.warnFld.innerHTML = "Das Medium mit id " + id + " wurde gelöscht";
+                } else {
+                    delFrm.warnFld.innerHTML = "Das Medium mit id " + id + " konnte nicht gelöscht werden";
+                    return false;
+                }
+            }
+            let procDelMedium = new cSQLProcessor(callback);
+            if (typeOfMedium === "Zeitschrift") {
+                procDelMedium.add(sql[80], [id], "zeitschriftid");
+                procDelMedium.add(sql[32], [id]); 
+                procDelMedium.add(sql[79], ["zeitschriftid"]);
+            } else if (typeOfMedium === "Buch") {
+                procDelMedium.add(sql[81], [id], "buchid");
+                procDelMedium.add(sql[32], [id]); 
+                procDelMedium.add(sql[82], ["buchid"]);
+            } else {
+                procDelMedium.add(sql[32], [id]); 
+            }
+
+            procDelMedium.run();
+        } else {
+            return false;
+        }
+    }
+    delFrm.btn[2].addEventListener("click", delFrm.reset);
+    delFrm.btn[1].addEventListener("click", delFrm.onDelete);
+    delFrm.sbmtBtn.addEventListener("click", delFrm.sbmt);
+    delFrm.onenter();
+    delFrm.oninput();
+
+    function esc (event, callback)
+    {
+        if (event.keyCode === 27 || event.which === 27) {
+            event.preventDefault();
+            return delFrm.elements[0].select();
+        } else {return false;}
+    }
+    document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
+    document.getElementsByTagName("body")[0].addEventListener("keydown", function () 
+    {
+        return strgC(event, document.getElementsByName("delAbbrBtn")[0])
+    }, false);
+     
+</script>
+
+</body>
+
+<footer>
+</footer>
+</html>

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ksbib | Sachgebiete</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
+    <script src="../app/main.js"></script>
+    <script src="../app/validation.js"></script>
+    <script src="../app/sql.js"></script>
+    <script src="../app/table.js"></script>
+    <script src="../app/sachgebiete-u-standorte-bearbeiten.js"></script>
+    <script src="../app/sqlproc.js"></script>
+</head>         
+
+
+<body onunload="sgFrm.reset();">
+
+<header>
+    <h1 id="headerTitel">Sachgebiete</h1>
+</header>
+
+<nav>
+    <ul class="dropdown">
+        <a href="index.html" id="navMedien">Medien</a>
+        <div class="dropdown-content">
+            <a href="sachgebietssuche.html">Sachgebietssuche</a>
+            <a href="neuaufnahme.html">Hinzufügen</a>
+            <a href="bearbeiten.html">Bearbeiten</a>
+            <a href="entfernen.html">Entfernen</a>
+        </div>
+    </ul>
+    <ul class="dropdown">
+        <a href="sonstiges.html" id="navSonstiges">Sonstiges</a>
+        <div class="dropdown-content">
+            <a href="standorte.html">Standorte</a>
+            <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="doku.html">Dokumentation</a>
+        </div>
+    </ul>
+    <ul class="floatright">
+        <a id="navBeenden" onclick="closeApp()">&#x23FC;</a>
+    </ul>    
+</nav>
+
+<article>
+
+<h1 id="title">Sachgebiete bearbeiten</h1>
+    <form id="sgFrm">
+        <div class='rTable'><div class='rTableBody'>
+            <div class='rTableRow'>
+                <div class="rTableCell middle">
+                    <label for="osgNr">Nr</label><br>
+                    <input type="text" id="osgNr" size="4" class = "txt" autofocus="autofocus">
+                </div>
+                <div class="rTableCell middle"><br>
+                    <input type="button" id="sgOKBtn" value="OK" class="btn">
+                </div>
+            </div>
+        </div></div>
+        <div id="sgWarnFld" class="warning center"></div>
+    </form>
+
+    <div id="outFld">
+    <div id="info" class="info">
+    <p>
+        Gib die Nummer eines Obersachgebietes ein, um dessen Untersachgebiete zu bearbeiten.
+        Falls Du die Obersachgebiete bearbeiten willst, laß das Eingabefeld leer.
+    </p>
+    <p>
+        Einträge in den Sachgebietstabellen kannst Du mit der Tastatur per Pfeiltasten ansteuern. 
+        Wenn Du "Shift" drückst oder mit der Maus auf ein Sachgebiet klickst, kannst Du die Sachgebietsnamen 
+        verändern. Indem Du auf "Entf" drückst, wird das Sachgebiet zum Löschen markiert (nochmal "Entf hebt die
+        Markierung wieder auf). Mit ESC gelangst Du zurück zum Eingabefeld.
+    </p>
+    <p>
+        Wenn Du ein Obersachgebiet löschst, werden alle darunterfallenden Untersachgebiete ebenfalls
+        gelöscht. Falls es noch Medien gibt, die mit dem zu löschenden Sachgebiet verknüpft sind, kann
+        das Sachgebiet nicht gelöscht werden. Dann musst Du erst die Verknüpfung zu dem Medium aufheben.
+    </p>
+    </div>
+    </div>
+
+    <div class = "info center margin">
+        <p>Liste der aktuellen Sachgebiete <a href="drucken-sachgebiete.html" target="_blank">drucken</a></p>
+    </div>
+
+</article>
+
+<script src="../app/shortkeys.js"></script>
+<script>
+
+    let sgFrm = new cformular(
+        document.getElementById("sgFrm"),
+        document.getElementById("sgWarnFld"),
+        document.getElementById("outFld"), 
+        document.getElementById("sgOKBtn")        
+    );
+    sgFrm.oninput = function ()
+    {
+        if (this.style.color == warnColor) {
+            this.style.color = defaultColor;
+        }
+        sgFrm.warnFld.innerHTML = "";
+    }
+    sgFrm.onenter = function (event)
+    {
+        if (event.keyCode === 13 || event.which === 13) {
+            event.preventDefault();
+            return sgFrm.sbmtBtn.click();
+        } else { return false; }
+    }
+    sgFrm.newReset (function ()
+    {
+        sgFrm.outFld.innerHTML = `
+            <div id="info" class="info">
+                <p>
+                    Gib die Nummer eines Obersachgebietes ein, um dessen Untersachgebiete zu bearbeiten.
+                    Falls Du die Obersachgebiete bearbeiten willst, laß das Eingabefeld leer.
+                </p>
+                <p>
+                    Einträge in den Sachgebietstabellen kannst Du mit der Tastatur per Pfeiltasten ansteuern. 
+                    Wenn Du die "Leertaste" drückst oder mit der Maus auf ein Sachgebiet klickst, kannst Du 
+                    die Sachgebietsnamen verändern. Indem Du auf "Entf" drückst, wird das Sachgebiet zum Löschen 
+                    markiert (nochmal "Entf hebt die Markierung wieder auf). Mit ESC gelangst Du zurück zum 
+                    Eingabefeld.
+                </p>
+                <p>
+                    Wenn Du ein Obersachgebiet löschst, werden alle darunterfallenden Untersachgebiete ebenfalls
+                    gelöscht. Falls es noch Medien gibt, die mit dem zu löschenden Sachgebiet verknüpft sind, kann
+                    das Sachgebiet nicht gelöscht werden. Dann musst Du erst die Verknüpfung zu dem Medium aufheben.
+                </p>
+            </div>`;
+        sgFrm.formular.style.display = "";
+        document.getElementById("title").innerHTML = "Sachgebiete bearbeiten";
+        sgFrm.textFld[0].value = "";
+        return sgFrm.textFld[0].focus();
+    })
+    sgFrm.newSbmt (async function () 
+    {
+        //REQUIRES validation.js
+        //err: Array from validation.js
+        err = [];
+        let choice;   // values "osg" OR "usg"
+        let sgnr = strtrim(sgFrm.textFld[0].value);
+
+        function prepareData (data)
+        {
+            let arr = data.map(item => 
+            {
+                if (item.id%100 === 0) {
+                    return [item.id, item.sachgebiet];
+                } else {
+                    return [item.id, item.sachgebiet];
+                }
+            });
+            return arr;
+        }
+        function createFormularCallback (choice)
+        {
+            sgFrm.formular.setAttribute("style", "display: none");
+            if (choice === "usg") {
+                document.getElementById("title").innerHTML = "Untersachgebiete bearbeiten";
+            } else {
+                document.getElementById("title").innerHTML = "Obersachgebiete bearbeiten";
+            }
+            return choice;
+        }
+
+        if (sgnr === "") { //Obersachgebiete bearbeiten (cf. trigger osg_exists: an osg always exists)
+            let osgArr = await dbAll(sql[33], []).catch(err => {return console.error(err)});
+            choice = await createFormular(sgFrm, "Neues OSG", function () {return createFormularCallback("osg")});
+            document.getElementById("fld").focus();
+            cOutputTbl(document.getElementById("outTbl"),"sgTbl",["Nr", "Obersachgebiet"],prepareData(osgArr), true);
+            tblAddEventListenerArrow();
+        } else { //Untersachgebiete zu einem OSG bearbeiten
+            if (Number(strtrim(sgFrm.textFld[0].value))%100 !== 0) {
+                sgFrm.warnFld.innerHTML = `Das ist keine Sachgebietsnummer eines Obersachgebietes`;
+                return false;
+            } 
+            sgnr = conformAndValidateSachgebietsnr(sgFrm.textFld[0],0, false);
+            if (err.length>0) {
+                let firstError = err[0].split("*");
+                sgFrm.warnFld.innerHTML = firstError[1];
+                return false;   
+            }
+            let usgArr = await dbAll(sql[34], [sgnr]).catch(err => {return console.error(err)});
+            if (usgArr === undefined) {
+                sgFrm.warnFld.innerHTML = "Es gibt kein Obersachgebiet mit dieser Nr";
+                return false;
+            }
+            selOSG = [usgArr[0].id, usgArr[0].sachgebiet];
+            usgArr = usgArr.filter(item => {return !(usgArr.indexOf(item) === 0)});
+            choice = await createFormular(sgFrm, "Neues USG", function () {return createFormularCallback("usg")});
+            document.getElementById("fld").focus();
+            cOutputTbl(document.getElementById("outTbl"),"sgTbl",[selOSG[0], selOSG[1]],prepareData(usgArr), true);
+            tblAddEventListenerArrow();
+        }
+
+        let newDatum = document.getElementById("fld");
+        let warning = document.getElementById("warnTbl");
+        let plus = document.getElementById("OKBtn");
+        let abbr = document.getElementById("abbrBtn");
+        let save = document.getElementById("saveBtn");
+        let oldrows = Array.from(document.getElementsByName("sgTbl")[0].rows);
+        let updatedRows = [];        
+        let errRows = [];
+        let p = [];
+        
+        function addEventListenersToOldRows ()
+        {
+            oldrows.forEach(row =>
+            {
+                if (oldrows.indexOf(row) === 0) {
+                    return row;
+                } else {
+                    row.setAttribute("class", "hoverable");
+                }
+            });
+            if (oldrows.length > 1) {
+                Array.from(document.getElementsByName("tblBtn")).forEach(btn => 
+                    {
+                        btn.addEventListener("keypress", function () 
+                        {
+                            return keypressBtn(event, btn, newDatum);
+                        });
+                        btn.addEventListener("focusout", function () 
+                        {
+                            if (btn.parentElement.parentElement.style.backgroundColor === tblHoverColor) {
+                                btn.parentElement.parentElement.removeAttribute("style");
+                            }
+                        });
+                    });
+                Array.from(document.getElementsByName("tblTxtFld")).forEach(sg => 
+                {
+                    sg.addEventListener("keydown", keypressSgInput);
+                    sg.addEventListener("input", function () 
+                    {
+                        if (sg.style.color = "red") {
+                            sg.style.color = "";
+                        }
+                        return warning.innerHTML = "";
+                    });
+                    sg.addEventListener("change", function ()
+                    {
+                        let change = strtrim(this.value);
+                        let changeRowIndex = oldrows.indexOf(this.parentElement.parentElement);
+                        let newrowsDataArr = Array.from(document.getElementsByClassName("neu"))
+                            .map(btn => {return btn.parentElement.parentElement.children[1].firstElementChild.value});
+                        let n = Array.from(document.getElementsByName("tblTxtFld"))
+                            .map(element=>{return strtrim(element.value)})
+                            .filter(value => {return value === change}).length;
+                        if (change !== "") {
+                            if (newrowsDataArr.includes(change) || n > 1) {
+                                warning.innerHTML = "Das Sachgebiet kommt mehrfach vor";
+                                errRows.push(changeRowIndex);
+                                return this.select();       
+                            } else {
+                                err = [];
+                                change = conformAndValidateSachgebietName(this, 0, false, 100);
+                                if (err.length > 0 ) {
+                                    let firstError = err[0].split("*");
+                                    warning.innerHTML = firstError[1];
+                                    errRows.push(changeRowIndex);
+                                    return this.select();
+                                } else {
+                                    errRows = errRows.filter(i => {return (i !== changeRowIndex)});
+                                    return updatedRows.push(changeRowIndex);
+                                }
+                            }
+                        } else {
+                            return sg.parentElement.parentElement.style.backgroundColor = tblSelColor; 
+                        }
+                    });
+                });
+            }
+        }
+
+        function addNewSgToTable ()
+        {
+            err = [];   //from validation.js
+            let sachgebiet = conformAndValidateSachgebietName(newDatum, 0, true, 100);
+            let newrowsDataArr = Array.from(document.getElementsByClassName("neu"))
+                .map(btn => {return btn.parentElement.parentElement.children[1].firstElementChild.value});
+            let oldrowsDataArr = Array.from(document.getElementsByName("tblTxtFld"))
+                .map(element=>{return element.value});
+            if (err.length > 0 ) {
+                let firstError = err[0].split("*");
+                warning.innerHTML = firstError[1];
+                return newDatum.select();
+            } else if (oldrowsDataArr.includes(sachgebiet) || newrowsDataArr.includes(sachgebiet)) {
+                warning.innerHTML = `Das Sachgebiet ist bereits in der Tabelle`;
+                return newDatum.select();
+            } else {
+                function addToTableCallback () 
+                {
+                    newDatum.value = "";
+                    return newDatum.focus(); 
+                }
+                return addToTable(["+", sachgebiet], "sgTbl", addToTableCallback, newDatum);
+            }
+        }
+
+        async function saveData (oldRows, updatedRows, tablename, choice, sgnr, errRows)
+        {
+            /*
+                Notice: the remove procedure requires that when media are added or changed in the database
+                and related to a usg, it will always automatically also be related to the respective osg
+            */
+
+            //to Remove, toUpdate: array of [ID, SGName]; toAdd: Array of SG names;
+            let toRemove = Array.from(document.getElementsByName(tablename)[0].rows)    
+                .filter(row => {return row.style.backgroundColor === tblSelColor})
+                .map(row => 
+                {
+                    return [row.firstElementChild.firstElementChild.value, row.lastElementChild.firstElementChild.value];
+                });
+            let toAdd = Array.from(document.getElementsByClassName("neu"))
+                .map(btn => {return btn.parentElement.parentElement.children[1].firstElementChild.value});
+            let toUpdate = [];
+            updatedRows = updatedRows.filter(onlyUnique).filter(index => {return !(errRows.includes(index))});
+            updatedRows.forEach(index =>
+            {
+                if (oldrows[index].style.backgroundColor !== tblSelColor) {
+                    return toUpdate.push(
+                        [oldrows[index].firstElementChild.firstElementChild.value, 
+                        oldrows[index].lastElementChild.firstElementChild.value]
+                    );
+                } else {
+                    return false;
+                }
+            });
+            async function dbRequest (choice)
+            {
+                let nonRemovables = [];
+                function callback (boolean) 
+                {
+                    if (boolean) {
+                        if (nonRemovables.length > 0) {
+                            sgFrm.reset();
+                            sgFrm.warnFld.innerHTML = `Die Änderungen wurden gespeichert. 
+                                Folgende Sachgebiete konnten nicht gelöscht werden,
+                                da ihnen vorhandene Medien zugeordnet sind:`;
+                            sgFrm.outFld.innerHTML = "";
+                            return cOutputTbl(sgFrm.outFld,"nonRemovablesTbl",["Nr", "Sachgebiete"], nonRemovables);
+                        } else {
+                            sgFrm.warnFld.innerHTML = `Die Änderungen wurden gespeichert`;
+                            return sgFrm.reset();
+                        }
+                    }
+                }
+                let procMedium = new cSQLProcessor(callback);
+                if (toUpdate.length > 0) {
+                    toUpdate = await toUpdate.map(sgArr => {return procMedium.add(sql[87], [sgArr[1], sgArr[0]])});
+                }
+                if (toRemove.length > 0) {
+                    toRemove = await Promise.all(toRemove.map(async (sgArr) => 
+                    {
+                        let result = await dbGet(sql[89], sgArr[0]).catch(err => {return console.error(err)});
+                        if (result !== undefined) { // don't remove
+                            return nonRemovables.push(sgArr);
+                        } else {    // remove
+                            if (choice === "usg") {
+                                return procMedium.add(sql[86], [sgArr[0]]);
+                            } else {
+                                return procMedium.add(sql[90], [sgArr[0]]);
+                            }
+                        }
+                    }));
+                } 
+                if (toAdd.length > 0) {
+                    if (choice === "osg") {
+                        let minid = (await dbGet(`SELECT MIN(id) AS id FROM sachgebiet`,[])).id;
+                        if (minid === 0) {
+                            toAdd = await toAdd.map(sgName =>
+                            {
+                                procMedium.add(sqlFindGapOSGSachgebiete(), []);
+                                return procMedium.add(sql[88], function (result) {return [result, sgName]});
+                            });
+                        } else {
+                            toAdd = await toAdd.map(sgName =>
+                            {
+                                if (toAdd.indexOf(sgName)===0) {
+                                    return procMedium.add(sql[88], [0, sgName]);    
+                                } else {
+                                    procMedium.add(sqlFindGapOSGSachgebiete(), []);
+                                    return procMedium.add(sql[88], function (result) {return [result, sgName]});
+                                }
+                            });
+                        }
+                    } else {
+                        toAdd = await toAdd.map(sgName =>
+                        {
+                            procMedium.add(sqlFindGapUSGSachgebiete(sgnr), []);
+                            return procMedium.add(sql[88], function (result) {return [result, sgName]});
+                        });
+                    }
+                }
+                let res = procMedium.run();
+                if (res === "No SQL Process") {
+                    if (nonRemovables.length > 0) {
+                        sgFrm.reset();
+                        sgFrm.warnFld.innerHTML = `Die Änderungen konnten nicht gespeichert werden. Folgende Sachgebiete wurden nicht nicht gelöscht, da ihnen vorhandene Medien zugeordnet sind:`;
+                        sgFrm.outFld.innerHTML = "";
+                        return cOutputTbl(sgFrm.outFld,"nonRemovablesTbl",["Nr", "Sachgebiete"], nonRemovables);
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            //Validation AND DBrequest
+            if (toRemove.length + toUpdate.length + toAdd.length + errRows.length === 0) {
+                warning.innerHTML = "Es wurden keine Änderungen vorgenommen";
+                return false;
+            } else if (errRows.length > 0) {
+                if (window.confirm("Einige der Änderungen sind ungültig und können nicht übernommen werden. Sachgebietsliste dennoch speichern ?")) {
+                    return dbRequest(choice);   
+                } else {
+                    errRows.forEach(index => 
+                    {
+                        return oldrows[index].lastElementChild.firstElementChild.style.color = "red"
+                    });
+                    return false;
+                }
+            } else {
+                if (window.confirm("Sachgebietsliste speichern ?")) {
+                    return dbRequest(choice);   
+                } else {
+                    return false;
+                }
+            }        
+        }
+
+        addEventListenersToOldRows(); 
+        newDatum.addEventListener("focus", function () {return onfocusNewInput("sgTbl")});
+        newDatum.addEventListener("focusout", function () {return warning.innerHTML = ""});
+        newDatum.addEventListener("keypress", onEnterNewInput);
+        newDatum.addEventListener("keydown", function () { return enterTableOnArrowDown(event, "sgTbl") });
+        newDatum.addEventListener("input", function () {return warning.innerHTML = ""});
+        abbr.addEventListener("click", function () {return sgFrm.reset()});
+        plus.addEventListener("click", addNewSgToTable);
+        save.addEventListener("focus", function () {return onfocusNewInput("sgTbl")});
+        save.addEventListener("click", function () {return saveData(oldrows, updatedRows, "sgTbl", choice, sgnr, errRows)});
+        document.getElementsByTagName("body")[0]
+            .addEventListener("keydown", function () {return strgC(event, abbr)}, false);
+    })
+
+    sgFrm.sbmtBtn.addEventListener("click", sgFrm.sbmt);
+    Array.from(sgFrm.textFld).forEach(field => 
+    {
+        field.addEventListener("keypress",sgFrm.onenter);
+        field.addEventListener("keydown",  sgFrm.oninput);
+    });
+
+    // Shortkeys
+
+    function esc (event)
+    {
+        if (event.key === "Escape" || event.code === "Escape") {
+            event.preventDefault();
+            if (sgFrm.formular.style.display === "none") {
+                if (document.activeElement.parentElement.parentElement !== null &&
+                    document.activeElement.parentElement.parentElement.style.backgroundColor === tblHoverColor) {
+                    document.activeElement.parentElement.parentElement.style.backgroundColor = tblDefaultColor;
+                }
+                document.getElementById("fld").select();
+            } else {
+                sgFrm.textFld[0].select();
+            }
+        }
+    }
+
+    document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
+
+</script>
+
+</body>
+
+<footer>
+</footer>
+
+</html>

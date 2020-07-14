@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ksbib | Standorte</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
+    <script src="../app/main.js"></script>
+    <script src="../app/validation.js"></script>
+    <script src="../app/sql.js"></script>
+    <script src="../app/table.js"></script>
+    <script src="../app/sachgebiete-u-standorte-bearbeiten.js"></script>
+    <script src="../app/sqlproc.js"></script>
+</head>         
+
+
+<body>
+
+<header>
+    <h1 id="headerTitel">Standorte</h1>
+</header>
+
+<nav>
+    <ul class="dropdown">
+        <a href="index.html" id="navMedien">Medien</a>
+        <div class="dropdown-content">
+            <a href="sachgebietssuche.html">Sachgebietssuche</a>
+            <a href="neuaufnahme.html">Hinzufügen</a>
+            <a href="bearbeiten.html">Bearbeiten</a>
+            <a href="entfernen.html">Entfernen</a>
+        </div>
+    </ul>
+    <ul class="dropdown">
+        <a href="sonstiges.html" id="navSonstiges">Sonstiges</a>
+        <div class="dropdown-content">
+            <a href="standorte.html">Standorte</a>
+            <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="doku.html">Dokumentation</a>
+        </div>
+    </ul>
+    <ul class="floatright">
+        <a id="navBeenden" onclick="closeApp()">&#x23FC;</a>
+    </ul>    
+</nav>
+
+<article>
+
+<form id="stoFrm">
+    <div class="rTable">
+        <div class="rTableBody">
+            <div class="rTableRow margin-bottom">
+                <div class="rTableCell middle">
+                    <label for="fld">Standort</label><br>
+                    <input type="text" id="fld" size="30" autofocus="autofocus">
+                </div>
+                <div class="rTableCell middle">
+                    <label for="fld2">Signatur</label><br>
+                    <input type="text" id="fld2" size="10">
+                </div>
+                <div class="rTableCell middle"><br>
+                    <input type="button" id="OKBtn" class="btn" value="+">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="center warning" id="warnTbl" style="max-width: 60%"></div>
+    <div id="outTbl" class="center margin-bottom"></div>
+    <div class="rTable">
+        <div class="rTableBody">
+            <div class="rTableRow margin">
+                <div class="rTableCell middle">
+                    <input type="button" id="saveBtn" class="btn" value="Speichern">
+                </div>
+                <div class="rTableCell middle">
+                    <input type="button" id="abbrBtn" class="btn" value="Abbrechen">
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+</article>
+<script src="../app/shortkeys.js"></script>
+<script>
+    (async ()=> 
+    {
+        let newDatum = document.getElementById("fld");
+        let newDatum2 = document.getElementById("fld2");
+        let warning = document.getElementById("warnTbl");
+        let plus = document.getElementById("OKBtn");
+        let abbr = document.getElementById("abbrBtn");
+        let save = document.getElementById("saveBtn");
+        let updatedRows, errRows, oldrows;
+
+        function addEventListenersToOldRows ()
+        {
+            oldrows.forEach(row => {return row.setAttribute("class", "hoverable")});
+            if (oldrows.length > 0) {
+                Array.from(document.getElementsByName("tblBtn")).forEach(btn => 
+                {
+                    btn.addEventListener("keypress", function () 
+                    {
+                        return keypressBtn(event, btn, newDatum);
+                    });
+                    btn.addEventListener("focusout", function () 
+                    {
+                        if (btn.parentElement.parentElement.style.backgroundColor === tblHoverColor) {
+                            btn.parentElement.parentElement.removeAttribute("style");
+                        }
+                    });
+                });
+                Array.from(document.getElementsByName("tblTxtFld")).forEach(field => 
+                {
+                    field.addEventListener("keydown", keypressSgInput);
+                    field.addEventListener("input", function () 
+                    {
+                        if (field.style.color = "red") {
+                            field.parentElement.parentElement.children[1].firstElementChild.style.color = "";
+                            field.parentElement.parentElement.children[2].firstElementChild.style.color = "";
+                        }
+                        return warning.innerHTML = "";
+                    });
+                    field.addEventListener("change", function ()
+                    {
+                        let change = strtrim(this.value);
+                        let changeRowIndex = oldrows.indexOf(this.parentElement.parentElement);
+                        let changeType = (Array.from(oldrows[changeRowIndex].cells).indexOf(this.parentElement) === 1) ?
+                            "standort" : "sgn";
+                        let newrows = Array.from(document.getElementsByName("standortTbl")[0].rows);
+                        newrows = newrows.filter(row => {return (newrows.indexOf(row) !== 0)})
+                            .filter(row => {return row.cells[0].firstElementChild.classList.contains("neu")});
+                        let oldrowsWithoutChange = oldrows.filter(row => {return oldrows.indexOf(row) !== changeRowIndex});
+                        
+                        if (change !== "") {
+                            if (changeType === "standort" ) {
+                                let newrowsStandortArr = newrows.map(row => {return row.cells[1].firstElementChild.value});
+                                let oldStandorte = oldrowsWithoutChange
+                                    .map(row => {return row.cells[1].firstElementChild.value});
+                                if (newrowsStandortArr.includes(change) || oldStandorte.includes(change)) {
+                                    warning.innerHTML = "Der Standort kommt mehrfach vor";
+                                    errRows.push(changeRowIndex);
+                                    return this.select();           
+                                }
+                            } else if (changeType === "sgn") {
+                                let newrowsStandortSgnArr = newrows
+                                    .map(row => {return row.cells[2].firstElementChild.innerHTML});
+                                let oldSgn = oldrowsWithoutChange.map(row => {return row.cells[2].firstElementChild.value});
+                                if (newrowsStandortSgnArr.includes(change) || oldSgn.includes(change)) {
+                                    warning.innerHTML = "Die Standortsignatur kommt mehrfach vor";
+                                    errRows.push(changeRowIndex);
+                                    return this.select();           
+                                }
+                            } 
+                            err = [];
+                            let datum1 = oldrows[changeRowIndex].cells[1].firstElementChild;
+                            let datum2 = oldrows[changeRowIndex].cells[2].firstElementChild;
+                            conformAndValidateStr(datum1, 0, false, 100);
+                            conformAndValidateStr(datum2, 1, false, 100);
+                            if (err.length > 0 ) {
+                                let firstError = err[0].split("*");
+                                warning.innerHTML = firstError[1];
+                                if (firstError[0] == 0) {
+                                    datum1.select();
+                                } else {
+                                    datum2.select();
+                                }
+                                return errRows.push(changeRowIndex);
+                            } else {
+                                errRows = errRows.filter(i => {return (i !== changeRowIndex)});
+                                return updatedRows.push(changeRowIndex);
+                            }
+                        } else {
+                            return field.parentElement.parentElement.style.backgroundColor = tblSelColor; 
+                        }
+                    });
+                });
+            }
+        }
+        
+        function addNewStandortToTable (oldrows)
+        {
+            err = [];   //from validation.js
+            let standort = conformAndValidateStr(newDatum, 0, true, 100);
+            let standortsgn = conformAndValidateStr(newDatum2, 1, true, 100);
+            let newrows = [];
+
+            newrows = Array.from(document.getElementsByName("standortTbl")[0].rows);
+            newrows = newrows.filter(row => {return (newrows.indexOf(row) !== 0)})
+                .filter(row => {return row.cells[0].firstElementChild.classList.contains("neu")});
+            let newrowsStandortArr = newrows.map(row => {return row.cells[1].firstElementChild.value});
+            let newrowsStandortSgnArr = newrows.map(row => {return row.cells[2].firstElementChild.innerHTML});
+
+            let oldrowsStandortArr = oldrows.map(row => {return row.cells[1].firstElementChild.value});
+            let oldrowsStandortSgnArr = oldrows.map(row => {return row.cells[2].firstElementChild.value});
+            if (err.length > 0 ) {
+                let firstError = err[0].split("*");
+                warning.innerHTML = firstError[1];
+                return stoFrm.elements[firstError[0]].select();
+            } 
+            if (oldrowsStandortArr.includes(standort) || newrowsStandortArr.includes(standort)) {
+                warning.innerHTML = `Der Standort ist bereits in der Tabelle`;
+                return newDatum.select();
+            } 
+            if (oldrowsStandortSgnArr.includes(standortsgn) || newrowsStandortSgnArr.includes(standortsgn)) {
+                warning.innerHTML = `Die Standortsignatur ist bereits in der Tabelle`;
+                return newDatum2.select();
+            } 
+            function addToTableCallback () 
+            {
+                newDatum.value = "";
+                newDatum2.value = "";
+                return newDatum.focus(); 
+            }
+            return addToTable(["+", standort, standortsgn], "standortTbl", addToTableCallback, newDatum, "standort");
+        }
+
+        async function saveData (oldrows, updatedRows, errRows, tablename)
+        {
+            let nonRemovables = [];
+            let toRemove = Array.from(document.getElementsByName(tablename)[0].rows)    
+                .filter(row => {return row.style.backgroundColor === tblSelColor})
+                .map(row => 
+                {
+                    return [row.children[0].firstElementChild.value];
+                });
+            let toAdd = Array.from(document.getElementsByClassName("neu"))
+                .map(btn => 
+                {
+                    return [btn.parentElement.parentElement.children[1].firstElementChild.value,
+                        btn.parentElement.parentElement.children[2].firstElementChild.innerHTML];
+                });
+            errRows = errRows.filter(onlyUnique);
+            let toUpdate = [];
+            updatedRows = updatedRows.filter(onlyUnique).filter(index => {return !(errRows.includes(index))});
+            updatedRows.forEach(index =>
+            {
+                if (oldrows[index].style.backgroundColor !== tblSelColor) {
+                    return toUpdate.push(
+                        [oldrows[index].children[0].firstElementChild.value, 
+                        oldrows[index].children[1].firstElementChild.value, 
+                        oldrows[index].children[2].firstElementChild.value]
+                    );
+                } else {
+                    return false;
+                }
+            });
+
+            function callback (boolean) 
+            {
+                if (boolean) {
+                    if (nonRemovables.length > 0) {
+                        warning.innerHTML = `Die Änderungen wurden gespeichert. 
+                            Einige Standorte konnten nicht gelöscht werden,
+                            da ihnen vorhandene Medien zugeordnet sind:`;
+                        return oldrows = loadData();
+                    } else {
+                        warning.innerHTML = `Die Änderungen wurden gespeichert`;
+                        return oldrows = loadData();
+                    }
+                } else {
+                    warning.innerHTML = `Es wurden keine Änderungen vorgenommen bzw. 
+                        einige Standorte konnten nicht gelöscht werden, da ihnen vorhandene
+                        Medien zugeordnet sind`;
+                    return oldrows = loadData();
+                }
+            }
+
+            async function dbRequest ()
+            {
+                let procMedium = new cSQLProcessor(callback);
+                if (toUpdate.length > 0) {
+                    toUpdate = await toUpdate.map(dataArr => 
+                    {
+                        return procMedium.add(sql[93], [dataArr[1], dataArr[2], dataArr[0]])
+                    });
+                }
+                if (toRemove.length > 0) {
+                    toRemove = await Promise.all(toRemove.map(async (dataArr) => 
+                    {
+                        let result = await dbGet(sql[94], dataArr[0]).catch(err => {return console.error(err)});
+                        if (result !== undefined) { // don't remove
+                            return nonRemovables.push(dataArr);
+                        } else {  
+                            return procMedium.add(sql[95], [dataArr[0]]);
+                        }
+                    }));
+                } 
+                if (toAdd.length > 0) {
+                    toAdd = await toAdd.map(dataArr =>
+                    {
+                        procMedium.add(sqlFindGap("standort"), []);
+                        return procMedium.add(sql[96], function (result) {return [result, dataArr[0], dataArr[1]]});
+                    });
+                }
+                let res = procMedium.run();
+
+                if (res === "No SQL Process") {
+                    return callback(false);
+                } else {
+                    return callback(true);
+                }
+            }    
+            //Validation AND DBrequest
+            if (toRemove.length + toUpdate.length + toAdd.length + errRows.length === 0) {
+                warning.innerHTML = "Es wurden keine Änderungen vorgenommen";
+                newDatum.focus();
+                return false;
+            } else if (errRows.length > 0) {
+                if (window.confirm("Einige der Änderungen sind ungültig und können nicht übernommen werden. Standortliste dennoch speichern ?")) {
+                    return dbRequest();   
+                } else {
+                    errRows.forEach(index => 
+                    {
+                        oldrows[index].children[1].firstElementChild.style.color = "red";
+                        oldrows[index].children[2].firstElementChild.style.color = "red";
+                    });
+                    newDatum.focus();
+                    return false;
+                }
+            } else {
+                if (window.confirm("Standortliste speichern ?")) {
+                    return dbRequest();   
+                } else {
+                    return false;
+                }
+            }        
+        }
+
+        async function loadData () 
+        {
+            let standorteArr = [];
+            oldrows = [];
+            updatedRows = [];
+            errRows = [];
+
+            document.getElementById("outTbl").innerHTML = "";
+
+            function prepareData (data, outputArr)
+            {
+                data.forEach(item => 
+                {
+                    if (item.id !== 0) {
+                        return outputArr.push([item.id, item.standort, item.standortsgn]);
+                    } else {
+                        return false;
+                    }
+                });
+            }
+            let standorte = await dbAll(sql[85],[]);
+            prepareData(standorte, standorteArr);
+            cOutputTbl(document.getElementById("outTbl"),"standortTbl",["ID", "Standort", "Signatur"],standorteArr,true);
+            tblAddEventListenerArrow();
+
+            oldrows = Array.from(document.getElementsByName("standortTbl")[0].rows);
+            oldrows = oldrows.filter(row => {return (oldrows.indexOf(row) !== 0)});
+
+            addEventListenersToOldRows();
+            newDatum.focus();
+            return oldrows;
+        }
+
+        function reset () {
+            newDatum.value = "";
+            newDatum2.value = "";
+            newDatum.focus();
+            return oldrows = loadData();
+        }
+
+        oldrows = loadData();
+
+        newDatum.addEventListener("keydown", function () { return enterTableOnArrowDown(event, "standortTbl") });
+        newDatum.addEventListener("input", function () {return warning.innerHTML = ""});
+        newDatum.addEventListener("focus", function () {return onfocusNewInput("standortTbl")});
+        newDatum.addEventListener("keypress", onEnterNewInput);
+        newDatum2.addEventListener("keydown", function () { return enterTableOnArrowDown(event, "standortTbl") });
+        newDatum2.addEventListener("input", function () {return warning.innerHTML = ""});
+        newDatum2.addEventListener("focus", function () {return onfocusNewInput("standortTbl")});
+        newDatum2.addEventListener("keypress", onEnterNewInput);
+        abbrBtn.addEventListener("click", reset);        
+        plus.addEventListener("click", function () {return addNewStandortToTable(oldrows)});
+        save.addEventListener("focus", function () {return onfocusNewInput("standortTbl")});
+        save.addEventListener("click", function () {return saveData(oldrows, updatedRows, errRows, "standortTbl")});
+    })();
+
+    
+    function esc (event)
+    {
+        if (event.key === "Escape" || event.code === "Escape") {
+            event.preventDefault();
+            if (document.activeElement.parentElement.parentElement !== null &&
+                document.activeElement.parentElement.parentElement.style.backgroundColor === tblHoverColor) {
+                document.activeElement.parentElement.parentElement.style.backgroundColor = tblDefaultColor;
+            }
+            document.getElementById("fld").select();
+        }
+    }
+    document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
+    document.getElementsByTagName("body")[0]
+            .addEventListener("keydown", function () {return strgC(event, abbrBtn)}, false);
+</script>
+</body>
+<footer>
+</footer>
+</html>

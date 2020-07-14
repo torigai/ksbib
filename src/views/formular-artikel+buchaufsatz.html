@@ -1,0 +1,80 @@
+<form id="bFrm" class="center">
+    <div class='rTable' style="width: 400px">
+        <div class='rTableBody'>
+            <div class='rTableRow'>
+                <div class="rTableCell left">
+                    <label onclick="window.alert(
+                        'Bitte gib die Autornamen folgendermaßen ein: Müller, Hans F. \nVor jeder weiteren AutorIn drücke \'Enter\'.'
+                    )">Autoren *</label><br>
+                    <textarea class='textareanowrap' name='autoren' rows='5' cols="37" autofocus></textarea>
+                </div>
+            </div>
+            <div class='rTableRow'>
+                <div class="rTableCell left">
+                    <label onclick="window.alert(
+                     'Bitte gib den Titel zuerst ein. Falls es einen Untertitel gibt, drücke \'Enter\'. Jede durch \'Enter\' neu begonnene Zeile wird als (weiterer) Untertitel interpretiert.'
+                    )">Titel und Untertitel *</label><br>
+                    <textarea class='textareawrap' name='titel' rows='5' cols="49"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class='rTable' style="width: 400px">
+        <div class='rTableBody'>
+            <div class='rTableRow'>
+                <div class='rTableRow'>
+                    <div class="rTableCell left">
+                        <label>Jahr</label><br>
+                        <input type="text" class="txt" name="jahr" value="" size="4">
+                </div>
+            </div>
+            <div class='rTableRow'>
+                <div class="rTableCell left">
+                    <label>Ort</label><br>
+                    <input type="text" class="txt" name="ort" value="" size="30">
+                </div>
+                <div class="rTableCell left">
+                    <label>Seiten</label><br>
+                    <input type="text" class="txt" name="seiten" value="" size="15">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class='rTable' style="width: 400px">
+        <div class='rTableBody'>        
+            <div class='rTableRow'>
+                <div class="rTableCell left">
+                    <label>Anmerkung</label><br>
+                    <textarea class='textareawrap' name='hinweis' rows='5' cols="49"></textarea>
+                </div>
+            </div>
+            <div class='rTableRow'>
+                <div class="rTableCell left">
+                   <label onclick="window.alert('Bitte zwischen jedem Stichwort \'Enter\' drücken')">Stichworte *</label><br>
+                    <textarea class='textareanowrap' name='stichworte' rows='5' cols="37"></textarea>
+                </div>
+            </div>
+            <div class='rTableRow'>
+                <div class="rTableCell left">
+                    <label onclick="
+                        window.alert('Die Datei muss ein PDF sein und ihr Name darf nur +, -, _ als Sonderzeichen enthalten. Eine URL muss einen Anfang haben wie z.B. http://')">
+                        Dateiname oder URL *
+                    </label><br>
+                    <input type="text" class="txt" name="link" value="" size="25">
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div id="bFrmWarnFld" class="warning center">
+        </div>
+
+    <div>
+        <input type="button" class="btn" id="bOKBtn" value="Speichern">
+        <input type="button" class="btn" value="Abbrechen" id="abbrBtn">
+    </div>
+</form>
+
+<div class="info center" style="width: 400px">
+    	Hier geht es zur Liste der <a href="drucken-sachgebiete.html" target="_blank">Sachgebiete</a>
+</div>

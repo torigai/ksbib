@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <title>ksbib | Standortliste</title>
+  <link rel="stylesheet" href="../styles/print.css" type="text/css" media="all"/>
+  <script src="../app/main.js"></script>
+  <script src="../app/sql.js"></script>
+  <script src="../app/table.js"></script>
+  <script>
+    function printContent(content_div, printing_div) 
+    {
+      document.getElementById(printing_div).innerHTML = document.getElementById(content_div).innerHTML;
+      window.print();
+    }
+  </script>
+</head>
+
+<body name="printFrm">
+
+<div class="printer forscreen">
+    <input type="button" value="Drucken" onclick="printContent('content_div_id', 'printing_div_id')" id="printBtn">
+</div>
+
+<div class="article forscreen" id="content_div_id">
+    <h1>Standorte</h1>
+    <div id="outFld"></div>
+</div>
+
+<div id="printing_div_id" class="forprinter"></div>
+
+</body>
+<script src="../app/shortkeys.js"></script>
+<script>
+  document.getElementsByTagName("body")[0].onload = async function ()
+  {
+    let data = await dbAll(sql[85],[]).catch(err => {return console.error(err)});
+    function prepareData (data)
+    {
+      let arr = data.map(item => 
+      {
+          return [item.standortsgn, item.standort];
+      });
+      return arr;
+    }
+    cOutputTbl(document.getElementById("outFld"),"sgTbl",["Sgn", "Standort"],prepareData(data));
+  }
+</script>
+</html>

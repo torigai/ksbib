@@ -1,0 +1,89 @@
+    body {  
+      height: 24cm;
+      width: 18cm;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 11pt; 
+      font-family: Arial, Helvetica, Sans-Serif; 
+      font-style: normal; 
+      font-weight: normal;
+    }
+    div.article {
+      page-break-after: always;
+    }
+    div.printer {
+        float: right;
+        }
+        @media screen {
+          .forscreen { display:block; }
+          .forprinter { display:none; }
+        }
+        @media print {
+          .forscreen { display:none; }
+          .forprinter { display:block; }
+        }
+
+h1 {padding-bottom: 20px; padding-top: 10px; color: #4786AD; text-align: center;}
+
+.plain {
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+
+div {
+  margin: auto;
+  max-width: 80%;
+}
+
+table {
+  border-collapse: collapse;
+  max-width: 80%;
+}
+table.center {
+  margin: auto;
+}
+table, td {
+  border: solid 1px #4995A7;
+}
+th, td {
+  padding-left: 10px;
+  padding-right: 10px;
+  position: relative;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 300px;
+  min-height: : 5em;
+}
+td {
+  vertical-align: bottom;
+  font-size: 9pt;
+  color: "#232627";
+  text-align: left;
+}
+td.button {
+  cursor: pointer;
+}
+td.button input {
+  cursor: pointer;
+}
+th {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.tableHeader {
+  font-weight: bold;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  text-align: left;
+  vertical-align: middle;
+  background-color: #ededed;
+}
+.tableCell {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  vertical-align: top;
+}
