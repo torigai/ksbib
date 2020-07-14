@@ -13,12 +13,11 @@ are therefore not implemented.
 
 ## Installation
 
-`
-npm install -g nw-gyp \n
-npm install nw --nwjs_build_type=normal --save \
-npm install nwjs-builder-phoenix --save-dev \
-npm install sqlite3 --build-from-source --runtime=node-webkit --target-arch=x64  --target="0.46.4" --save 
-`
+`npm install -g nw-gyp` \
+`npm install nw --nwjs_build_type=normal --save` \
+`npm install nwjs-builder-phoenix --save-dev` \
+`npm install sqlite3 --build-from-source --runtime=node-webkit --target-arch=x64  --target="0.46.4" --save`
+
 (`target = "0.46.4"` is the nwjs version. The version is also documented in package.json for the build process.
 To find out the actual version visit https://nwjs.io/)
 
