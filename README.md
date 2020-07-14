@@ -14,7 +14,7 @@ are therefore not implemented.
 
 ## Installation
 
-Download all files and enter the source folder `ksbib\`. If you have `nw-gyp`
+Download all files and enter the source folder `YourPathTo/ksbib/`. If you have `nw-gyp`
 not yet installed, do
 
 `npm install -g nw-gyp`
