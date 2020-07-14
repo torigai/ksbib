@@ -1,0 +1,35 @@
+{
+  "name": "ksbib",
+  "version": "1.0.0",
+  "description": "library software",
+  "main": "src/views/index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nw",
+    "dist": "build --tasks linux-x64, win-x64, mac-x64 --mirror https://dl.nwjs.io/ .",
+    "start": "run --x64 --mirror https://dl.nwjs.io/ ."
+  },
+  "build": {
+    "nwVersion": "0.46.4",
+    "nwFlavor": "normal"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git remote -v https://github.com/torigai/ksbib"
+  },
+  "keywords": [
+    "library",
+    "database",
+    "archive",
+    "books"
+  ],
+  "author": "torigai",
+  "license": "MIT",
+  "dependencies": {
+    "nw": "^0.46.4",
+    "sqlite3": "^5.0.0"
+  },
+  "devDependencies": {
+    "nwjs-builder-phoenix": "^1.15.0"
+  }
+}
