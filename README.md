@@ -6,7 +6,7 @@ media etc, just as you would expect of any library software. The software does
 not include rental options and user management. If you are interested in that, 
 feel invited to send me a note or to contribute.
 
-ksbib is meant as a desktop programm for your local computer. For that
+ksbib is meant as a desktop program for your local computer. For that
 purpose sqlite seemed to be the perfect choice. The security measures 
 (like for instance user roles) that would be appropriate for a public web application 
 are therefore not implemented.
