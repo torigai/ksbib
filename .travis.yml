@@ -1,7 +1,7 @@
 deploy:
   provider: releases
   api_key: "GITHUB OAUTH TOKEN"
-  file: "FILE TO UPLOAD"
+  file: dist/ksbib_1.0.0-linux-x64/ksbib
   skip_cleanup: true
   on:
     tags: true
