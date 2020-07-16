@@ -4,7 +4,7 @@
   "description": "library software",
   "main": "src/views/index.html",
   "scripts": {
-    "test": "build --tasks linux-x64,win-x64,mac-x64 --mirror https://dl.nwjs.io/ .",
+    "test": "build --tasks linux-x64 --mirror https://dl.nwjs.io/ .",
     "dev": "nw",
     "dist": "build --tasks linux-x64, win-x64, mac-x64 --mirror https://dl.nwjs.io/ .",
     "start": "run --x64 --mirror https://dl.nwjs.io/ ."
@@ -24,12 +24,5 @@
     "books"
   ],
   "author": "torigai",
-  "license": "MIT",
-  "dependencies": {
-    "nw": "^0.46.4",
-    "sqlite3": "^5.0.0"
-  },
-  "devDependencies": {
-    "nwjs-builder-phoenix": "^1.15.0"
-  }
+  "license": "MIT"
 }
