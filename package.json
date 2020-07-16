@@ -4,7 +4,7 @@
   "description": "library software",
   "main": "src/views/index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "build --tasks linux-x64, win-x64, mac-x64 --mirror https://dl.nwjs.io/ .",
     "dev": "nw",
     "dist": "build --tasks linux-x64, win-x64, mac-x64 --mirror https://dl.nwjs.io/ .",
     "start": "run --x64 --mirror https://dl.nwjs.io/ ."
