@@ -30,9 +30,12 @@ To find out the actual version visit https://nwjs.io/)
 
 ## Try out
 
-npm run dev
+`npm run dev`
 
 ## Build a desktop app
 
-npm run dist
+`npm run dist`
+
+You will find the app will in `ksbib/dist/`
+
 
