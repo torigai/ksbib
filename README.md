@@ -36,6 +36,6 @@ To find out the actual version visit https://nwjs.io/)
 
 `npm run dist`
 
-You will find the app will in `ksbib/dist/`
+You will find the app in `ksbib/dist/`
 
 
