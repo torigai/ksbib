@@ -2,9 +2,7 @@ language: node_js
 node_js:
   - lts/*
 os: 
-  - linux
   - osx
-  - windows
 before_install:
   - npm install -g nw-gyp
   - npm install nw --nwjs_build_type=normal --save
