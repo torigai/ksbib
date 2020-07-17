@@ -1,18 +1,13 @@
-deploy:
-  provider: releases
-  api_key: "GITHUB OAUTH TOKEN"
-  file: dist/ksbib_1.0.0-linux-x64/ksbib
-  skip_cleanup: true
-  on:
-    tags: true
 language: node_js
 node_js:
   - lts/*
 os: 
   - linux
+  - osx
+  - windows
 before_install:
   - npm install -g nw-gyp
   - npm install nw --nwjs_build_type=normal --save
   - npm install nwjs-builder-phoenix --save-dev
   - npm install sqlite3 --build-from-source --runtime=node-webkit --target-arch=x64 --target='0.46.4' --save
-script: npm run test
+script: npm run dist
