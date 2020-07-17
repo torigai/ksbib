@@ -19,5 +19,4 @@ before_install:
   - npm install nwjs-builder-phoenix --save-dev
   - npm install sqlite3 --build-from-source --runtime=node-webkit --target-arch=x64 --target='0.46.4' --save
 script: npm run test
-after_success:
-- sh set_tags.sh
+
