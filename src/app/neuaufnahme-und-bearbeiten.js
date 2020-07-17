@@ -253,8 +253,13 @@
                     if (autoren !== undefined) {
                         autoren.forEach(autor =>
                         {
-                            return document.getElementsByName("autoren")[0].innerHTML += 
-                                autor.name + ", " + autor.vorname + "\n";
+                            if (autor.vorname === "") {
+                                return document.getElementsByName("autoren")[0].innerHTML += 
+                                    autor.name + "\n";
+                            } else {
+                                return document.getElementsByName("autoren")[0].innerHTML += 
+                                    autor.name + ", " + autor.vorname + "\n";
+                            }
                         });
                     }
                     titel = await dbAll(sql[38], mediumData).catch(err => {return console.error(err)});
@@ -497,6 +502,7 @@
                                         bFrm.reset();
                                         let x = await getMaxID(1);
                                         bFrm.elements[0].value = x;
+                                        bFrm.elements[1].focus();
                                         return bFrmWarnFld.innerHTML = "Der Datensatz wurde gespeichert";
                                     }
                                 }
