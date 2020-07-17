@@ -6,7 +6,7 @@ deploy:
   file: "ksbib/dist/*"
   skip_cleanup: true
   on:
-    repo: username/repo
+    repo: username/Repo
 language: node_js
 node_js:
   - lts/*
