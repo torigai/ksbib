@@ -14,7 +14,7 @@ are therefore not implemented.
 
 ## Installation
 
-Download all files and enter the source folder `YourPathTo/ksbib/`. If you have `nw-gyp`
+Download, unzip and enter the main directory, for instance `ksbib-v1.0.0/`. If you have `nw-gyp`
 not yet installed, do
 
 `npm install -g nw-gyp`
@@ -36,6 +36,6 @@ To find out the actual version visit https://nwjs.io/)
 
 `npm run dist`
 
-You will find the app in `ksbib/dist/`
+You will find the app in a subfolder `dist/`
 
 
