@@ -6,7 +6,7 @@ deploy:
   file: dist/*
   skip_cleanup: true
   on:
-    tags: true
+    repo: torigai/ksbib
 language: node_js
 node_js:
   - lts/*
@@ -18,4 +18,6 @@ before_install:
   - npm install nwjs-builder-phoenix --save-dev
   - npm install sqlite3 --build-from-source --runtime=node-webkit --target-arch=x64 --target='0.46.4' --save
 script: npm run test
+after_success:
+- sh set_tags.sh
 
