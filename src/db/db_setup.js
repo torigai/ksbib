@@ -79,7 +79,7 @@ sqr[34] = "insert OR IGNORE into medium (id, medium) values (4, 'CD')";
 sqr[35] = `CREATE VIEW media_view AS 
   SELECT objekt.id AS objektid, zeitschriftid, buchid, aufsatzid, 
     jahr, preis, band, seiten, autortyp, autornr, autor, titelnr, titel, titeltyp, 
-    standortsgn, medium.medium, band, kuerzel AS zeitschrift, nr AS zeitschriftNr, 
+    standortsgn, medium.medium, kuerzel AS zeitschrift, nr AS zeitschriftNr, 
     sgn, hinweis, status, ort, verlag, link
     FROM objekt 
     INNER JOIN medium ON medium.id = objekt.medium 
@@ -117,13 +117,13 @@ sqr[35] = `CREATE VIEW media_view AS
         ) USING (zeitschriftid) 
     ) ON objekt.id = objektid AND zeitschriftid = zeitschriftid AND buchid = buchid AND aufsatzid = aufsatzid`;
 
-sqr[36] = `create trigger if not exists trig_neuaufnahme after insert on objekt for each row 
+sqr[36] = `create trigger if not exists trig_neuaufnahme after insert on objekt for each row
 begin 
     update objekt set aufnahmedatum = date('now'); 
     update objekt set sgn = ((select standortsgn from standort where standort.id = objekt.standort) || ' ' || objekt.id); 
 end`;
 
-sqr[37] = `create trigger if not exists trig_update_sgn after update of standort on objekt for each row 
+sqr[37] = `create trigger if not exists trig_update_sgn after update of standort on objekt for each row
 begin 
     update objekt set sgn = ((select standortsgn from standort where standort.id = objekt.standort) || ' ' || objekt.id); 
 end`;
@@ -215,6 +215,7 @@ function createDB ()
 function insertYears ()
 {
     console.log("insert years");
+    let n;
     let stmt = db.prepare("INSERT OR IGNORE INTO jahr VALUES (?,?)");
     for (n = 1000; n < 5001; n++) {
         stmt.run(n-999,n);

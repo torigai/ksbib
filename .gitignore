@@ -1,4 +1,6 @@
 $ cat .gitignore
 node_modules/
 package-lock.json
+files/
+scratch/
 *~

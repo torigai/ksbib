@@ -4,27 +4,25 @@
   "description": "library software",
   "main": "src/views/index.html",
   "scripts": {
+    "test": "build --tasks mac-x64 --mirror https://dl.nwjs.io/ .",
     "dev": "nw",
-    "dist": "build --tasks linux-x64, win-x64 --mirror https://dl.nwjs.io/ .",
+    "dist": "build --tasks mac-x64,linux-x64,win-x64 --mirror https://dl.nwjs.io/ .",
     "start": "run --x64 --mirror https://dl.nwjs.io/ ."
+  },
+  "build": {
+    "nwVersion": "0.46.4",
+    "nwFlavor": "normal"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/torigai/ksbib.git"
   },
   "keywords": [
-    "books",
     "library",
-    "database"
+    "database",
+    "archive",
+    "books"
   ],
-  "author": "kirsten vogeler",
-  "license": "UNLICENSED",
-  "private": true,
-  "window": {
-    "icon": "src/assets/icon.png"
-  },
-  "dependencies": {
-    "nw": "^0.44.0",
-    "sqlite3": "^4.1.1"
-  }
+  "author": "torigai",
+  "license": "MIT"
 }
