@@ -192,6 +192,41 @@
 <script>
     // Schnellsuche Formular qsearchFrm 
 
+    const infotext = `<div id="infoFld" class="info">
+        <p>
+            <br>Du kannst mit der Schnellsuche: <br><br>
+            nach einem Autor- oder Titel suchen: "Geschichte der Zeit"<br>
+            nach Autor- und Titel suchen: "Kubler @ Zeit" <br> 
+            nach einem Autor suchen: "Kubler @" <br>
+            nach einem Titel suchen: "@ Form der Zeit"
+        </p>
+
+        <p>
+            <b>Detailsuche: </b><br>
+            Die Detailsuche bietet Möglichkeiten, die Suche einzuschränken. Zwischen
+            Detail- und Schnellsuche kannst Du auch  mit der Tastenkombination "Ctrl/Strg + d"
+            bzw. "Ctrl/Strg + s" wechseln.
+        </p>
+
+        <p>
+            <b>Sachgebietssuche:</b><br>
+            Ferner gibt es eine Sachgebietssuche:
+            <a href = "sachgebietssuche.html"> Suche nach Sachgebieten</a>.
+        </p>
+
+        <p>
+            Hier kannst Du Deine Suche mit Hilfe der Liste der Sachgebiete 
+            einschränken. Bitte beachte, dass es in der Bibliothek auch Bücher geben 
+            kann, die keinem Sachgebiet zugeordnet sind und die in der Sachgebietssuche
+            nicht angezeigt werden.
+        </p>
+
+        <p>
+            Mit der Tastenkombination "Alt + m" gelangst Du ins Menu "Medien", mit "Alt + s" ins
+            Menu "Sonstiges".
+        </p>
+        </div>`;
+
     let qsearchFrm = new cformular(document.getElementById("qsearchFrm"), document.getElementById("qsearchFrmWarnFld"), document.getElementById("outFld"), document.getElementById("qsearchBtn"));
     qsearchFrm.data = "";
     qsearchFrm.newSbmt(
@@ -222,6 +257,7 @@
                         showResult (result, qsearchFrm.outFld, qsearchFrm.warnFld, "qResTbl", "qSortSel", getResult, limit, offset);
                     }
                 })();
+                document.getElementById("qsearchStr").select();
                 return true;
             }
         }
@@ -245,12 +281,6 @@
     qsearchFrm.oninput();
     qsearchFrm.openDetailsuche = function (event) 
     {
-        /*
-        Eventhandler: 
-        Falls im qsearchFrm Eingabefeld auf der Tastatur "strg + enter" gedrückt wird
-        soll der "Detailsuche" Button angeklickt werden
-        */
-
         if (event.ctrlKey === true && event.keyCode === 68 || event.ctrlKey === true && event.which === 68) {
             event.preventDefault();
             qsearchFrm.btn[1].click();
@@ -309,7 +339,7 @@
                     t2: conformAndValidateYear(data.t2, 4, false),
                     titel: conformAndValidateStr(data.titel, 5, false, 500), 
                     verlag: conformAndValidateStr(data.verlag, 6, false, 500),
-                    standort: data.standort.value,
+                    standort: data.standort.options[data.standort.options.selectedIndex].innerHTML,
                     id: conformAndValidateID(data.id, 8, false),
                     stichwort: conformAndValidateKeywords (data.stichwort, 9, false),
                     hinweis: conformAndValidateComment (data.hinweis, 10, false),
@@ -377,6 +407,7 @@
                         showResult (result, qsearchFrm.outFld, dsearchFrm.warnFld, "dResTbl", "dSortSel", getResult, limit, offset);
                     }
                 })();
+                document.activeElement.select();
                 return true;
             }
         }
@@ -396,15 +427,10 @@
     }
     dsearchFrm.openSchnellsuche = function (event) 
     {
-        /*
-        Eventhandler: 
-        Falls in dsearchFrm Eingabefeld auf der Tastatur "strg + enter" gedrückt wird
-        soll der "Schnellsuche" Button angeklickt werden
-        */
-
         if (event.ctrlKey === true && event.keyCode === 83 || event.ctrlKey === true && event.which == 83) {
             event.preventDefault();
             dsearchFrm.btn[1].click();
+            document.getElementById("outFld").innerHTML = infotext;
         }
     }
     dsearchFrm.oninput = function () {
@@ -429,7 +455,8 @@
         dsearchFrm.outFld.innerHTML = "";
         qsearchFrm.warnFld.innerHTML = "";
         qsearchFrm.formular.style.display = "";
-        qsearchFrm.elements[0].focus();
+        document.getElementById("outFld").innerHTML = infotext;
+        return qsearchFrm.elements[0].focus();
     }
 
     dsearchFrm.onenter(event);
@@ -446,6 +473,18 @@
 
 document.getElementsByTagName("body")[0].addEventListener("keydown", qsearchFrm.openDetailsuche, false);
 document.getElementsByTagName("body")[0].addEventListener("keydown", dsearchFrm.openSchnellsuche, false);
+function esc (event)
+{
+    if (event.keyCode === 27 || event.which === 27) {
+        event.preventDefault();
+        if (qsearchFrm.formular.style.display === "none") {
+            return dsearchFrm.elements[0].select();
+        } else {
+            return qsearchFrm.elements[0].select();
+        }
+    } else {return false;}
+}
+document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
 
 /* 
     DATABASE REQUEST
@@ -530,22 +569,13 @@ async function dsearchDBRequest (data, limit, offset)
     if (data.titel !== null) {
         constraint.push("(titel LIKE '%" + data.titel + "%')");
     }
-    if (data.standort !== undefined) {
-        if (data.standort !== "") {
-            constraint.push("(standortsgn = '" + 
-                document.getElementById('standort')
-                .options[document.getElementById('standort').options.selectedIndex]
-                .innerHTML + "')");
-        }
+    if (data.standort !== undefined && data.standort !== "") {
+        constraint.push("(standortsgn = '" + data.standort + "')");
     }
-    if (data.status !== undefined) {
-        if (data.status !== "") {
-            constraint.push("(status = '" + 
-                document.getElementById('status')
-                .options[document.getElementById('status').options.selectedIndex]
-                .value + "')");
-        }
+    if (data.status !== undefined && data.status !== "") {
+        constraint.push("(status = '" + data.status + "')");
     }
+    console.log(constraint);
     constraint = constraint.join(" AND ");
     matchingIDs = await sqr(sqlDetailedSearchID(tablesToJoin, constraint, limit, offset), [], matchingIDs);
     matchingIDs = matchingIDs.map((obj) => {return [obj.objektid, obj.zeitschriftid, obj.buchid, obj.aufsatzid]
@@ -559,18 +589,6 @@ async function dsearchDBRequest (data, limit, offset)
 
 cStandorteOptions(document.getElementById("standort"));
 
-function esc (event)
-{
-    if (event.keyCode === 27 || event.which === 27) {
-        event.preventDefault();
-        if (qsearchFrm.formular.style.display === "none") {
-            return dsearchFrm.elements[0].select();
-        } else {
-            return qsearchFrm.elements[0].select();
-        }
-    } else {return false;}
-}
-document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false);
 </script>
 
 </body>

@@ -39,90 +39,88 @@ function compose (object, index, self)
 
 function onlyComposedResults (object) { return object.objektid !== "x"; }
 
+async function outputArray (object, parents) 
+{
+    let i, titelUndVerweise, medientyp;
+    let autortyp = (object.autortyp === 0) ? "" : " (Hrg.)";
+    let autoren;
+    if (object.autor !== null) { 
+        // In media_view wird (Name = "Müller" Vorname = "") als "Müller, " gespeichert
+        // Das "," soll in diesem Fall nicht angezeigt werden
+        autoren = strtrim(object.autor).endsWith(",") ? 
+            strtrim(object.autor).slice(0, object.autor.indexOf(",")) + autortyp : 
+            object.autor + autortyp; 
+    } else {
+        autoren = "";
+    }
+    let id = object.objektid;
+    let standort = object.standortsgn;
+    let jahr = (object.jahr !== null) ? object.jahr : "";
+    let preis = (object.preis !== null) ? ", " + object.preis + " &euro;" : "";
+    let band = (object.band !== null) ? ", Band " + object.band : ""; 
+    let seiten = (object.seiten !== null) ? ", S. " + object.seiten : "";
+    let nr = (object.zeitschriftNr !== null) ? " Nr. " + object.zeitschriftNr : "";
+    let hinweis = (object.hinweis !== null) ? "<p><i>Hinweis</i>: " + object.hinweis + "</p>" : "";
+    let ort = (object.ort !== null) ? ", " + object.ort : "";
+    let verlag = (object.verlag !== null) ? ", " + object.verlag : ""; 
+    let link = "";
+    if (object.link !== null) {
+        if (filenamePattern.test(object.link)) {
+            let filepath = (await dbGet(`SELECT path FROM filepath`, [])).path;
+            if (filepath === null) { //filepathDefault from main.js
+                link = "<br><a href='"+filepathDefault+object.link+"' target='_blank'>" + object.link + "</a>";
+            } else {
+                link = "<br><a href='"+filepath+object.link+"' target='_blank'>" + object.link + "</a>";
+            }
+        } else {
+            link = "<br><a href='"+object.link+"' target='_blank'>" + object.link + "</a>";
+        }
+    } else {
+        link = "";
+    }
+    let status;
+    if (object.status === 0) {
+        status = "vorhanden";
+    } else if (object.status === 1) {
+        status = "abhanden";
+    } else {
+        status = "verliehen";
+    }
+
+    if (object.buchid !== 0 && object.aufsatzid === 0) {    // Buch   
+        titelUndVerweise = object.titel + band + verlag + ort + preis  + link + hinweis;
+        medientyp = "Buch";
+    }
+    if (object.buchid !== 0 && object.aufsatzid !== 0) {     // Buchaufsatz
+        i = parents.indexOf(parents.find( ({objektid}) => objektid === object.objektid ));   
+        if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
+        titelUndVerweise = object.titel + " <i> In: " + parents[i].autor + 
+            " (Hrg): " + parents[i].titel + "</i>" + band + verlag + ort + preis + link + hinweis;
+        medientyp = "Buchaufsatz";
+    }
+    if (object.zeitschriftid !== 0 && object.aufsatzid === 0) { // Zeitschrift
+        if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
+        titelUndVerweise = object.titel + " <i>" + object.zeitschrift + band + nr + "</i>" + preis + link + hinweis;
+        medientyp = "Zeitschrift"; 
+    }
+    if (object.zeitschriftid !== 0 && object.aufsatzid !== 0) { // Artikel
+        if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
+        titelUndVerweise = object.titel + " <i>" + object.zeitschrift + band + nr + seiten + "</i>" + link + hinweis;
+        medientyp = "Artikel";
+    }
+    if (object.zeitschriftid === 0 && object.buchid === 0) { // Aufsatz
+        titelUndVerweise = object.titel + ort + seiten + "</i>" + link + hinweis;
+        medientyp = "Aufsatz";
+    }
+    return [id, autoren, titelUndVerweise, jahr, medientyp, standort, status];
+}
+
 async function findMediaResultArr (matchingIDs) 
 {
     let i;
     let result = [];
     let parentsIDs = [], parents = [];  // Zu Buchaufsätzen zugehörige Bücher
     let promises = [];
-
-    async function outputArray (object) 
-    {
-        let i, titelUndVerweise, medientyp;
-        let autortyp = (object.autortyp === 0) ? "" : " (Hrg.)";
-        let autoren;
-        if (object.autor !== null) { 
-            // In media_view wird (Name = "Müller" Vorname = "") als "Müller, " gespeichert
-            // Das "," soll in diesem Fall nicht angezeigt werden
-            autoren = strtrim(object.autor).endsWith(",") ? 
-                strtrim(object.autor).slice(0, object.autor.indexOf(",")) + autortyp : 
-                object.autor + autortyp; 
-        } else {
-            autoren = "";
-        }
-        let id = object.objektid;
-        let standort = object.standortsgn;
-        let jahr = (object.jahr !== null) ? object.jahr : "";
-        let preis = (object.preis !== null) ? ", " + object.preis + " &euro;" : "";
-        let band = (object.band !== null) ? ", Band " + object.band : ""; 
-        let seiten = (object.seiten !== null) ? ", S. " + object.seiten : "";
-        let nr = (object.zeitschriftNr !== null) ? " Nr. " + object.zeitschriftNr : "";
-        let hinweis = (object.hinweis !== null) ? "<p><i>Hinweis</i>: " + object.hinweis + "</p>" : "";
-        let ort = (object.ort !== null) ? ", " + object.ort : "";
-        let verlag = (object.verlag !== null) ? ", " + object.verlag : ""; 
-        let link = "";
-        if (object.link !== null) {
-            if (filenamePattern.test(object.link)) {
-                let filepath = (await dbGet(`SELECT path FROM filepath`, [])).path;
-                if (filepath === null) { //filepathDefault from main.js
-                    console.log(filepathDefault+object.link);
-                    link = "<br><a href='"+filepathDefault+object.link+"' target='_blank'>" + object.link + "</a>";
-                } else {
-                    console.log(filepath+object.link);
-                    link = "<br><a href='"+filepath+object.link+"' target='_blank'>" + object.link + "</a>";
-                }
-            } else {
-                link = "<br><a href='"+object.link+"' target='_blank'>" + object.link + "</a>";
-            }
-        } else {
-            link = "";
-        }
-        let status;
-        if (object.status === 0) {
-            status = "vorhanden";
-        } else if (object.status === 1) {
-            status = "abhanden";
-        } else {
-            status = "verliehen";
-        }
-
-        if (object.buchid !== 0 && object.aufsatzid === 0) {    // Buch   
-            titelUndVerweise = object.titel + band + verlag + ort + preis  + link + hinweis;
-            medientyp = "Buch";
-        }
-        if (object.buchid !== 0 && object.aufsatzid !== 0) {     // Buchaufsatz
-            i = parents.indexOf(parents.find( ({objektid}) => objektid === object.objektid ));   
-            if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
-            titelUndVerweise = object.titel + " <i> In: " + parents[i].autor + 
-                " (Hrg): " + parents[i].titel + "</i>" + band + verlag + ort + preis + link + hinweis;
-            medientyp = "Buchaufsatz";
-        }
-        if (object.zeitschriftid !== 0 && object.aufsatzid === 0) { // Zeitschrift
-            if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
-            titelUndVerweise = object.titel + " <i>" + object.zeitschrift + band + nr + "</i>" + preis + link + hinweis;
-            medientyp = "Zeitschrift"; 
-        }
-        if (object.zeitschriftid !== 0 && object.aufsatzid !== 0) { // Artikel
-            if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
-            titelUndVerweise = object.titel + " <i>" + object.zeitschrift + band + nr + seiten + "</i>" + link + hinweis;
-            medientyp = "Artikel";
-        }
-        if (object.zeitschriftid === 0 && object.buchid === 0) { // Aufsatz
-            titelUndVerweise = object.titel + ort + seiten + "</i>" + link + hinweis;
-            medientyp = "Aufsatz";
-        }
-        return [id, autoren, titelUndVerweise, jahr, medientyp, standort, status];
-    }
 
     for (i = 0; i < matchingIDs.length; i++) { 
         ((i)=> 
@@ -166,7 +164,7 @@ async function findMediaResultArr (matchingIDs)
         }
     }
     parents = parents.map(compose).filter(onlyComposedResults);
-    result = result.map(compose).filter(onlyComposedResults).map(outputArray);
+    result = result.map(compose).filter(onlyComposedResults).map(r => {return outputArray(r, parents)});
     result = Promise.all(result);
     return result;
 }

@@ -33,6 +33,11 @@ function showResult (result, outputFld, warnFld, nameOfTbl, nameOfSelect, getRes
         tblOutputFld.innerHTML = "";
         async function onForward ()
         {
+            if (counter === 9) {
+                warnFld.innerHTML = "Bitte verfeinere Deine Suche, die Ergebnisabfrage ist auf 1000 Ergebnisse beschränkt."
+                stopDBRequests = true;
+                return counter;
+            }
             if (stopDBRequests === false) { // there may be open results
                 offset = offset + limit;
                 result = await getResultFct(limit, offset);
@@ -62,6 +67,7 @@ function showResult (result, outputFld, warnFld, nameOfTbl, nameOfSelect, getRes
         }
         async function onBackward ()
         {   
+            warnFld.innerHTML = "";
             offset = offset - limit;
             if (offset < 0) {
                 offset = 0;
@@ -80,7 +86,7 @@ function showResult (result, outputFld, warnFld, nameOfTbl, nameOfSelect, getRes
             await cOutputTbl(container[i], "nameOfTbl", 
                 ["ID", "Autoren", "Titel und Verweise", "Jahr", "Typ", "Standort", "Status"], result);
             tbl = document.getElementsByName("nameOfTbl")[i];
-            cSortFld (container[i], "nameOfSelect", [0, 1, 5], tbl);
+            cSortFld (container[i], "nameOfSelect", [0, 1, 3, 5], tbl);
             return container[i];
         }
         cOrderedTbl(counter);
