@@ -11,7 +11,6 @@
     <script src="../app/validation.js"></script>
     <script src="../app/sql.js"></script>
     <script src="../app/findMedia.js"></script>
-    <script src="../app/ctableOfMedia.js"></script>
 </head>         
 
 
@@ -46,7 +45,7 @@
 
 <article>
 
-    <form id='qsearchFrm' class="center">
+    <form id='qsearchFrm' class="center" autocomplete="off">
         <div class='rTable'>
         <div class='rTableBody'>
             <div class='rTableRow'>
@@ -64,7 +63,7 @@
     </form>    
 
 
-    <form id="dsearchFrm">
+    <form id="dsearchFrm" autocomplete="off">
         <div class='rTable center'>
         <div class='rTableBody'>
             <div class='rTableRow'>
@@ -185,11 +184,15 @@
         </p>
         </div>
     </div>
+    <div id="arrows"></div>
 
 </article>
 
 <script src="../app/shortkeys.js"></script>
 <script>
+
+    let counter = 0;
+    let stop = false;
     // Schnellsuche Formular qsearchFrm 
 
     const infotext = `<div id="infoFld" class="info">
@@ -230,34 +233,31 @@
     let qsearchFrm = new cformular(document.getElementById("qsearchFrm"), document.getElementById("qsearchFrmWarnFld"), document.getElementById("outFld"), document.getElementById("qsearchBtn"));
     qsearchFrm.data = "";
     qsearchFrm.newSbmt(
-        function () 
+        async function () 
         {
-            let warnung = qsearchFrm.warnFld;
+            stop = false;
+            counter = 0;
+            err = [];
+            //let warnung = qsearchFrm.warnFld;
+            let source = "qsearchFrm";
+            let warnFld = qsearchFrm.warnFld;
             let data = qsearchFrm.inFld[0];
-            function conformAndValidateQSearchFrm (data) {
-                err = [];
-                return conformAndValidateSearchStr(data, 0, true);
-            }
-            data = conformAndValidateQSearchFrm(data); // str->[str], str@->[str,], @str->[,str], str@str->[str,str] 
+            data = conformAndValidateSearchStr(data, 0, true); 
+                // str->[str], str@->[str,], @str->[,str], str@str->[str,str] 
             if (err.length !== 0) {
                 let firstError = err[0].split("*");
                 qsearchFrm.warnFld.innerHTML = firstError[1];
                 return false;
             } else {
-                qsearchFrm.outFld.innerHTML = "";
-                ( async () =>
-                {
-                    let limit = 100;
-                    let offset = 0;
-                    function getResult (limit, offset) { return qsearchDBRequest(data, limit, offset); }
-                    let result = await getResult(limit, offset);
-                    if (result === false) {
-                        qsearchFrm.warnFld.innerHTML = "Kein Suchergebnis";
-                    } else {
-                        showResult (result, qsearchFrm.outFld, qsearchFrm.warnFld, "qResTbl", "qSortSel", getResult, limit, offset);
-                    }
-                })();
-                document.getElementById("qsearchStr").select();
+                //qsearchFrm.outFld.innerHTML = "";
+                document.getElementById("arrows").innerHTML = "";
+                let elToSel = document.getElementById("qsearchStr");
+                counter = await getResultTable(data, counter, elToSel, warnFld, source);
+                if (document.getElementsByName("resultTbl")[0] !== null) {
+                    cForwardAndBackwardBtns (document.getElementById("arrows"),
+                        function () {return getResultTable(data,counter+1, elToSel, warnFld, source)},
+                        function () {return getResultTable(data,counter-1, elToSel, warnFld, source)});
+                }
                 return true;
             }
         }
@@ -289,6 +289,7 @@
     //qsearchFrm.elements[0].addEventListener("keydown", qsearchFrm.openDetailsuche, false);
     qsearchFrm.go2dsearchBtn = function () {
         qsearchFrm.formular.style.display = "none";
+        document.getElementById("arrows").innerHTML = "";
         qsearchFrm.reset();
         qsearchFrm.outFld.innerHTML = "";
         dsearchFrm.formular.style.display = "";
@@ -311,8 +312,10 @@
     let dsearchFrm = new cformular(document.getElementById("dsearchFrm"), document.getElementById("dsearchFrmWarnFld"), document.getElementById("outFld"), document.getElementById("dsearchBtn"));
     dsearchFrm.formular.style.display = "none";
     dsearchFrm.newSbmt(
-        function () 
+        async function () 
         {
+            counter = 0;
+            stop = false;
             let elements = dsearchFrm.elements;
             let data = {
                 autor1 : elements[0],
@@ -394,20 +397,16 @@
                 return false;
             } else {
                 dsearchFrm.warnFld.innerHTML = "";
-                qsearchFrm.outFld.innerHTML = "";
-                (async () =>
-                {
-                    let limit = 100;
-                    let offset = 0;
-                    function getResult (limit, offset) { return dsearchDBRequest(data, limit, offset); }
-                    let result = await getResult(limit, offset);
-                    if (result === false) {
-                        dsearchFrm.warnFld.innerHTML = "Kein Suchergebnis";
-                    } else {
-                        showResult (result, qsearchFrm.outFld, dsearchFrm.warnFld, "dResTbl", "dSortSel", getResult, limit, offset);
-                    }
-                })();
-                document.activeElement.select();
+                document.getElementById("arrows").innerHTML = "";
+                let elToSel = document.activeElement;
+                let source = "dsearchFrm";
+                let warnFld = dsearchFrm.warnFld;
+                counter = await getResultTable(data, counter, elToSel, warnFld, source);
+                if (document.getElementsByName("resultTbl")[0] !== null) {
+                    cForwardAndBackwardBtns (document.getElementById("arrows"),
+                        function () {return getResultTable(data,counter+1, elToSel, warnFld, source)},
+                        function () {return getResultTable(data,counter-1, elToSel, warnFld, source)});
+                }
                 return true;
             }
         }
@@ -452,6 +451,7 @@
     dsearchFrm.go2qsearchBtn = function () {
         dsearchFrm.formular.style.display = "none";
         dsearchFrm.reset();
+        document.getElementById("arrows").innerHTML = "";
         dsearchFrm.outFld.innerHTML = "";
         qsearchFrm.warnFld.innerHTML = "";
         qsearchFrm.formular.style.display = "";
@@ -489,6 +489,48 @@ document.getElementsByTagName("body")[0].addEventListener("keydown", esc, false)
 /* 
     DATABASE REQUEST
 */
+
+async function getResultTable (data, c, elToSel, warnFld, source) 
+{
+    if (c<0) {
+        return counter = 0;
+    }
+    if (c>counter && stop === true) {
+        return counter;
+    }
+    if (c<counter && stop === true) {
+        stop = false;
+    }
+    limit = 100;
+    offset = c*limit;
+    if (source === "qsearchFrm") {
+        media = await qsearchDBRequest (data, limit, offset);
+    } else {
+        media = await dsearchDBRequest (data, limit, offset);
+    }
+    if (media === false && counter === 0) {
+        if (document.getElementById("arrows").firstElementChild !== null) {
+            return stop = true;
+        } else {
+            return warnFld.innerHTML = "Zu Deiner Anfrage gibt es kein Suchergebnis"; 
+        }
+    } 
+    if (media === false && counter > 0) {
+        return stop = true;
+    } 
+    let outFld = document.getElementById("outFld");
+    outFld.innerHTML = "";
+    cOutputTbl (outFld, "resultTbl", tblHeaderArr, media);
+    let table = outFld.firstElementChild;
+    let div = document.createElement("div");
+    div.id = "sortFld";
+    outFld.insertBefore(div, table);
+    cSortFld(document.getElementById("sortFld"), "sortTbl", sortArr, table);
+    if (c === 0) {
+        elToSel.select();
+    }
+    return counter = c;
+}
 
 async function qsearchDBRequest (searchStr, limit, offset) 
 {

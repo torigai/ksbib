@@ -85,7 +85,7 @@ function bookData (formular)
     );
     return conformAndValidateBook(formular, b);
 }
-
+/*
 function autorToArr (autor)
 {
     if (autor.includes(",")) {
@@ -94,13 +94,13 @@ function autorToArr (autor)
         return [autor.toString(), ""];
     }
 }
-
+*/
 function addBook (data, callback)
 {
     let procMedium = new cSQLProcessor(callback);
 
     //Globally used results
-    procMedium.add(sql[0],[], "buchid");
+    procMedium.add(sqlFindGapGenerally("relobjtyp", "buchid", "AND zeitschriftid = 0 AND aufsatzid = 0"), [], "buchid");
     if (data.ort !== null) {
         procMedium.add(sqlFindGap("ort"),[]);
         procMedium.add(sql[71], function (result)
@@ -187,6 +187,7 @@ function addBook (data, callback)
 
 function updateBook (data, olddata, callback)
 {
+    let mediumData = selFrm.mediumData;
     let compareResult = {};    //intended: with keys as in data and values 0 (unchanged), 1 (changed)
     let procMedium = new cSQLProcessor(callback);
     compareResult = compare(olddata, data);

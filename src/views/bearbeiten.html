@@ -91,38 +91,33 @@
     /*
         FORMULARE
     */
-    let aktion = "bearbeiten"; 
-    let typeOfMedium;
-    let mediumData;
-    let oldData;
-
-    let xhttpResponse = async function (xhttp)
-    {
-        document.getElementById("outFld").innerHTML = xhttp.responseText;
-        onenterCheckbox();   //requires shortkeys,js
-
-    }
+    typeOfMedium = "";
+    aktion = "bearbeiten"; 
+    selectedID = "";
+    selectedIncollID = "";
+    olddata = "";
 
     let selFrm = new cformular(document.getElementById("selFrm"), document.getElementById("selFrmWarnFld"), document.getElementById("outFld"), document.getElementById("selOKBtn"));
+    selFrm.mediumData = "";
     selFrm.newSbmt( async function () 
     {
         if (selFrm.elements[0].value === "" && selFrm.elements[1].value === "") {
             return selFrm.warnFld.innerHTML = message[0]("Suchbegriff");
         }
         let matchingIDs;
-        let result; 
+        let mediumData;
         let tblArr = [];
         let id = conformAndValidateNumber(selFrm.elements[0], 0, false);
         let titel = conformAndValidateTitle (selFrm.elements[1], 1, false);
-        async function callFormularBearbeiten (idArr)
+        async function callFormularBearbeiten (mediumData)
         {
-            typeOfMedium = await dbGet(sql[35], mediumData[0]).catch(err => {return console.error(err)});
-            typeOfMedium = typeOfMedium.medientyp;
-            if (typeOfMedium === "Buch" && idArr[3] !== 0) {
-                typeOfMedium = "Buchaufsatz";
-            } else if (typeOfMedium === "Zeitschrift" && idArr[3] !== 0) {
-                typeOfMedium = "Artikel";
+            let xhttpResponse = function (xhttp)
+            {
+                document.getElementById("outFld").innerHTML = xhttp.responseText;
+                onenterCheckbox();   //requires shortkeys,js
+                return prepareFormsBearbeiten(mediumData, typeOfMedium);
             }
+            typeOfMedium = mediumData[0][4];
             document.getElementById("headerTitel").innerHTML = typeOfMedium + " " + aktion; 
             selFrm.warnFld.innerHTML = "";
             switch (typeOfMedium) {
@@ -141,41 +136,7 @@
         } else {
             matchingIDs = await dbAll(sqlTitelObjID(id, titel[0]),[]).catch(err => {return console.error(err)});    
         }
-        if (matchingIDs === undefined) {
-            return selFrm.warnFld.innerHTML = "Zu der Eingabe existiert kein Medium";
-        } else {
-            matchingIDs = matchingIDs.map(item => 
-            {
-                return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid]
-            });
-        }
-        if (matchingIDs.length > 1) {
-            result = await findMediaResultArr(matchingIDs);
-            selFrm.outFld.innerHTML = "";
-            document.getElementById("headerTitel").innerHTML = "Medien " + aktion; 
-            cOutputTbl (selFrm.outFld, "selTbl", 
-                ["ID", "Autoren", "Titel und Verweise", "Jahr", "Typ", "Standort", "Status"], result);
-            tblArr = Array.from(document.getElementsByName("selTbl")[0].rows);
-            tblArr.forEach(row => 
-            {
-                if (tblArr.indexOf(row) === 0) {
-                    return row;
-                } else {
-                    row.setAttribute("class","hoverable");
-                    return row.addEventListener("click",(()=>
-                    {
-                        //Requires that the table is ordered like matchingIDs 
-                        //which is asserted in findMedia.js, outputArray()
-                        mediumData = matchingIDs[tblArr.indexOf(row)-1];
-                        return callFormularBearbeiten(mediumData);
-                    }));
-                }
-            });
-            tblAddEventListenerArrow();
-        } else {
-            mediumData = matchingIDs[0];
-            return callFormularBearbeiten(mediumData);
-        }
+        return getTableOrResultForFormular (matchingIDs, selFrm.warnFld, selFrm.outFld, mediumData, callFormularBearbeiten);
     })
     selFrm.sbmtBtn.addEventListener("click", selFrm.sbmt);
     selFrm.onenter = function (event) 
@@ -222,6 +183,148 @@
     
     selFrm.textFld[0].addEventListener("keydown", function () {return boolean = enterTableOnArrowDown(event, "selTbl")});
     selFrm.textFld[1].addEventListener("keydown", function () {return boolean = enterTableOnArrowDown(event, "selTbl")});
+
+    async function prepareFormsBearbeiten (mediumData, typeOfMedium)
+    {
+        console.log(mediumData);
+        let standort, autoren, titel, sachgebietsnr, stichworte;
+        let datacoll;
+        let idArr = mediumData[1];
+        function fillOutInputFlds (fieldname, dataObj)
+        {
+            let i = Object.keys(dataObj).indexOf(fieldname);
+            if (document.getElementsByName(fieldname)[0] !== undefined) {
+                    return document.getElementsByName(fieldname)[0].defaultValue = 
+                        (dataObj[Object.keys(dataObj)[i]] === null) ? "" : dataObj[Object.keys(dataObj)[i]];
+            }
+        }
+
+        cBFrmObj();
+        document.getElementsByTagName("body")[0]
+            .addEventListener("keydown", function () 
+            {
+                return strgC(event, document.getElementById("abbrBtn"))
+            }, false);
+
+        if (document.getElementsByName("id")[0] !== undefined) {
+            document.getElementsByName("id")[0].value = idArr[0];
+        }
+        datacoll = await dbGet(sql[41], idArr).catch(err => {return console.error(err)});
+        fillOutInputFlds("jahr", datacoll);
+        fillOutInputFlds("ort", datacoll);
+        fillOutInputFlds("verlag", datacoll);
+        fillOutInputFlds("band", datacoll);
+        fillOutInputFlds("seiten", datacoll);
+        fillOutInputFlds("hinweis", datacoll);
+        fillOutInputFlds("preis", datacoll);
+        fillOutInputFlds("link", datacoll);
+        if (datacoll.autortyp === 1 && document.getElementsByName("autortyp")[0] !== undefined) {
+            document.getElementsByName("autortyp")[0].checked = true;
+            document.getElementsByName("autortyp")[0].setAttribute("value", "1");
+        }
+        if (document.getElementById("status") !== null) {
+            Array.from(document.getElementById("status").options).forEach(option =>
+            {
+                if (option.value == datacoll.status) {
+                    return option.setAttribute("selected", "selected");
+                } else {
+                    if (option.hasAttribute("selected")) {
+                        return option.removeAttribute("selected");
+                    } else {
+                        return option;
+                    }
+                }
+            });
+        }
+        if (typeOfMedium === "Buch") {
+            datacoll = await dbGet(sql[42], [idArr[2]]).catch(err => {return console.error(err)});
+            datacoll = (datacoll === undefined) ? {auflage: null, isbn: null} : datacoll;
+            fillOutInputFlds("auflage",datacoll);
+            fillOutInputFlds("isbn",datacoll);
+        }
+        if (typeOfMedium === "Zeitschrift") {
+            let zeitschrift = await dbGet(sql[43], [idArr[1]]).catch(err => {return console.error(err)});
+            document.getElementsByName("zeitschrift")[0].defaultValue = zeitschrift.journal;
+            document.getElementsByName("zeitschriftkuerzel")[0].defaultValue = zeitschrift.kuerzel;
+            document.getElementsByName("nr")[0].defaultValue = (zeitschrift.nr === null) ?
+                "" : zeitschrift.nr;
+        }
+        if (typeOfMedium === "Artikel") {
+            selectedID = idArr[0];
+        }
+        if (typeOfMedium === "Buchaufsatz") {
+            selectedIncollID = idArr[0];
+        }
+        if (document.getElementById("standort") !== null) {
+            cStandorteOptions(document.getElementById("standort"));
+            standort = await dbGet(sql[36], [idArr[0]]).catch(err => {return console.error(err)});
+            Array.from(document.getElementById("standort")).forEach(item =>
+            {
+                if (item.innerHTML.includes(standort.standortsgn)) {
+                    return item.selected = true;
+                } else {
+                    return item;
+                }
+            });
+        }
+        if (document.getElementsByName("sachgebietsnr")[0] !== undefined) {
+            sachgebiete = await dbAll(sql[39], [idArr[0]]).catch(err => {return console.error(err)});
+            if (sachgebiete !== undefined) {
+                sachgebiete.forEach(sachgebiet =>
+                {
+                    document.getElementsByName("sachgebietsnr")[0].innerHTML += 
+                        sachgebiet.sachgebietid + "\n";
+                    let sg = (Number(sachgebiet.sachgebietid)%100 === 0) ? 
+                        "OSG - " + sachgebiet.sachgebiet :
+                        "USG - " + sachgebiet.sachgebiet;
+                    document.getElementsByName("sachgebiete")[0].innerHTML += sg + "\n";
+                });
+            }
+        }
+        autoren = await dbAll(sql[37], idArr).catch(err => {return console.error(err)});
+        if (autoren !== undefined) {
+            autoren.forEach(autor =>
+            {
+                if (autor.vorname === "") {
+                    return document.getElementsByName("autoren")[0].innerHTML += 
+                        autor.name + "\n";
+                } else {
+                    return document.getElementsByName("autoren")[0].innerHTML += 
+                        autor.name + ", " + autor.vorname + "\n";
+                }
+            });
+        }
+        titel = await dbAll(sql[38], idArr).catch(err => {return console.error(err)});
+        titel.forEach(titel =>
+        {
+            return document.getElementsByName("titel")[0].innerHTML += titel.titel + "\n";
+        });
+        stichworte = await dbAll(sql[40], idArr).catch(err => {return console.error(err)});
+        if (stichworte !== undefined) {
+            stichworte.forEach(stichwort =>
+            {
+                return document.getElementsByName("stichworte")[0].innerHTML +=
+                    stichwort.stichwort + "\n";
+            });
+        }
+        switch (typeOfMedium) {
+        case "Artikel" :
+            olddata = articleData(document.forms.bFrm);
+            break;
+        case "Zeitschrift" :
+            olddata = journalData(document.forms.bFrm);
+            break;
+        case "Aufsatz" :  
+            olddata = essayData(document.forms.bFrm);
+            break;
+        case "Buchaufsatz" :
+            olddata = incollectionData(document.forms.bFrm);
+        break;
+        default : //typeOfMedium = "Buch"                        
+            olddata = bookData(document.forms.bFrm);
+        }
+        return selFrm.mediumData = idArr;
+    }
     
 </script>
 

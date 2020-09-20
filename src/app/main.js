@@ -1,5 +1,17 @@
 
+/*
+    GLOBALS AND STATUS VARIABLES
+*/
+
 const filepathDefault = "/files/";
+let tblSelColor = "rgb(255, 77, 77)";
+let tblHoverColor = "rgb(230, 230, 230)";
+let tblDefaultColor = "initial";
+let aktion; 
+let typeOfMedium;
+let selectedID;
+let selectedIncollID;
+let olddata;
 
 
 function strtrim (str) { return str.replace(/\s+/g,' ').trim(); }

@@ -10,7 +10,7 @@ let message = [];
 */
 
 const sachgebietsnrPattern = /^0$|[1-9]{1}[0-9]{0,4}$/;  //[0,99999]
-const textPattern = /^[À-ú\d\wÄÖÜäüöß\s.,:!°?"\-'()#+\/;]*$/;  //Normaler Text
+const textPattern = /^[À-ú\d\wÄÖÜäüöß\s.,:!°\&?"\-'()#+\/;]*$/;  //Normaler Text
 const buchstabenPattern = /^[À-úa-zäüöß\s]*$/i;          //Buchstaben und Leerzeichen
 const zahlenPattern = /^\d+$/;
 //const zahlenPattern = /^0$|^[1-9]{1}[0-9]{0,2}$/;     //ganze Zahlen [0,999]
@@ -199,10 +199,10 @@ function conformAndValidateAuthor (el, i, j)
 function conformAndValidateAuthorArr (el, i, j)
 {
     let autorenarr = [];
-    if (j == false && el.value.match(/[a-zöäüß]/i) == null) {
+    if (j == false && el.value.match(/[À-úa-zöäüß]/i) == null) {
         return null;
     }
-    if (j == true && el.value.match(/[a-zöäüß]/i) == null) {
+    if (j == true && el.value.match(/[À-úa-zöäüß]/i) == null) {
         err[err.length] = i + "*" + message[0]("einen Autornamen");
         return false;
     } else {

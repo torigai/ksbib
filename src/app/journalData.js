@@ -78,7 +78,7 @@ function journalData (formular)
     );
 	return conformAndValidateJournal(formular, z);
 }
-
+/*
 function autorToArr (autor)
 {
     if (autor.includes(",")) {
@@ -87,13 +87,13 @@ function autorToArr (autor)
         return [autor.toString(), ""];
     }
 }
-
+*/
 function addJournal (data, callback)
 {
     let procMedium = new cSQLProcessor(callback);
  
     //Globally used result
-    procMedium.add(sql[20], [], "zeitschriftid");    
+    procMedium.add(sqlFindGapGenerally("relobjtyp", "zeitschriftid", "AND buchid = 0 AND aufsatzid = 0"), [], "zeitschriftid");    
 
     //Locals
     //requires that journal and zeitschriftkuerzel is never null !
@@ -170,6 +170,7 @@ function updateJournal (data, olddata, callback)
 {
     let compareResult = {};    //intended: with keys as in data and values 0 (unchanged), 1 (changed)
     let procMedium = new cSQLProcessor(callback);
+    let mediumData = selFrm.mediumData;
     
     compareResult = compare(olddata, data);
     if (!Object.values(compareResult).includes(1)) { //no changes

@@ -9,7 +9,6 @@
     <script src="../app/sql.js"></script>
     <script src="../app/findMedia.js"></script>
     <script src="../app/table.js"></script>
-    <script src="../app/ctableOfMedia.js"></script>
     <script src="../app/validation.js"></script>
 </head>         
 
@@ -53,12 +52,21 @@
         <input type='button' value='Abbrechen' class="btn" id="abbrBtn">
     </div>
     <div id="sgsFrmWarnFld" class="warning center"></div>
+    <div class="center margin">
+        <b>Ausgewählte Sachgebiete: </b>
+        <div id = "sgInfo" style="margin-top: 1em; height: 2em"></div>
+        <p>
+            Liste der aktuellen Sachgebiete <a href="drucken-sachgebiete.php" target="_blank">drucken</a>
+        </p>
+    </div>
+    <!--
     <div id="sgInfo" class="center"></div>
     <div class="center margin">
         <p>
             Liste der aktuellen Sachgebiete <a href="drucken-sachgebiete.html" target="_blank">drucken</a>
         </p>
     </div>
+-->
     </form>
 
     <div id="outFld" class="margin">
@@ -75,6 +83,7 @@
         </p>
         </div>        
     </div>
+    <div id="arrows"></div>
 
 </article>
 
@@ -82,6 +91,8 @@
 <script>    
     let status = 0;     //0: OSG; 1: OSG AND USG; 2: RESULT
     let sglist = [];
+    let counter = 0;
+    let stop = false;
 
     async function processData (data, link, warnFld)
     {
@@ -104,16 +115,33 @@
                 }
                 break;
             case 2: // SEARCH RESULT
-                async function sgsearchDBRequest(data, limit, offset)
+                let limit = 100;
+                async function sgsearchDBRequest(data, c)
                 {
+                    if (c<0) {
+                        return counter = 0;
+                    }
+                    if (c>counter && stop === true) {
+                        return counter;
+                    }
+                    if (c<counter && stop === true) {
+                        stop = false;
+                    }
+                    let outFld = document.getElementById("outFld");
                     let matchingIDs = [];
                     let promises = [];      //required !
                     result = [];            //required !
                     //get Array of id's:
+                    let offset = limit*c;
                     promises = data.map(datum => {return dbAll(sqlIDFromSG(limit,offset), datum) });
                     let resolvedPromises = await Promise.all(promises).catch(err=>{return console.error(err)});
                     if (resolvedPromises === undefined) {
-                        return false;
+                        if (document.getElementById("arrows").firstElementChild !== null) {
+                            return stop = true;
+                        } else {
+                            return document.getElementById("sgsFrmWarnFld")
+                                .innerHTML = "Zu Ihrer Anfrage gibt es keine Medien in der Datenbank"; 
+                        }
                     } else {
                         resolvedPromises.forEach(resultArray => 
                         {
@@ -131,17 +159,23 @@
                             });
                         });
                         //get media Data
-                        return findMediaResultArr(matchingIDs);
+                        result = await findMediaResultArr(matchingIDs);
+                        outFld.innerHTML = "";
+                        cOutputTbl (outFld, "sgsResultTbl", tblHeaderArr, result);
+                        let table = outFld.firstElementChild;
+                        let div = document.createElement("div");
+                        div.id = "sortFld";
+                        outFld.insertBefore(div, table);
+                        cSortFld(document.getElementById("sortFld"), "sortTbl", sortArr, table);
+                        return counter = c;
                     } 
                 }
-
-                let limit = 100;
-                let offset = 0;
-                function getResult (limit, offset) { return sgsearchDBRequest(data, limit, offset); }
-                result = await getResult(limit, offset);
-                
-                showResult (result, document.getElementById("outFld"), 
-                    document.getElementById("sgsFrmWarnFld"), "ResTbl", "SortSel", getResult, limit, offset);
+                counter = await sgsearchDBRequest(data, counter);
+                if (document.getElementsByName("sgsResultTbl")[0] !== null) {
+                    cForwardAndBackwardBtns (document.getElementById("arrows"),
+                        function () {return sgsearchDBRequest(data,counter+1)},
+                        function () {return sgsearchDBRequest(data,counter-1)});
+                }
                 return true;
                 break;
         }
@@ -178,8 +212,7 @@
                     sglist.splice(i, 1);
                     if (sglist.length > 0) {
                         sachgebiete = sglist.toString();
-                        document.getElementById("sgInfo").innerHTML = 
-                            "<b>Ausgewählte Sachgebiete: </b><p>" + sachgebiete + "</p>";
+                        document.getElementById("sgInfo").innerHTML = sachgebiete;
                     } else {
                         document.getElementById("sgInfo").innerHTML = "";
                     }
@@ -203,8 +236,7 @@
                         return c - d;
                     });
                     sachgebiete = sglist.toString();
-                    document.getElementById("sgInfo").innerHTML = 
-                        "<b>Ausgewählte Sachgebiete: </b><p>" + sachgebiete + "</p>";
+                    document.getElementById("sgInfo").innerHTML = sachgebiete;
                 }
         }
         function onselect (event)
@@ -245,8 +277,7 @@
                 });
                 if (sglist.length > 0) {
                     sachgebiete = sglist.toString();
-                    document.getElementById("sgInfo").innerHTML = 
-                        "<b>Ausgewählte Sachgebiete: </b><p>" + sachgebiete + "</p>";
+                    document.getElementById("sgInfo").innerHTML = sachgebiete;
                 }
             }
         }
@@ -340,9 +371,7 @@
                             parent.removeChild(parent.lastElementChild);
                             await processData(data, parent, document.getElementById("sgsFrmWarnFld"));
                             sgsFrm.sbmtBtn.style.display = "none";
-                            sgsFrm.outFld.firstElementChild.setAttribute("class", "center");
-                            document.getElementById("sgInfo").innerHTML = "";
-                            sgsFrm.outFld.firstElementChild.innerHTML = "<b>Sachgebiete: </b>" + data;
+                            document.getElementById("sgInfo").innerHTML = data;
                             sgsFrm.btn[1].focus();
                         } else {
                             return sgsFrm.warnFld.innerHTML="Bitte wähle ein Sachgebiet aus";   

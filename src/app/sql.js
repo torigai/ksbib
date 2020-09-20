@@ -77,24 +77,24 @@ function sqr (sql, params, outputArr)
     }
 }
 
-function showDatalist (value, link, sql, data) 
+function showDatalist (value, link, sql) 
+{
+    db.all(sql, [value], (err, rows) =>
     {
-        db.all(sql, [value], (err, rows) =>
+        if (err) {console.log(err.message);}
+        if (link.firstElementChild !== null) {link.firstElementChild.remove();}
+        let sel = document.createElement("select");
+        let opts = [];
+        rows.forEach((row)=>
         {
-            if (err) {console.log(err.message);}
-            if (link.firstElementChild !== null) {link.firstElementChild.remove();}
-            let sel = document.createElement("select");
-            let opts = [];
-            rows.forEach((row)=>
-            {
-                opts.push(document.createElement("option"));
-                opts[opts.length-1].innerHTML = Object.values(row)[0];
-                sel.appendChild(opts[opts.length-1]);
-            })
-            link.appendChild(sel);
-            return valArr;
-        })
-    }
+            opts.push(document.createElement("option"));
+            opts[opts.length-1].value = Object.values(row)[0];
+            sel.appendChild(opts[opts.length-1]);
+        });
+        link.appendChild(sel);
+        return valArr;
+    })
+}
 
 
 /*
@@ -228,6 +228,7 @@ sql[94] = `SELECT id FROM objekt WHERE standort = ?`;
 sql[95] = `DELETE FROM standort WHERE id = ?`;
 sql[96] = `INSERT OR IGNORE INTO standort (id, standort, standortsgn) VALUES (?,?,?)`;
 sql[97] = `UPDATE filepath SET path = ? WHERE id = 0`;
+sql[98] = `DELETE FROM relobjtyp WHERE objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?`;
 
 function sqlFindGapOSGSachgebiete ()
 {
@@ -260,6 +261,18 @@ function sqlFindGap (table) //Selects the first gap or if no gap exists return m
     NOT EXISTS (
         SELECT NULL FROM ${table} mi WHERE mi.id = mo.id + 1
     ) ORDER BY id LIMIT 1`;
+}
+
+function sqlFindGapGenerally (table, column, constraint)
+{
+    return `SELECT CASE 
+        WHEN MIN(`+column+`) IS NULL THEN 1
+        ELSE `+column+` + 1
+    END
+    FROM ${table} mo WHERE 
+    NOT EXISTS (
+        SELECT NULL FROM ${table} mi WHERE mi.`+column+` = mo.`+column+` + 1 `+constraint+`
+    ) ORDER BY `+column+` LIMIT 1`;   
 }
 
 function sqlUpdate(table, columns, constraint)

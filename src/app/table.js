@@ -3,9 +3,8 @@
     for an array of arrays of data as obtained from findMedia.js.   
 */
 
-let tblSelColor = "rgb(255, 77, 77)";
-let tblHoverColor = "rgb(230, 230, 230)";
-let tblDefaultColor = "initial";
+const tblHeaderArr = ["ID", "Autoren", "Titel und Verweise", "Jahr", "Typ", "Standort", "Status"];
+const sortArr = [0, 1, 3, 5];
 
 function cOutputTbl (container, tblName, headerNamesArr, entriesArr, boolean) 
 {   
@@ -193,5 +192,43 @@ function tblAddEventListenerArrow ()
         {
             return fld.addEventListener("keydown", tblOnArrow)
         });
+    }
+}
+
+async function getTableOrResultForFormular (data, warnfield, outfield, mediumData, callback) {
+    if (data === undefined) {
+        return warnfield.innerHTML = "Zu der Eingabe existiert kein Medium";
+    } else {
+        data = data.map(item => 
+        {
+            return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid]
+        });
+    }
+    if (data.length > 1) {
+        let result = await findMediaResultArr(data);
+        outfield.innerHTML = "";
+        document.getElementById("headerTitel").innerHTML = "Medien " + aktion; 
+        cOutputTbl (outfield, "selTbl", tblHeaderArr, result);
+        tblArr = Array.from(document.getElementsByName("selTbl")[0].rows);
+        tblArr.forEach(row => 
+        {
+            if (tblArr.indexOf(row) === 0) {
+                return row;
+            } else {
+                row.setAttribute("class","hoverable");
+                return row.addEventListener("click",(()=>
+                {
+                    //Requires that the table is ordered like data 
+                    //which is asserted in findMedia.js, outputArray()
+                    mediumData = [result[tblArr.indexOf(row)-1], data[tblArr.indexOf(row)-1]];    
+                    return callback(mediumData);
+                }));
+            }
+        });
+        tblAddEventListenerArrow();
+    } else {
+        let result = await findMediaResultArr(data);
+        mediumData = [result[0],data[0]]; 
+        return callback(mediumData);
     }
 }

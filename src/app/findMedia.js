@@ -56,13 +56,13 @@ async function outputArray (object, parents)
     let id = object.objektid;
     let standort = object.standortsgn;
     let jahr = (object.jahr !== null) ? object.jahr : "";
-    let preis = (object.preis !== null) ? ", " + object.preis + " &euro;" : "";
-    let band = (object.band !== null) ? ", Band " + object.band : ""; 
-    let seiten = (object.seiten !== null) ? ", S. " + object.seiten : "";
-    let nr = (object.zeitschriftNr !== null) ? " Nr. " + object.zeitschriftNr : "";
+    let preis = (object.preis !== undefined && object.preis !== null) ? ", " + object.preis + " &euro;" : "";
+    let band = (object.band !== undefined && object.band !== null) ? ", Band " + object.band : ""; 
+    let seiten = (object.seiten !== undefined && object.seiten !== null) ? ", S. " + object.seiten : "";
+    let nr = (object.zeitschriftNr !== undefined && object.zeitschriftNr !== null) ? " Nr. " + object.zeitschriftNr : "";
     let hinweis = (object.hinweis !== null) ? "<p><i>Hinweis</i>: " + object.hinweis + "</p>" : "";
     let ort = (object.ort !== null) ? ", " + object.ort : "";
-    let verlag = (object.verlag !== null) ? ", " + object.verlag : ""; 
+    let verlag = (object.verlag !== undefined && object.verlag !== null) ? ", " + object.verlag : ""; 
     let link = "";
     if (object.link !== null) {
         if (filenamePattern.test(object.link)) {

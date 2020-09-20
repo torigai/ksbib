@@ -1,4 +1,4 @@
-let selectedIncollID;
+selectedIncollID = "";
 
 function incollection (autoren, titel, jahr, ort, seiten, hinweis, stichworte, link) 
 {
@@ -52,7 +52,7 @@ function incollectionData (formular)
     );
     return conformAndValidateIncollection(formular, ic);
 }
-
+/*
 function autorToArr (autor)
 {
     if (autor.includes(",")) {
@@ -61,7 +61,7 @@ function autorToArr (autor)
         return [autor.toString(), ""];
     }
 }
-
+*/
 function addIncollection (data, callback)
 {
     let procMedium = new cSQLProcessor(callback);
@@ -139,6 +139,7 @@ function updateIncollection (data, olddata, callback)
 {
     let compareResult = {};    //intended: with keys as in data and values 0 (unchanged), 1 (changed)
     let procMedium = new cSQLProcessor(callback);
+    let mediumData = selFrm.mediumData;
     
     compareResult = compare(olddata, data);
     if (!Object.values(compareResult).includes(1)) { //no changes

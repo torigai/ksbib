@@ -3,7 +3,7 @@
 //REQUIRES sql.js
 //REQUIRES sqlProcFunctions.js
 
-let selectedID;
+selectedID = "";
 
 function article (autoren, titel, jahr, ort, seiten, hinweis, stichworte, link) 
 {
@@ -137,6 +137,7 @@ function updateArticle (data, olddata, callback)
 {
     let compareResult = {};    //intended: with keys as in data and values 0 (unchanged), 1 (changed)
     let procMedium = new cSQLProcessor(callback);
+    let mediumData = selFrm.mediumData;
     
     compareResult = compare(olddata, data); 
     if (!Object.values(compareResult).includes(1)) { //no changes

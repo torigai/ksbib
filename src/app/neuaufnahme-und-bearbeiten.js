@@ -1,301 +1,7 @@
     // Global definierten Variablen
     // neuaufnahme.html -> aktion = "hinzufügen"
     // bearbeiten.html -> aktion = "bearbeiten"
-    // typeOfMedium, mediumData, aktion, olddata    (definiert in: bearbeiten.html und/oder neuaufnahme.html)
-
-    /*
-        XHR Event Listener
-    */
-
-    onLoadenedXHR(
-        async function ()
-        {
-            if (aktion === "hinzufügen") {  // from neuaufnahme.html
-                if (document.forms.bFrm !== undefined) {
-                // create bFrm and fill up "standorte" select field and "id" field
-                    await cBFrmObj();
-                    if (document.getElementById("standort") !== null) {
-                        cStandorteOptions(document.getElementById("standort"));
-                    }
-                    if (document.getElementsByName("id")[0] !== undefined) {
-                        let minID = (await dbGet(`SELECT MIN(id) AS id FROM objekt`, [])).id;
-                        if ( minID > 1) {
-                            bFrm.elements[0].value = 1;
-                        } else {
-                            bFrm.elements[0].value = await getMaxID();
-                        }
-                    }
-                    document.getElementsByTagName("body")[0]
-                        .addEventListener("keydown", function () 
-                        {
-                            return strgC(event, document.getElementById("abbrBtn"))
-                        }, false);
-
-                }
-                if (typeOfMedium === "Artikel" || typeOfMedium === "Buchaufsatz") {
-                    if (document.forms.bFrm === undefined) { // only formular-selid.html is loaded
-                        document.getElementById("selIDStr").focus();
-                    }
-                    document.getElementById("selIDStr").addEventListener("keypress", function (event)
-                    {
-                        if (event.keyCode == 13 || event.which == 13) {
-                            event.preventDefault();
-                            document.getElementById("selIDOKBtn").click();
-                        } else {return;}
-                    });
-                    if (typeOfMedium === "Artikel") {
-                        document.getElementById("selIDOKBtn").onclick = (()=>
-                        {
-                            if (document.getElementById("selIDStr").value === "") {
-                                return document.getElementById("selIDFrmWarnFld").innerHTML = "Bitte gib eine ID ein";
-                            } else {
-                                function getJournalData (id, warnFld, outFld, link)
-                                {
-                                    warnFld.innerHTML = "";
-                                    warnFld.setAttribute("class", "warning");
-                                    db.get(sql[31], [id], function (err, row)
-                                    {
-                                        if (err) {
-                                            return console.log(err); 
-                                        } 
-                                        if (row === undefined) {
-                                            outFld.innerHTML = "";
-                                            return warnFld.innerHTML = 'Es gibt keine Zeitschrift zu der ID'; 
-                                        } 
-                                        if (row.medium !== 'Zeitschrift') {
-                                            outFld.innerHTML = "";
-                                            return warnFld.innerHTML = 'Es gibt keine Zeitschrift zu der ID';
-                                        } else {
-                                            let jahr = (row.jahr !== null) ? ', ' + row.jahr : '';
-                                            let band = (row.band !== null) ? ', Band ' + row.band : '';
-                                            let nr = (row.zeitschriftNr !== null) ? ' Nr. ' + row.zeitschriftNr : '';
-                                            if (!row.titel.endsWith('.')) { row.titel = row.titel + '.'; }
-                                            let xhttpResponse = function (xhttp)
-                                            {
-                                                return outFld.innerHTML = xhttp.responseText;
-                                            }
-                                            warnFld.removeAttribute("class");
-                                            warnFld.setAttribute("class", "center margin");
-                                            warnFld.innerHTML = "<b>Zeitschrift: </b>" 
-                                                + row.titel + ' <i>' + row.zeitschrift + band + nr + '</i>' + jahr;
-                                            xhr(link, xhttpResponse);
-                                            return selectedID = id;
-                                        }
-                                    });
-                                }
-                                return getJournalData(
-                                    document.getElementById("selIDStr").value, 
-                                    document.getElementById("selIDFrmWarnFld"),
-                                    document.getElementById("selIDOutFld"),
-                                    "formular-artikel+buchaufsatz.html"
-                                );
-                            }
-                        });
-                    }
-                    if (typeOfMedium === "Buchaufsatz") {
-                        document.getElementById("selIDOKBtn").onclick = (()=>
-                        {
-                            if (document.getElementById("selIDStr").value === "") {
-                                return document.getElementById("selIDFrmWarnFld").innerHTML = "Bitte gib eine ID ein";
-                            } else {
-                                function getIncollectionData (id, warnFld, outFld, link)
-                                {
-                                    warnFld.innerHTML = "";
-                                    warnFld.setAttribute("class", "warning");
-                                    db.get(sql[30], [id], function (err, row)
-                                    {
-                                        if (err) {
-                                           return console.log(err); 
-                                        }    
-                                        if (row === undefined) {
-                                            outFld.innerHTML = "";
-                                            return warnFld.innerHTML = 'Es gibt kein Buch zu der ID'; 
-                                        } 
-                                        if (row.medium !== 'Buch') {
-                                            outFld.innerHTML = "";
-                                            return warnFld.innerHTML = 'Es gibt kein Buch zu der ID';
-                                        } else {
-                                            let autortyp = (row.autortyp === 0) ? "" : " (Hrg.)";
-                                            let autoren;
-                                            if (row.autor !== null) { 
-                                            // In media_view wird (Name = "Müller" Vorname = "") als "Müller, " 
-                                            // gespeichert
-                                            // Das "," soll in diesem Fall nicht angezeigt werden
-                                                autoren = strtrim(row.autor).endsWith(",") ? 
-                                                strtrim(row.autor).slice(0, row.autor.indexOf(",")) + autortyp + ": " : 
-                                                row.autor + autortyp + ": "; 
-                                            } else {
-                                                autoren = "";
-                                            }
-                                            let jahr = (row.jahr !== null) ? ', ' + row.jahr : '';
-                                            let band = (row.band !== null) ? ', Band ' + row.band : '';
-                                            let verlag = (row.verlag !== null) ? row.verlag : '';
-                                            if (!row.titel.endsWith('.')) { row.titel = row.titel + '.'; }
-                                            let xhttpResponse = function (xhttp)
-                                            {
-                                                outFld.innerHTML = xhttp.responseText;
-                                            }
-                                            warnFld.removeAttribute("class");
-                                            warnFld.setAttribute("class", "center margin");
-                                            warnFld.innerHTML = "<b>Buch: </b>" + autoren + 
-                                                '<i>' + row.titel + '</i>' + band + verlag + jahr;
-                                            xhr(link, xhttpResponse);
-                                            return selectedIncollID = id;
-                                        }
-                                    });
-                                }
-                                return getIncollectionData (
-                                    document.getElementById("selIDStr").value, 
-                                    document.getElementById("selIDFrmWarnFld"),
-                                    document.getElementById("selIDOutFld"),
-                                    "formular-artikel+buchaufsatz.html"
-                                );
-                            }
-                        });
-                    }
-                }
-            } else if (aktion === "bearbeiten") {   //from bearbeiten.html
-                if (document.forms.bFrm !== undefined) {
-                    let standort, autoren, titel, sachgebietsnr, stichworte;
-                    let datacoll;
-                    function fillOutInputFlds (fieldname, dataObj)
-                    {
-                        let i = Object.keys(dataObj).indexOf(fieldname);
-                        if (document.getElementsByName(fieldname)[0] !== undefined) {
-                                return document.getElementsByName(fieldname)[0].defaultValue = 
-                                    (dataObj[Object.keys(dataObj)[i]] === null) ? "" : dataObj[Object.keys(dataObj)[i]];
-                        }
-                    }
-
-                    await cBFrmObj();
-                    document.getElementsByTagName("body")[0]
-                        .addEventListener("keydown", function () 
-                        {
-                            return strgC(event, document.getElementById("abbrBtn"))
-                        }, false);
-
-                    if (document.getElementsByName("id")[0] !== undefined) {
-                        document.getElementsByName("id")[0].value = mediumData[0];
-                    }
-                    datacoll = await dbGet(sql[41], mediumData).catch(err => {return console.error(err)});
-                    fillOutInputFlds("jahr", datacoll);
-                    fillOutInputFlds("ort", datacoll);
-                    fillOutInputFlds("verlag", datacoll);
-                    fillOutInputFlds("band", datacoll);
-                    fillOutInputFlds("seiten", datacoll);
-                    fillOutInputFlds("hinweis", datacoll);
-                    fillOutInputFlds("preis", datacoll);
-                    fillOutInputFlds("link", datacoll);
-                    if (datacoll.autortyp === 1 && document.getElementsByName("autortyp")[0] !== undefined) {
-                        document.getElementsByName("autortyp")[0].checked = true;
-                    }
-                    if (document.getElementById("status") !== null) {
-                        Array.from(document.getElementById("status").options).forEach(option =>
-                        {
-                            if (option.value == datacoll.status) {
-                                return option.setAttribute("selected", "selected");
-                            } else {
-                                if (option.hasAttribute("selected")) {
-                                    return option.removeAttribute("selected");
-                                } else {
-                                    return option;
-                                }
-                            }
-                        });
-                    }
-                    if (typeOfMedium === "Buch") {
-                        datacoll = await dbGet(sql[42], mediumData[0]).catch(err => {return console.error(err)});
-                        datacoll = (datacoll === undefined) ? {auflage: null, isbn: null} : datacoll;
-                        fillOutInputFlds("auflage",datacoll);
-                        fillOutInputFlds("isbn",datacoll);
-                    }
-                    if (typeOfMedium === "Zeitschrift") {
-                        let zeitschrift = await dbGet(sql[43], mediumData[1]).catch(err => {return console.error(err)});
-                        document.getElementsByName("zeitschrift")[0].defaultValue = zeitschrift.journal;
-                        document.getElementsByName("zeitschriftkuerzel")[0].defaultValue = zeitschrift.kuerzel;
-                        document.getElementsByName("nr")[0].defaultValue = zeitschrift.nr;
-                    }
-                    if (typeOfMedium === "Artikel") {
-                        //selectedID is defined in articleData.js and there defines data.id
-                        selectedID = mediumData[0];
-                    }
-                    if (typeOfMedium === "Buchaufsatz") {
-                        //selectedIncollID is defined in incollectionData.js and there defines data.id
-                        selectedIncollID = mediumData[0];
-                    }
-                    if (document.getElementById("standort") !== null) {
-                        cStandorteOptions(document.getElementById("standort"));
-                        standort = await dbGet(sql[36], mediumData[0]).catch(err => {return console.error(err)});
-                        Array.from(document.getElementById("standort")).forEach(item =>
-                        {
-                            if (item.innerHTML.includes(standort.standortsgn)) {
-                                return item.selected = true;
-                            } else {
-                                return item;
-                            }
-                        });
-                    }
-                    if (document.getElementsByName("sachgebietsnr")[0] !== undefined) {
-                        sachgebiete = await dbAll(sql[39], mediumData[0]).catch(err => {return console.error(err)});
-                        if (sachgebiete !== undefined) {
-                            sachgebiete.forEach(sachgebiet =>
-                            {
-                                document.getElementsByName("sachgebietsnr")[0].innerHTML += 
-                                    sachgebiet.sachgebietid + "\n";
-                                let sg = (Number(sachgebiet.sachgebietid)%100 === 0) ? 
-                                    "OSG - " + sachgebiet.sachgebiet :
-                                    "USG - " + sachgebiet.sachgebiet;
-                                document.getElementsByName("sachgebiete")[0].innerHTML += sg + "\n";
-                            });
-                        }
-                    }
-                    autoren = await dbAll(sql[37], mediumData).catch(err => {return console.error(err)});
-                    if (autoren !== undefined) {
-                        autoren.forEach(autor =>
-                        {
-                            if (autor.vorname === "") {
-                                return document.getElementsByName("autoren")[0].innerHTML += 
-                                    autor.name + "\n";
-                            } else {
-                                return document.getElementsByName("autoren")[0].innerHTML += 
-                                    autor.name + ", " + autor.vorname + "\n";
-                            }
-                        });
-                    }
-                    titel = await dbAll(sql[38], mediumData).catch(err => {return console.error(err)});
-                    titel.forEach(titel =>
-                    {
-                        return document.getElementsByName("titel")[0].innerHTML += titel.titel + "\n";
-                    });
-                    stichworte = await dbAll(sql[40], mediumData).catch(err => {return console.error(err)});
-                    if (stichworte !== undefined) {
-                        stichworte.forEach(stichwort =>
-                        {
-                            return document.getElementsByName("stichworte")[0].innerHTML +=
-                                stichwort.stichwort + "\n";
-                        });
-                    }
-
-                    switch (typeOfMedium) {
-                    case "Artikel" :
-                        return olddata = articleData(document.forms.bFrm);
-                        break;
-                    case "Zeitschrift" :
-                        return olddata = journalData(document.forms.bFrm);
-                        break;
-                    case "Aufsatz" :  
-                        return olddata = essayData(document.forms.bFrm);
-                        break;
-                    case "Buchaufsatz" :
-                        return olddata = incollectionData(document.forms.bFrm);
-                    break;
-                    default : //typeOfMedium = "Buch"                        
-                        return olddata = bookData(document.forms.bFrm);
-                }
-                }
-            } 
-        }
-    )
+    // typeOfMedium, mediumData, aktion, olddata 
 
     /*
         FORMULAR
@@ -314,6 +20,7 @@
         } else {
             bFrm.elements[0].focus();
         }
+        bFrm.formular.setAttribute("autocomplete","off");
         bFrm.noIn = bFrm.elements.length - 2;
         bFrm.onenter = function (event) {
             let frm = this;
@@ -543,8 +250,8 @@
             }
         )
 
-        bFrm.sbmtBtn.addEventListener("click", bFrm.sbmt);
-        bFrm.btn[1].addEventListener("click",bFrm.reset);
+        bFrm.sbmtBtn.onclick = function () {return bFrm.sbmt();}
+        bFrm.btn[1].onclick = function () {return bFrm.reset();}
         bFrm.onenter(event);
         for (i = 1; i < bFrm.noIn; i++) {
             bFrm.elements[i].addEventListener("input", bFrm.oninput); 
@@ -558,6 +265,7 @@
         SQL
     */
 
+    //needed in formular-zeitschrift.html
     function insertZeitschriftkuerzelIfExists (journal) 
     {
         let kuerzel = document.getElementsByName("zeitschriftkuerzel")[0];
@@ -570,7 +278,6 @@
                     kuerzel.readOnly = true;
                     kuerzel.tabIndex = -1;
                 } else {
-                    kuerzel.value = "";
                     kuerzel.readOnly = false;
                     kuerzel.tabIndex = "";
                 }

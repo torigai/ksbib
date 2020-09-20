@@ -10,13 +10,14 @@
     <script src="../app/sql.js"></script>
     <script src="../app/findMedia.js"></script>
     <script src="../app/sqlproc.js"></script>
+    <script src="../app/table.js"></script>
 </head>         
 
 
 <body onunload="delFrm.reset();">
 
 <header>
-    <h1 id="headerTitel">Medien Löschen</h1>
+    <h1 id="headerTitel">Medien löschen</h1>
 </header>
 <nav>
     <ul class="dropdown">
@@ -64,8 +65,9 @@
         </div>
         <div id="delFrmWarnFld" class="warning center"></div>
         <div id="outFld" class="info left" style="max-width: 600px">
-            Bitte gib die ID des Mediums ein, das Du löschen möchtest. Die ID ist der Zähler in
-            der Signatur, z.B. "400" bei dem Medium mit Signatur "WS-1 400".
+            Bitte gib die ID des Mediums ein, das Du löschen möchtest, bzw. aus dem Du einen Aufsatz oder einen
+            Artikel löschen möchtest. Die ID ist der Zähler in der Signatur, z.B. "400" bei dem Medium mit 
+            Signatur "WS-1 400".
         </div>
         <div class="center margin">
             <input type="button" name="delDelBtn" value="Löschen" class="btn" style="display: none">
@@ -81,9 +83,11 @@
     /*
         FORMULARE
     */
+    typeOfMedium = "";
+    aktion = "löschen";
 
-    let typeOfMedium;
     let delFrm = new cformular(document.getElementById("delFrm"), document.getElementById("delFrmWarnFld"), document.getElementById("outFld"), document.getElementById("delOKBtn"));
+    delFrm.idArr = "";
     delFrm.newSbmt( async function ()
     {
         delFrm.outFld.innerHTML = "";
@@ -91,30 +95,39 @@
         if (id === "") {
             return delFrm.warnFld.innerHTML = "Bitte gib eine ID ein";
         } else {
+            let mediumData = "";
             delFrm.warnFld.innerHTML = "";
-            let result = await dbGet(sql[29],id).catch(err => 
-                {
-                    console.log(err); 
-                    return delFrm.warnFld.innerHTML = "Zu der ID gibt es kein Medium in der Datenbank";
-                });
-            if (delFrm.warnFld.innerHTML === "") {
-                result = [[result.objektid, result.zeitschriftid, result.buchid, result.aufsatzid]];
-                result = await findMediaResultArr(result);
-                
-                let resID = result[0][0]; 
-                let resMedientyp = result[0][4];
-                let resAutoren = (result[0][1] === "") ? "<br>" : result[0][1] + "<br>";
-                let resTitelUndVerweise = "<i>" + result[0][2] + "</i> ";
-                let resJahr = (result[0][6] === "") ? "" : result[0][3];
+            async function callFormularEntfernen (mediumData) {
+                let idArr = mediumData[1];
+                let resArr = mediumData[0];
+
+                let resID = resArr[0]; 
+                let resMedientyp = resArr[4];
+                let resAutoren = (resArr[1] === "") ? "<br>" : resArr[1] + "<br>";
+                let resTitelUndVerweise = "<i>" + resArr[2] + "</i> ";
+                let resJahr = (resArr[6] === "") ? "" : resArr[3];
 
                 delFrm.btn[1].style.display = "";
                 delFrm.btn[2].style.display = "";
                 delFrm.btn[1].focus();
 
-                typeOfMedium = resMedientyp;
-                return delFrm.outFld.innerHTML = "<b>" + resMedientyp + " mit ID " + resID + " löschen ?</b><p>" 
+                delFrm.outFld.innerHTML = "<b>" + resMedientyp + " mit ID " + resID + " löschen ?</b><p>" 
                 + resAutoren + resTitelUndVerweise + resJahr + " </p><p>" 
-                + "<br> Standort: " + result[0][5] + "<br> Status: " + result[0][6] + "</p>";
+                + "<br> Standort: " + resArr[5] + "<br> Status: " + resArr[6] + "</p>";
+
+                delFrm.idArr = idArr;
+                typeOfMedium = resMedientyp;
+                return true;
+            }
+
+            let result = await dbAll(sql[29],id).catch(err => 
+                {
+                    console.log(err); 
+                    return delFrm.warnFld.innerHTML = "Zu der ID gibt es kein Medium in der Datenbank";
+                });
+            if (delFrm.warnFld.innerHTML === "") {
+                return getTableOrResultForFormular(result, delFrm.warnFld, delFrm.outFld,  
+                    mediumData, callFormularEntfernen);                
             } else {
                 delFrm.elements[0].select();
                 return false;
@@ -152,39 +165,47 @@
     }
     delFrm.onDelete = async function ()
     {
-        let id = Number(delFrm.elements[0].value);
-        let confirm = window.confirm("Medium mit id " + id + " löschen?");
+        let id = delFrm.idArr[0];
+        let selID = delFrm.idArr;
+        let str;
+        if (typeOfMedium === "Buchaufsatz" || typeOfMedium === "Artikel") {
+            str = typeOfMedium + "des Mediums mit id " + id + " löschen?";
+        } else {
+            str = typeOfMedium + " mit id " + id + " löschen?";
+        }
+        let confirm = window.confirm(str);
         if (confirm === true) {
             async function callback (boolean)
             {
                 if (boolean) {
                     delFrm.reset();
-                    return delFrm.warnFld.innerHTML = "Das Medium mit id " + id + " wurde gelöscht";
+                    return delFrm.warnFld.innerHTML = "Das Medium zur id " + id + " wurde gelöscht";
                 } else {
-                    delFrm.warnFld.innerHTML = "Das Medium mit id " + id + " konnte nicht gelöscht werden";
+                    delFrm.warnFld.innerHTML = "Das Medium zur id " + id + " konnte nicht gelöscht werden";
                     return false;
                 }
             }
             let procDelMedium = new cSQLProcessor(callback);
-            if (typeOfMedium === "Zeitschrift") {
-                procDelMedium.add(sql[80], [id], "zeitschriftid");
-                procDelMedium.add(sql[32], [id]); 
-                procDelMedium.add(sql[79], ["zeitschriftid"]);
-            } else if (typeOfMedium === "Buch") {
-                procDelMedium.add(sql[81], [id], "buchid");
-                procDelMedium.add(sql[32], [id]); 
-                procDelMedium.add(sql[82], ["buchid"]);
+            if (typeOfMedium !== "Buchaufsatz" && typeOfMedium !== "Artikel") {
+                if (typeOfMedium === "Zeitschrift") {
+                    procDelMedium.add(sql[32], [id]); //delete from objekt 
+                    procDelMedium.add(sql[79], [selID[1]]); //delete from relzeitschrift
+                } else if (typeOfMedium === "Buch") {
+                    procDelMedium.add(sql[32], [id]); //delete from objekt
+                    procDelMedium.add(sql[82], [selID[2]]); // delete from buch
+                } else {
+                    procDelMedium.add(sql[32], [id]); 
+                }    
             } else {
-                procDelMedium.add(sql[32], [id]); 
+                procDelMedium.add(sql[98], selID);
             }
-
             procDelMedium.run();
         } else {
             return false;
         }
     }
-    delFrm.btn[2].addEventListener("click", delFrm.reset);
-    delFrm.btn[1].addEventListener("click", delFrm.onDelete);
+    document.getElementsByName("delAbbrBtn")[0].onclick = function () {return delFrm.reset();}
+    document.getElementsByName("delDelBtn")[0].onclick = function () {return delFrm.onDelete();}
     delFrm.sbmtBtn.addEventListener("click", delFrm.sbmt);
     delFrm.onenter();
     delFrm.oninput();
