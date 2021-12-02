@@ -221,7 +221,7 @@ sql[87] = `UPDATE sachgebiet SET sachgebiet = ? WHERE id = ?`;
 sql[88] = `INSERT OR IGNORE INTO sachgebiet (id, sachgebiet) VALUES (?, ?)`;
 sql[89] = `SELECT objektid FROM relsachgebiet WHERE sachgebietid = ? LIMIT 1`;
 sql[90] = `DELETE FROM sachgebiet WHERE ( (id/100 - ?/100) BETWEEN 0 AND 0.99)`;
-sql[91] = `UPDATE filepath SET path = ? WHERE id = 0`;
+//sql[91] = `UPDATE filepath SET path = ? WHERE id = 0`;
 sql[92] = `SELECT * FROM standort ORDER BY standort DESC`;
 sql[93] = `UPDATE standort SET standort = ?, standortsgn = ? WHERE id = ?`;
 sql[94] = `SELECT id FROM objekt WHERE standort = ?`;
@@ -229,6 +229,33 @@ sql[95] = `DELETE FROM standort WHERE id = ?`;
 sql[96] = `INSERT OR IGNORE INTO standort (id, standort, standortsgn) VALUES (?,?,?)`;
 sql[97] = `UPDATE filepath SET path = ? WHERE id = 0`;
 sql[98] = `DELETE FROM relobjtyp WHERE objektid = ? AND zeitschriftid = ? AND buchid = ? AND aufsatzid = ?`;
+
+
+function sqlBestandsliste (constraint, lim)
+{
+    if (lim !== "") {
+        if (constraint !== "") {
+            return `SELECT DISTINCT id AS objektid, zeitschriftid, buchid, aufsatzid FROM objekt
+                INNER JOIN relobjtyp ON objekt.id = relobjtyp.objektid
+                LEFT OUTER JOIN relsachgebiet ON relsachgebiet.objektid = objekt.id
+                WHERE ${constraint} ${lim}`;
+        } else {
+            return `SELECT DISTINCT id AS objektid, zeitschriftid, buchid, aufsatzid FROM objekt
+                INNER JOIN relobjtyp ON objekt.id = relobjtyp.objektid ${lim}`;
+        }
+    } else {
+        if (constraint !== "") {
+            return `SELECT DISTINCT id AS objektid, zeitschriftid, buchid, aufsatzid FROM objekt
+                INNER JOIN relobjtyp ON objekt.id = relobjtyp.objektid
+                LEFT OUTER JOIN relsachgebiet ON relsachgebiet.objektid = objekt.id
+                WHERE ${constraint}`;
+        } else {
+            return `SELECT DISTINCT id AS objektid, zeitschriftid, buchid, aufsatzid FROM objekt
+                INNER JOIN relobjtyp ON objekt.id = relobjtyp.objektid`;
+        }
+    }
+    
+}
 
 function sqlFindGapOSGSachgebiete ()
 {
@@ -361,7 +388,7 @@ async function cStandorteOptions (link)
     let option = [];
     let sel = link;
     let i = 0;  
-    standorte = await sqr(sqlStandorteSgn(), [], standorte);
+    standorte = await sqr(sqlStandorteSgn(), [], standorte).catch(err => {return console.log(err);});
     for (i = 0; i < standorte.length; i++) {
         option[i] = document.createElement("option");
         option[i].setAttribute("value", standorte[i].id);
@@ -373,7 +400,7 @@ async function cStandorteOptions (link)
 async function getMaxID () 
 {
     let x = [];
-    let gap = await dbGet(sqlFindGap("objekt"), []);
+    let gap = await dbGet(sqlFindGap("objekt"), []).catch(err => {return console.log(err);});
     let id = (gap[Object.keys(gap)[0]] === null) ? 0 : gap[Object.keys(gap)[0]];
     return id;
 }

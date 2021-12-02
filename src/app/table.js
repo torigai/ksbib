@@ -38,7 +38,7 @@ function cOutputTbl (container, tblName, headerNamesArr, entriesArr, boolean)
                 txt[i].setAttribute("type", "text");
                 txt[i].setAttribute("class", "plain txt");
                 txt[i].setAttribute("name", "tblTxtFld");
-                txt[i].setAttribute("tabindex", "-1");
+                //txt[i].setAttribute("tabindex", "-1");
             }
             if (i === 0) {
                 btn[j] = document.createElement("input");
@@ -72,8 +72,15 @@ function sortTable(val, tbl)
         rows = table.rows;
         for (i = 1; i < (rows.length - 1); i++) {
             shouldSwitch = false;
-            m = Number(rows[i].cells[val].innerHTML) || rows[i].cells[val].innerHTML.toLowerCase();
-            n = Number(rows[i + 1].cells[val].innerHTML) || rows[i + 1].cells[val].innerHTML.toLowerCase();
+            if (val == 0) { //case ID, alternatively rows[i].cells[val].firstElementChild !== null
+                m = Number(rows[i].cells[val].firstElementChild.value);
+                n = Number(rows[i + 1].cells[val].firstElementChild.value);
+            } else {
+                m = rows[i].cells[val].innerHTML;
+                n = rows[i + 1].cells[val].innerHTML;
+                m = (isNaN(Number(m))) ? m.toLowerCase() : Number(m);
+                n = (isNaN(Number(n))) ? n.toLowerCase() : Number(n);
+            }       
             if (m > n) {
                 shouldSwitch = true;
                 break;
@@ -109,16 +116,20 @@ function cSortFld (container, selName, colArr, tbl)
 
 function cForwardAndBackwardBtns (container, onForward, onBackward)
 {
+    //const larr = '\u{2BC7}';
+    //const rarr = '\u{2BC8}';
+    const larr = '<';
+    const rarr = '>';
     let div = document.createElement("div");
     div.setAttribute("class", "center margin");
     let vorwartsBtn = document.createElement("input");
     vorwartsBtn.setAttribute("type", "button");
-    vorwartsBtn.setAttribute("value", "\u2BC8");
+    vorwartsBtn.value = rarr;
     vorwartsBtn.setAttribute("class", "btn distance");
     vorwartsBtn.addEventListener("click", onForward);
     let zuruckBtn = document.createElement("input");
     zuruckBtn.setAttribute("type", "button");
-    zuruckBtn.setAttribute("value", "\u2BC7");
+    zuruckBtn.value = larr;
     zuruckBtn.setAttribute("class", "btn distance");
     zuruckBtn.addEventListener("click", onBackward);
     div.appendChild(zuruckBtn);

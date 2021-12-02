@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ksbib | Konfiguration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
+    <!--<script src="../db/db_setup.js"></script>-->
+    <script src="../app/main.js"></script>
+    <script src="../app/sql.js"></script>
+</head>         
+
+
+<body>
+
+<header>
+    <h1 id="headerTitel">Konfiguration</h1>
+</header>
+
+<nav>
+    <ul class="dropdown">
+        <a href="index.html" id="navMedien">Medien</a>
+        <div class="dropdown-content">
+            <a href="sachgebietssuche.html">Sachgebietssuche</a>
+            <a href="neuaufnahme.html">Hinzufügen</a>
+            <a href="bearbeiten.html">Bearbeiten</a>
+            <a href="entfernen.html">Entfernen</a>
+        </div>
+    </ul>
+    <ul class="dropdown">
+        <a href="sonstiges.html" id="navSonstiges">Sonstiges</a>
+        <div class="dropdown-content">
+            <a href="standorte.html">Standorte</a>
+            <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="listen.html">Listen</a>
+            <a href="csv-import.html">CSV importieren</a>
+            <a href="config.html">Konfiguration</a>
+            <a href="doku.html">Dokumentation</a>
+        </div>
+    </ul>
+    <ul class="floatright">
+        <a id="navBeenden" onclick="closeApp()">X</a>
+    </ul>    
+</nav>
+
+<article>
+
+	<form id = 'pathFrm' class="center">
+	    <div class="rTable margin">
+	        <div class="rTableBody">
+	            <div class="rTableRow">	                
+	            	<div class="rTableCell">
+	            		<input type="text" id="str" value="" autofocus="autofocus">
+	                	<input type="button" class="btn" id="OKBtn" value="OK">
+	                </div>
+	            </div>
+            </div>
+        </div>
+        <div id="pathFrmWarnFld" class="warning center"></div>
+        <div id="outFld" class="info center">
+            Bitte gib den <b>absoluten</b> Pfad zu dem Verzeichnis an, in dem Du die Dateien speichern möchtest, auf die ksbib zugreifen darf. Im Falle eines MAC könnte das z.B. "/users/DEIN USERNAME/Documents/ksbib-files/" sein. Der Defaultwert ist das Verzeichnis "ksbib-files" im Wurzelverzeichnis von ksbib.
+        </div>
+        <div class="info center">
+            <b> Aktueller Pfad: </b> <p id="akt"></p>
+        </div>
+	</form>
+
+</article>
+
+</body>
+
+
+<script>
+    (async function ()
+    {
+        let strFld = document.getElementById("str");
+        let ok = document.getElementById("OKBtn");
+        let warning = document.getElementById("pathFrmWarnFld");
+        let apFld = document.getElementById("akt");
+
+        function submitData ()
+        {
+            let p = strtrim(strFld.value);
+            if (p == "") {
+                warning.innerHTML = "Bitte gib einen Pfad ein";
+                return false;
+            }
+            const fs = require('fs');
+            const path = require('path');
+
+            fs.readdir(p, async function (err, files) {//process.cwd()
+                if (err) {
+                    warning.innerHTML = "Das Verzeichnis gibt es nicht oder Deine Eingabe ist ungültig";
+                    console.log(err);
+                    return false;
+                } else if (!path.isAbsolute(p)) {
+                    warning.innerHTML = "Das ist kein absoluter Pfad";
+                    return false;
+                } else {
+                    if (process.platform === "win32") {
+                        p = (p.endsWith("\\\\")) ? p : p + "\\\\";
+                    } else {
+                        p = (p.endsWith("/")) ? p : p + "/";
+                    }
+                    await dbRun(sql[97], [p]).catch(err => {return console.log(err)});
+                    warning.innerHTML = "Der Dateipfad wurde gespeichert";
+                    strFld.value = "";
+                    strFld.focus();
+                    await aktPfad();
+                    return true;
+                }
+            });
+        }
+
+        async function aktPfad () 
+        {
+            let ap = await dbGet ("select * from filepath where id=0", []);
+            return apFld.innerText = (ap.path === null) ? absPath + filepathDefault : ap.path;
+        }
+
+        ok.addEventListener("click", submitData);
+        strFld.addEventListener("keypress", function () 
+        {
+            if (event.keyCode === 13 || event.which === 13) {
+                event.preventDefault();
+                return ok.click();
+            }
+        });
+        strFld.addEventListener("input", function () 
+        {
+            if (warning.innerHTML !== "") {
+                return warning.innerHTML = "";
+            }
+        });
+
+        await aktPfad().catch(err => {return console.log(err)});
+    })();
+
+    
+</script>

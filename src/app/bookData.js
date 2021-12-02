@@ -36,7 +36,7 @@ function conformAndValidateBook(formular, book)
     {
         return Array.from(formular.elements).indexOf(element);
     }
-    return bookConformed = {
+    let bookConformed = {
         id: Number(book.id.value),
         standort: Number(book.standort.options[book.standort.selectedIndex].value),
         autoren: conformAndValidateAuthorArr(book.autoren, index(book.autoren), false), //Arr[0]: name, vorname
@@ -60,6 +60,8 @@ function conformAndValidateBook(formular, book)
         aufsatzid: book.aufsatzid,
         link: conformAndValidateLink(book.link, index(book.link), false)
     };
+    console.log(bookConformed);
+    return bookConformed;
 }  
 function bookData (formular)
 {

@@ -33,11 +33,14 @@
         <div class="dropdown-content">
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="listen.html">Listen</a>
+            <a href="csv-import.html">CSV importieren</a>
+            <a href="config.html">Konfiguration</a>
             <a href="doku.html">Dokumentation</a>
         </div>
     </ul>
     <ul class="floatright">
-        <a id="navBeenden" onclick="closeApp()">&#x23FC;</a>
+        <a id="navBeenden" onclick="closeApp()">X</a>
     </ul>    
 </nav>
 
@@ -159,8 +162,10 @@
         <h1>Dateien und URLs</h1>
         <p>
             Du kannst jeden Medientyp mit einem PDF verlinken, das auf Deinem Computer liegt, oder
-            mit der URL einer Website. Dazu müssen die PDFs in das Standardverzeichnis <b>/ksbib-*/files/</b>
-            abgelegt werden.
+            mit der URL einer Website. Als Default ist das Verzeichnis <br><br><b>
+                <span id="filepath"></span>
+            <br><br></b> festgelegt. Du kannst einen neuen Pfad unter "Sonstiges" => "Konfiguration"
+            definieren.
         </p>
         <h1>Hintergrund</h1>
         <p>
@@ -171,6 +176,9 @@
 
 </article>
 <script src="../app/shortkeys.js"></script>
+<script>
+    document.getElementById("filepath").innerText = absPath + filepathDefault;
+</script>
 </body>
 <footer>
 </footer>

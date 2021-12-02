@@ -8,7 +8,6 @@ let linkStrgP = document.getElementById("printBtn");
 
 function blurMenu ()
 {
-	console.log("blur");
 	let arrDropdownMedien = Array.from(linkAltM.nextElementSibling.children);
 	arrDropdownMedien.push(linkAltM);
 
@@ -22,6 +21,7 @@ function blurMenu ()
 		}
 		if (linkAltS.className === "active" && arrDropdownSonstiges.indexOf(document.activeElement) === -1) {
 			linkAltS.setAttribute("class", "");
+			console.log("setToZero");
 		}
 	}, 0);
 }

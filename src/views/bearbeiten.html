@@ -42,11 +42,14 @@
         <div class="dropdown-content">
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="listen.html">Listen</a>
+            <a href="csv-import.html">CSV importieren</a>
+            <a href="config.html">Konfiguration</a>
             <a href="doku.html">Dokumentation</a>
         </div>
     </ul>
     <ul class="floatright">
-        <a id="navBeenden" onclick="closeApp()">&#x23FC;</a>
+        <a id="navBeenden" onclick="closeApp()">X</a>
     </ul>    
 </nav>
 
@@ -77,7 +80,9 @@
     <div id="outFld">
         <div class="info">
             <p>
-                Bitte gib die ID und / oder ein Titelfragment des Mediums ein, das Du bearbeiten möchtest. 
+                Bitte gib die ID und / oder ein Titelfragment des Mediums ein, das Du bearbeiten möchtest. Falls Du ein Titelfragment eingibst, werden die ersten 50 Ergebnisse 
+                angezeigt. Es kann also sein, dass das Medium, das Du gesucht hast, nicht in der
+                Liste der ersten 50 Treffer ist, dann müsstest Du die ID heraussuchen.
                 Die ID ist der Zähler in der Signatur des Mediums, z.B. "400" bei dem Medium mit Signatur 
                 "WS-1 400". Falls Du die ID nicht kennst, kannst Du das Medium <a href="index.html">suchen</a>.
             </p>
@@ -130,7 +135,8 @@
         }
 
         if (id === null) {
-            matchingIDs = await dbAll(sqlTitelID(titel[0], 10, 0), []).catch(err => {return console.error(err)});
+            //Zeigt die ersten 50 Suchergebnisse
+            matchingIDs = await dbAll(sqlTitelID(titel[0], 50, 0), []).catch(err => {return console.error(err)});
         } else if (titel.length === 0) {
             matchingIDs = await dbAll(sql[29], id).catch(err => {return console.error(err)});
         } else {
@@ -186,7 +192,6 @@
 
     async function prepareFormsBearbeiten (mediumData, typeOfMedium)
     {
-        console.log(mediumData);
         let standort, autoren, titel, sachgebietsnr, stichworte;
         let datacoll;
         let idArr = mediumData[1];
@@ -218,7 +223,7 @@
         fillOutInputFlds("hinweis", datacoll);
         fillOutInputFlds("preis", datacoll);
         fillOutInputFlds("link", datacoll);
-        if (datacoll.autortyp === 1 && document.getElementsByName("autortyp")[0] !== undefined) {
+        if (datacoll.autortyp == 1 && document.getElementsByName("autortyp")[0] !== undefined) {
             document.getElementsByName("autortyp")[0].checked = true;
             document.getElementsByName("autortyp")[0].setAttribute("value", "1");
         }

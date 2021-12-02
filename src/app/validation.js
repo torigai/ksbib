@@ -10,18 +10,20 @@ let message = [];
 */
 
 const sachgebietsnrPattern = /^0$|[1-9]{1}[0-9]{0,4}$/;  //[0,99999]
-const textPattern = /^[À-ú\d\wÄÖÜäüöß\s.,:!°\&?"\-'()#+\/;]*$/;  //Normaler Text
-const buchstabenPattern = /^[À-úa-zäüöß\s]*$/i;          //Buchstaben und Leerzeichen
+const textPattern = /^[À-ú\d\wÄÖÜäüöôûß\s\.,:!°\&?"\-'()#+\/;]{0,400}$/;  //Normaler Text
+const buchstabenPattern = /^[À-úa-zäüöôûß\s]*$/i;          //Buchstaben und Leerzeichen
 const zahlenPattern = /^\d+$/;
 //const zahlenPattern = /^0$|^[1-9]{1}[0-9]{0,2}$/;     //ganze Zahlen [0,999]
-const reelleZahlenPattern = /^\d+((,|.)\d{1,2})?$/;        //Null und postive reelle Zahlen
+const reelleZahlenPattern = /^\d+((,|\.)\d{1,2})?$/;        //Null und postive reelle Zahlen
 const jahreszahlPattern = /^[1-9]{1}[0-9]{3}$/;       //vierstellige ganze Zahl > 1000
 const seitenPattern = /^[xiv]+(\s?-\s?[xiv]+)?$|^[1-9]{1}[0-9]{0,4}(\s?-\s?[1-9]{1}[0-9]{0,4})?$/; //max fünfstellige Seiten; von 3 - 10
-const isbnPattern = /^(\d{10}|\d{13})$/;              //10 oder 13 stellige ganze Zahl > 0
-const namenPattern = /^[À-úa-züöäß]+(,\s[À-úa-zäüöß]+(\s[À-úa-zäüöß].){0,2})?$/i;  // "Müller, Adam" oder "Müller, Adam A." 
-                                                                        // oder "Müller, Adam A. B." oder "Müller"
+const isbnPattern = /^([0-9X\-]{10,17})$/i;              //10 oder 13 stellige ganze Zahl > 0
+const namenPattern = /^[À-úa-züöäôûß'\-\s]+(,\s[À-úa-zäüöôûß'\-\.]+(\s[À-úa-zäüöôûß\-\.]+){0,2})?$/i;
+///^[À-úa-züöäß]+(,\s[À-úa-zäüöß]+(\s[À-úa-zäüöß].){0,2})?$/i;  
+// "Müller, Adam" oder "Müller, Adam A." 
+// oder "Müller, Adam A. B." oder "Müller"
 const urlPattern = /^(ftp|http|https):\/\/[^ "<>]+$/;
-const filenamePattern = /[a-zäüöß0-9\-\_\+]+(.pdf)/i;
+const filenamePattern = /^[a-zäüöß0-9\-\_\+]+(.pdf)$/i;
 const filepathPattern = /^(..\/)+[a-zäüöß0-9\-\_\+]+(\/)/i;
 
 
@@ -409,10 +411,10 @@ function conformAndValidateISBN (el, i, j)
         return null;
     }
     if (isbn !== "" && isbnPattern.test(isbn) == false) {
-        err[err.length] = i + "*" + message[1]("10 oder 13 Stellen und Ziffern größer oder gleich Null");
+        err[err.length] = i + "*" + message[2];
         return false;
     }
-    return Number(isbn);
+    return isbn;
 }
 
 function conformAndValidateSgn (el, i, j)

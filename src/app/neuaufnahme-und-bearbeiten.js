@@ -288,4 +288,3 @@
             kuerzel.tabIndex = "";
         }
     }
-

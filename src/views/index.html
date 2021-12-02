@@ -35,11 +35,14 @@
         <div class="dropdown-content">
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="listen.html">Listen</a>
+            <a href="csv-import.html">CSV importieren</a>
+            <a href="config.html">Konfiguration</a>
             <a href="doku.html">Dokumentation</a>
         </div>
     </ul>
     <ul class="floatright">
-        <a id="navBeenden" onclick="closeApp()">&#x23FC;</a>
+        <a id="navBeenden" onclick="closeApp()">X</a>
     </ul>    
 </nav>
 
@@ -249,11 +252,11 @@
                 qsearchFrm.warnFld.innerHTML = firstError[1];
                 return false;
             } else {
-                //qsearchFrm.outFld.innerHTML = "";
+                qsearchFrm.outFld.innerHTML = "";
                 document.getElementById("arrows").innerHTML = "";
                 let elToSel = document.getElementById("qsearchStr");
                 counter = await getResultTable(data, counter, elToSel, warnFld, source);
-                if (document.getElementsByName("resultTbl")[0] !== null) {
+                if (document.getElementsByName("resultTbl")[0] !== undefined) {
                     cForwardAndBackwardBtns (document.getElementById("arrows"),
                         function () {return getResultTable(data,counter+1, elToSel, warnFld, source)},
                         function () {return getResultTable(data,counter-1, elToSel, warnFld, source)});
@@ -396,13 +399,14 @@
                 dsearchFrm.warnFld.innerHTML = firstError[1];
                 return false;
             } else {
+                dsearchFrm.outFld.innerHTML = "";
                 dsearchFrm.warnFld.innerHTML = "";
                 document.getElementById("arrows").innerHTML = "";
                 let elToSel = document.activeElement;
                 let source = "dsearchFrm";
                 let warnFld = dsearchFrm.warnFld;
                 counter = await getResultTable(data, counter, elToSel, warnFld, source);
-                if (document.getElementsByName("resultTbl")[0] !== null) {
+                if (document.getElementsByName("resultTbl")[0] !== undefined) {
                     cForwardAndBackwardBtns (document.getElementById("arrows"),
                         function () {return getResultTable(data,counter+1, elToSel, warnFld, source)},
                         function () {return getResultTable(data,counter-1, elToSel, warnFld, source)});
@@ -538,19 +542,31 @@ async function qsearchDBRequest (searchStr, limit, offset)
     if (searchStr.length === 1) { //titel oder autor
         matchingIDs = await sqr(sqlTitelID(searchStr, limit, offset), [], matchingIDs);
         matchingIDs = await sqr(sqlAutorID(searchStr, limit, offset), [], matchingIDs);
+        matchingIDs = matchingIDs.map((item) => {return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid].toString(); }).filter(onlyUnique).map((item) => {return item.split(",").map(Number)});
     } else {
         if (searchStr[1] === "") { //autor
             matchingIDs = await sqr(sqlAutorID(searchStr[0], limit, offset), [], matchingIDs);
+            matchingIDs = matchingIDs.map((item) => {return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid].toString(); }).filter(onlyUnique).map((item) => {return item.split(",").map(Number)});
         }
         if (searchStr[0] === "") { //titel
             matchingIDs = await sqr(sqlTitelID(searchStr[1], limit, offset), [], matchingIDs);
+            matchingIDs = matchingIDs.map((item) => {return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid].toString(); }).filter(onlyUnique).map((item) => {return item.split(",").map(Number)});
         }
         if (searchStr[0] !== "" && searchStr[1] !== "") { //titel und autor
-            matchingIDs = await sqr(sqlTitelID(searchStr[1], limit, offset), [], matchingIDs);
-            matchingIDs = await sqr(sqlAutorID(searchStr[0], limit, offset), [], matchingIDs);
+            titelIDs = await sqr(sqlTitelID(searchStr[1], limit, offset), [], matchingIDs);
+            titelIDs = titelIDs.map((item) => 
+                {
+                    return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid].toString(); 
+                }).filter(onlyUnique);
+            autorIDs = await sqr(sqlAutorID(searchStr[0], limit, offset), [], matchingIDs);
+            autorIDs = autorIDs.map((item) => 
+                {
+                    return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid].toString(); 
+                }).filter(onlyUnique);        
+            matchingIDs = titelIDs.filter(val => autorIDs.includes(val));
+            matchingIDs = matchingIDs.map((item) => {return item.split(",").map(Number)});
         }
     }
-    matchingIDs = matchingIDs.map((item) => {return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid].toString(); }).filter(onlyUnique).map((item) => {return item.split(",").map(Number)});
 
     if (matchingIDs.length === 0) { // No entry in DB found
         return false;

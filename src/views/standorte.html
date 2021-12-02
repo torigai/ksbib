@@ -35,11 +35,14 @@
         <div class="dropdown-content">
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="listen.html">Listen</a>
+            <a href="csv-import.html">CSV importieren</a>
+            <a href="config.html">Konfiguration</a>
             <a href="doku.html">Dokumentation</a>
         </div>
     </ul>
     <ul class="floatright">
-        <a id="navBeenden" onclick="closeApp()">&#x23FC;</a>
+        <a id="navBeenden" onclick="closeApp()">X</a>
     </ul>    
 </nav>
 
@@ -106,7 +109,7 @@
             if (oldrows.length > 0) {
                 Array.from(document.getElementsByName("tblBtn")).forEach(btn => 
                 {
-                    btn.addEventListener("keypress", function () 
+                    btn.addEventListener("keydown", function () 
                     {
                         return keypressBtn(event, btn, newDatum);
                     });

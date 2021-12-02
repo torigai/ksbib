@@ -2,8 +2,8 @@
 /*
     GLOBALS AND STATUS VARIABLES
 */
-
-const filepathDefault = "/files/";
+const absPath = process.cwd();
+let filepathDefault = absPath + "/ksbib-files/";
 let tblSelColor = "rgb(255, 77, 77)";
 let tblHoverColor = "rgb(230, 230, 230)";
 let tblDefaultColor = "initial";
@@ -12,7 +12,6 @@ let typeOfMedium;
 let selectedID;
 let selectedIncollID;
 let olddata;
-
 
 function strtrim (str) { return str.replace(/\s+/g,' ').trim(); }
 function stringNotEmpty (str) { return strtrim(str) !== ""; }
@@ -59,7 +58,9 @@ function closeApp ()
 {
     let conf = window.confirm("Programm Beenden ?");
     if (conf) {
-        db.close();
+        if (typeof db !== "undefined") {
+            db.close();
+        }
         gui.App.closeAllWindows();
         win.close(true);
     } else {

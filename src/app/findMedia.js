@@ -7,6 +7,10 @@
     In other words each idk -> [objektid_k, autoren_k, titelUndVerweise_k, jahr_k, medientyp_k, standort_k, status_k]
 */
 
+function openPDF (ref)
+{
+    return nw.Window.open(ref, {}, function(win) {win.on("loaded", function() {win.print({});});});
+}
 
 function compose (object, index, self)
 {
@@ -22,6 +26,7 @@ function compose (object, index, self)
             previousObject.objektid = "x";    //TO BE DELETED
         } 
         if (previousObject.autor !== null && previousObject.autortyp === object.autortyp && previousObject.autornr < object.autornr) {
+            let autoren;
             if (object.autornr < 4) {
                 object.autor = previousObject.autor + "; " + object.autor;
             } else if (object.autornr === 4) {
@@ -48,8 +53,9 @@ async function outputArray (object, parents)
         // In media_view wird (Name = "Müller" Vorname = "") als "Müller, " gespeichert
         // Das "," soll in diesem Fall nicht angezeigt werden
         autoren = strtrim(object.autor).endsWith(",") ? 
-            strtrim(object.autor).slice(0, object.autor.indexOf(",")) + autortyp : 
-            object.autor + autortyp; 
+            strtrim(object.autor).slice(0, object.autor.indexOf(",")) : 
+            strtrim(object.autor); 
+        autoren = autoren.replace(/, ;/g, ";") + autortyp;
     } else {
         autoren = "";
     }
@@ -66,14 +72,13 @@ async function outputArray (object, parents)
     let link = "";
     if (object.link !== null) {
         if (filenamePattern.test(object.link)) {
-            let filepath = (await dbGet(`SELECT path FROM filepath`, [])).path;
-            if (filepath === null) { //filepathDefault from main.js
-                link = "<br><a href='"+filepathDefault+object.link+"' target='_blank'>" + object.link + "</a>";
-            } else {
-                link = "<br><a href='"+filepath+object.link+"' target='_blank'>" + object.link + "</a>";
-            }
+            let ap = await dbGet ("select * from filepath where id=0", []);
+            let filepath = (ap.path == null) ? filepathDefault + object.link : ap.path + object.link;
+            let ref = "file:" + filepath;
+            link = "<br><a style='cursor: pointer' onclick='nw.Window.open(\""+ref+"\", {}, function(win) {win.on(\"loaded\", function() {win.print({});});});' name='atag'>" + object.link + "</a>";
+            //link = "<br><a href='"+filepath+"' target='_blank'>" + object.link + "</a>";
         } else {
-            link = "<br><a href='"+object.link+"' target='_blank'>" + object.link + "</a>";
+            link = "<br><a href='"+object.link+"' target='_blank' name='atag'>" + object.link + "</a>";
         }
     } else {
         link = "";
@@ -94,8 +99,13 @@ async function outputArray (object, parents)
     if (object.buchid !== 0 && object.aufsatzid !== 0) {     // Buchaufsatz
         i = parents.indexOf(parents.find( ({objektid}) => objektid === object.objektid ));   
         if (!object.titel.endsWith(".")) { object.titel = object.titel + "."; }
-        titelUndVerweise = object.titel + " <i> In: " + parents[i].autor + 
-            " (Hrg): " + parents[i].titel + "</i>" + band + verlag + ort + preis + link + hinweis;
+        let paraut;
+        paraut = strtrim(parents[i].autor).endsWith(",") ? 
+            strtrim(parents[i].autor).slice(0, parents[i].autor.indexOf(",")) : 
+            strtrim(parents[i].autor); 
+        paraut = parents[i].autor.replace(/, ;/g, ";");
+        titelUndVerweise = object.titel + " <i> In: " + paraut + 
+            " (Hrg): " + parents[i].titel + "</i>" + band + verlag + ort + seiten + preis + link + hinweis;
         medientyp = "Buchaufsatz";
     }
     if (object.zeitschriftid !== 0 && object.aufsatzid === 0) { // Zeitschrift

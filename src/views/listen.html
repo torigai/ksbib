@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ksbib | Listen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
+    <script src="../app/main.js"></script>
+    <script src="../app/table.js"></script>
+    <script src="../app/validation.js"></script>
+    <script src="../app/sql.js"></script>
+</head>         
+
+
+<body onunload="qsearchFrm.reset(); dsearchFrm.reset(); db.close();">
+
+<header>
+    <h1 id="headerTitel">Listen</h1>
+</header>
+
+<nav>
+    <ul class="dropdown">
+        <a href="index.html" id="navMedien">Medien</a>
+        <div class="dropdown-content">
+            <a href="sachgebietssuche.html">Sachgebietssuche</a>
+            <a href="neuaufnahme.html">Hinzufügen</a>
+            <a href="bearbeiten.html">Bearbeiten</a>
+            <a href="entfernen.html">Entfernen</a>
+        </div>
+    </ul>
+    <ul class="dropdown">
+        <a href="sonstiges.html" id="navSonstiges">Sonstiges</a>
+        <div class="dropdown-content">
+            <a href="standorte.html">Standorte</a>
+            <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="listen.html">Listen</a>
+            <a href="csv-import.html">CSV importieren</a>
+            <a href="config.html">Konfiguration</a>
+            <a href="doku.html">Dokumentation</a>
+        </div>
+    </ul>
+    <ul class="floatright">
+        <a id="navBeenden" onclick="closeApp()">X</a>
+    </ul>    
+</nav>
+
+<article>
+    <div class="centeredBox">
+        <div>
+            <ul>
+                <li class="margin-bottom">
+                    Liste der <a href="drucken-sachgebiete.html" target="_blank">Sachgebiete</a>
+                </li>
+                <li class="margin-bottom">
+                    Liste der <a href="drucken-standorte.html" target="_blank">Standorte</a>
+                </li>
+                <li class="margin-bottom">
+                    Zu den <a href="drucken-bestandsliste.html" target="_blank">Bestandslisten</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</article>
+<script src="../app/shortkeys.js"></script>
+
+</body>
+<footer>
+</footer>
+</html>
+
+

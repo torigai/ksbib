@@ -194,8 +194,7 @@ article {
 	min-height: 40vh;
 	padding-top: 30px; 
 	padding-bottom: 30px; 
-	/*background-color: #D1D1D1;*/
-	background-color: #f8f8ff;
+	background-color: ghostwhite;
 	padding-left: 10px; 
 	padding-right: 10px;
 }
@@ -231,6 +230,11 @@ article label {font-size: 9pt}
 .left {text-align: left;}
 .distance {margin-left: 2em; margin-right: 2em;}
 .middle {vertical-align: middle;}
+.centeredBox {
+    max-width: 300px;
+    margin: auto;
+  }
+}
 
 form {padding-top: 10px;}
 

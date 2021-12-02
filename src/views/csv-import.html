@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ksbib | CSV importieren</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../styles/style.css" type="text/css" media="all"/>
+    <script src="../app/main.js"></script>
+    <script src="../app/sql.js"></script>
+    <script src="../app/bookData.js"></script>
+    <script src="../app/sqlproc.js"></script>
+    <script src="../app/sqlProcFunctions.js"></script>
+    <script src="../app/validation.js"></script>
+</head> 
+
+<body>
+    <header>
+        <h1 id="headerTitel">CSV importieren</h1>
+    </header>
+
+    <nav>
+        <ul class="dropdown">
+            <a href="index.html" id="navMedien">Medien</a>
+            <div class="dropdown-content">
+                <a href="sachgebietssuche.html">Sachgebietssuche</a>
+                <a href="neuaufnahme.html">Hinzufügen</a>
+                <a href="bearbeiten.html">Bearbeiten</a>
+                <a href="entfernen.html">Entfernen</a>
+            </div>
+        </ul>
+        <ul class="dropdown">
+            <a href="sonstiges.html" id="navSonstiges">Sonstiges</a>
+            <div class="dropdown-content">
+                <a href="standorte.html">Standorte</a>
+                <a href="sachgebiete.html">Sachgebiete</a>
+                <a href="listen.html">Listen</a>
+                <a href="csv-import.html">CSV importieren</a>
+                <a href="config.html">Konfiguration</a>
+                <a href="doku.html">Dokumentation</a>
+            </div>
+        </ul>
+        <ul class="floatright">
+            <a id="navBeenden" onclick="closeApp()">X</a>
+        </ul>    
+    </nav>
+
+    <article>
+
+        <form id='csvImportFrm' class="center" autocomplete="off">
+            <div id="outFld" class = "info margin-bottom">
+                Bitte wähle die CSV Datei, die Du importieren willst.
+            </div>
+            <div>
+                <input type="file" id="myfile" name="myfile" autofocus="autofocus">
+                <input type="submit" id="myfileBtn" class="btn" value="OK" accept="text/csv">
+            </div>
+            <div id="fileFrmWarnFld" class="warning center"></div>
+            <div id="infoFld" class="info" style="text-align: left">
+                Hier kannst Du eine csv-Datei importieren, die folgende Bedingungen erfüllt:
+                <ul>
+                    <li>
+                        Spaltennamen mit den folgenden Überschriften werden berücksichtigt:<br> 
+                        Title, Subtitle, Volume, Author, Editor, Publisher, Place of Publication, Year Published, Number of Pages, ISBN, Notes, Genre, Physical Location, Edition.
+                    </li>
+                    <li>
+                        Mindestens die Spalte "Title" muss existieren.
+                    </li>
+                    <li>
+                        Der Status der Medien wird immer auf "vorhanden" gesetzt. Falls dies nicht
+                        der Fall ist, muss er nachträglich händisch korrigiert werden.
+                    </li>
+                    <li>
+                        Besondere Default Werte falls die Einträge leer bzw. nicht vorhanden sind:<br>
+                        Title : o.A. <br>
+                        Physical Location : n.A.<br>
+                    </li>
+                    <li>
+                        Einträge der Spalte "Genre" werden als Obersachgebiet gespeichert, Untersachgebiete müssen ggf. nachträglich zugeordnet werden. Achtung: Falls das Obersachgebiet nicht existiert, wird es ignoriert!
+                    </li>
+                    <li>
+                        Wenn in der Spalte "Physical Location" ein Eintrag ist, der noch nicht in der Datenbank existiert, wird dieser nicht berücksichtigt und das Medium bekommt
+                        den Default Wert (s.o.).
+                    </li>
+                    <li>
+                        Die Autoren unter der Spalte "Author" sind mit Komma separiert und werden mit Vorname Nachname genannt, z.B.: Bruno Taut, Manfred Speidel. Dasselbe gilt für die Spalte "Editor". Es können entweder nur Autoren oder nur Herausgeber sein, andernfalls gibt es eine Fehlermeldung.
+                    </li>
+                    <li>
+                        Beachte, dass Sonderzeichen Probleme machen können. Volume, Year, Number of Pages, Edition sind arabische Zahlen oder leere Einträge.
+                    </li>
+                </ul>
+                Alle importierten Medien werden als Medientyp "Buch" abgespeichert.
+            </div>
+        </form>
+
+    </article>
+
+    <script src="../app/shortkeys.js"></script>
+    <script>
+
+    const frm = document.getElementById("csvImportFrm");
+    const fileFld = document.getElementById("myfile");
+    const warnFld = document.getElementById("fileFrmWarnFld");
+
+    fileFld.addEventListener("change", function () 
+        {
+            warnFld.innerText = "";
+            return document.getElementById("myfileBtn").focus();
+        });
+    frm.addEventListener("submit", async function (event)
+    {
+        event.preventDefault();
+
+        let file = fileFld.files[0];
+        if(!file.type.match('text/csv')) {
+            warnFld.innerText = "Es sind nur Dateien mit csv-Format elaubt";
+            fileFld.focus();
+            return false;
+        } else {
+            const fs = require('fs');
+            fs.readFile(file.path, 'utf8', async function (err, data) {
+                if (err) {
+                    warnFld.innerText = "Error: bitte kontaktiere den Admin";
+                    console.log(err);
+                    fileFld.focus();
+                    return false;
+                }
+
+                //create an array from the csv file for header and body of data, respectively
+                let dataArr = data.split(/\r?\n/);
+                dataArr = dataArr.map(row =>
+                {
+                    row = strtrim(row);
+                    let quotations = row.match(/(".*?")(?=\s*,|\s*$)/g);
+                    if (quotations !== null) {
+                        quotations.forEach(quotation =>
+                        {
+                            return row = strtrim(row.replace(quotation, quotation.replace(/,/g, "*")
+                                .replace(/^\"/,"").replace(/\"$/,"")));
+                        });
+                    }
+                    return row.split(",");
+                });
+                let headerRow = dataArr[0];
+                let dataBody = dataArr.filter(row => 
+                {
+                    if (dataArr.indexOf(row) !== 0 && strtrim(row.toString()) !== "") {
+                        return row;
+                    }
+                });
+                if (dataBody.length === 0) {
+                    warnFld.innerText = "Die csv-Datei ist leer";
+                    fileFld.focus();
+                    return false;
+                }
+                if (dataBody[0].length !== headerRow.length) {
+                    warnFld.innerText = "Error: Fehler beim Import der csv-Datei. Vermutlich ein Problem mit den verwendeten Anführungszeichen. Vorschlag: alle doppelten in einfache Anführungszeichen umwandeln";
+                    fileFld.focus();
+                    return false;
+                }
+
+                //column index of default colums
+                const ioTitle = headerRow.indexOf("Title");
+                if (ioTitle == -1) {
+                    warnFld.innerText = 'Die csv-Datei enthält keine Spalte namens "Title"';
+                    return false;
+                }
+                const ioSubtitle = headerRow.indexOf("Subtitle");
+                const ioAuthor = headerRow.indexOf("Author");
+                const ioEditor = headerRow.indexOf("Editor");
+                const ioPublisher = headerRow.indexOf("Publisher");
+                const ioPlace = headerRow.indexOf("Place of Publication");
+                const ioYear = headerRow.indexOf("Year Published");
+                const ioPages = headerRow.indexOf("Number of Pages");
+                const ioISBN = headerRow.indexOf("ISBN");
+                const ioNotes = headerRow.indexOf("Notes");
+                const ioGenre = headerRow.indexOf("Genre");
+                const ioVolume = headerRow.indexOf("Volume");
+                const ioLocation = headerRow.indexOf("Physical Location");
+                const ioEdition = headerRow.indexOf("Edition");
+                
+                //import new books
+                let confirm = window.confirm("csv-Liste importieren?");
+                if (confirm === true) {
+                    let booksNotAdded = [];
+
+                    //baseID is the maximum ID in the database. The ID used for the first row in the csv-file will get baseID + 1, the second row baseID + 2 and so on: newID = baseID + rownr. For every line not added there will be a gap. The first row will be counted as 1 etc.
+                    let baseID = Number((await dbGet("SELECT max(objektid) AS id FROM relobjtyp", [])).id);
+                    
+                    //dataBody [array] => newBooks [array of objects] AND booksNotAdded [array]
+                    let newBooks = await Promise.all(dataBody.map(async (rowArr) => 
+                    {
+                        let author, title, subtitle, editor, publisher, place, year, pages, isbn, notes, genre, volume, location;
+
+                        //the object bookConformed resembles bookConformed in bookData.js
+                        let bookConformed = {};
+                        bookConformed.titel = [];
+                        bookConformed.sachgebietsnr = [];
+                        bookConformed.autoren = [];
+                        bookConformed.stichworte = null;
+                        bookConformed.status = 0;
+                        bookConformed.medientyp = 1;
+                        bookConformed.titeltyp = 0;
+                        bookConformed.zeitschriftid = 0;
+                        bookConformed.aufsatzid = 0;
+                        bookConformed.link = null;
+
+                        let rownr = dataBody.indexOf(rowArr) + 1; //first row counted as 1
+                    
+                        function personCol (index)
+                        {
+                            //data preparation for author oder editor 
+                            //returns ["last, first", "last, first", "last", "last, first"] || null
+                            if (index !== -1) {
+                                if (strtrim(rowArr[index]) == "" || rowArr[index] == null) {
+                                    return null;
+                                } else {
+                                    let authArr = rowArr[index].split("*")
+                                        .filter(el => {return el != null && strtrim(el) != "";})
+                                        .map(author => {return strtrim(author);})
+                                        .filter(onlyUnique);
+                                    if (authArr.length === 0) {
+                                        return null;
+                                    } else {
+                                        return authArr.map(author => 
+                                            {
+                                                author = author.split(" ");
+                                                let lastName, firstName;
+                                                if (author.length === 1) {
+                                                    lastName = author[0];
+                                                    return lastName;
+                                                } else {
+                                                    lastName = author.pop();
+                                                    firstName = author.toString().replace(/,/g, " ");
+                                                    return lastName + ", " + firstName;
+                                                }
+                                            });        
+                                    }
+
+                                }
+                            } else {
+                                return null;
+                            }    
+                        }
+
+                        function genreCol (index)
+                        {
+                            //data preparation for genre / sachgebietsnr 
+                            // returns [Number, Number, ...] || null
+                            if (index !== -1) {
+                                if (strtrim(rowArr[index]) == "" || rowArr[index] == null) {
+                                    return null;
+                                } else {
+                                    let genreArr = rowArr[index].split("*")
+                                        .filter(el => {return el != null && strtrim(el) != "";})
+                                        .map(el => {return strtrim(el);});
+                                    if (genreArr.length === 0) {
+                                        return null;
+                                    } else {
+                                        return genreArr.filter(onlyUnique);
+                                    }
+                                }
+                            }
+
+                        }
+                    
+                        function generalCol (index, defaultVal)
+                        {
+                            //standard data preparation
+                            //returns string || defaultVal
+                            return (index !== -1 && rowArr[index] !== "" && rowArr[index] !== null) ? 
+                                rowArr[index].replace(/\*/g, ",") : defaultVal;
+                        }
+
+                        author = personCol(ioAuthor);
+                        editor = personCol(ioEditor);
+                        title = (rowArr[ioTitle] === "" || rowArr[ioTitle] === null) ? 
+                            "o.A." : rowArr[ioTitle].replace(/\*/g, ",");
+                        subtitle = generalCol(ioSubtitle, null);
+                        publisher = generalCol(ioPublisher, null);
+                        place = generalCol(ioPlace, null);
+                        year = generalCol(ioYear, null);
+                        auflage = generalCol(ioEdition, null);
+                        pages = generalCol(ioPages, null);
+                        isbn = generalCol(ioISBN, null);
+                        volume = generalCol(ioVolume, null);
+                        notes = generalCol(ioNotes, null);
+                        genre = genreCol(ioGenre);
+                        location = 
+                            (ioLocation == -1 || rowArr[ioLocation] === "" || rowArr[ioLocation] === null) ?
+                             "n.A." : rowArr[ioLocation];
+
+                        // Validation
+                        function defaultValidation (col, colname, pattern)
+                        {
+                            if (pattern === jahreszahlPattern || pattern === zahlenPattern) {
+                                col = (col === null || strtrim(col) === "") ? null : Number(col);
+                            }
+                            if (col !== null && pattern.test(col) == false) {
+                                warnFld.innerText = 'Fehler in Spalte "' + colname + '" und Zeile ' + rownr;
+                                fileFld.focus();
+                                return false;  
+                            } else {
+                                return true;
+                            }
+                        }
+
+                        if (author !== null && editor !== null) {
+                            warnFld.innerText = 'Das Buch kann entweder Autoren oder Herausgeber haben, nicht beides. Fehler in Zeile ' + rownr;
+                            fileFld.focus();
+                            return false;
+                        }
+
+                        if (author === null && editor === null) {
+                            bookConformed.autoren = null;
+                            bookConformed.autortyp = 0;
+                        }
+
+                        if (author !== null && author.length > 0) {
+                            if (author.length > 20) {
+                                warnFld.innerText = 'Pro Buch können nur 20 Autoren aufgenommen werden';
+                                fileFld.focus();
+                                return false;
+                            }
+                            author.forEach(arr =>
+                            {
+                                if (!textPattern.test(arr[0]) || !textPattern.test(arr[1])) {
+                                    warnFld.innerText = 'Ungültiger Autorname in Zeile ' + rownr;
+                                    fileFld.focus();
+                                    return false;
+                                }
+                            });
+                            bookConformed.autoren = author;
+                            bookConformed.autortyp = 0;
+                        }
+
+                        if (editor !== null && editor.length > 0) {
+                            if (editor.length > 20) {
+                                warnFld.innerText = 'Pro Buch können nur 20 Herausgeber aufgenommen werden';
+                                fileFld.focus();
+                                return false;
+                            }
+                            editor.forEach(arr =>
+                            {
+                                if (!textPattern.test(arr[0]) || !textPattern.test(arr[1])) {
+                                    warnFld.innerText = 'Ungültiger Herausgeber in Zeile ' + rownr;
+                                    fileFld.focus();
+                                    return false;
+                                }
+                            });
+                            bookConformed.autoren = editor;
+                            bookConformed.autortyp = 1;
+                        }
+
+                        if (!defaultValidation(title, "Title", textPattern)) {     
+                            return false;
+                        } else {
+                            bookConformed.titel[0] = title;
+                        }
+                        
+                        if (!defaultValidation(subtitle, "Subtitle", textPattern)) {     
+                            return false;
+                        } else {
+                            if (subtitle !== null) {bookConformed.titel[1] = subtitle};
+                        }
+                        
+                        if (!defaultValidation(notes, "Notes", textPattern)) {     
+                            return false;
+                        } else {
+                            bookConformed.hinweis = notes;
+                        }
+                        
+                        if (!defaultValidation(publisher, "Publisher", textPattern)) {     
+                            return false;
+                        } else {
+                            bookConformed.verlag = publisher;
+                        }
+                        
+                        if (!defaultValidation(place, "Place of Publication", textPattern)) {     
+                            return false;
+                        } else {
+                            bookConformed.ort = place;
+                        }
+                        
+                        if (!defaultValidation(location, "Physical Location", textPattern)) {     
+                            return false;
+                        } else {
+                            let resLoc = await dbGet("SELECT * FROM standort WHERE standortsgn = ? OR standort = ?", location)
+                                .catch(err => {return console.log(err)});
+                            bookConformed.standort = (resLoc === undefined) ? 0 : resLoc.id;
+                        }
+                        
+                        if (!defaultValidation(isbn, "ISBN", textPattern)) {     
+                            return false;
+                        } else {
+                            bookConformed.isbn = isbn;
+                        }
+                        
+                        if (!defaultValidation(year, "Year Published", jahreszahlPattern)) {     
+                            return false;
+                        } else {
+                            bookConformed.jahr = (year === null) ? null : Number(year);
+                        }
+
+                        if (!defaultValidation(auflage, "Edition", jahreszahlPattern)) {     
+                            return false;
+                        } else {
+                            bookConformed.auflage = (auflage === null) ? null : Number(auflage);
+                        }
+                        
+                        if (!defaultValidation(pages, "Number of Pages", zahlenPattern)) {     
+                            return false;
+                        } else {
+                            bookConformed.seiten = (pages === null) ? null : String(pages);
+                        }
+                        
+                        if (!defaultValidation(volume, "Volume", zahlenPattern)) {     
+                            return false;
+                        } else {
+                            bookConformed.band = (volume === null) ? null : Number(volume);
+                        }
+                    
+                        if (genre !== null && genre.length > 0) {
+                            await genre.forEach(async (item) =>
+                            {
+                                if (!defaultValidation(item, "Genre", textPattern)) {     
+                                    return false;
+                                } else {
+                                    let resSG = await dbGet("SELECT * FROM sachgebiet WHERE (id%100 = 0) AND sachgebiet = ?", item)
+                                        .then(res => 
+                                            {
+                                                if (res !== undefined) {
+                                                    return bookConformed.sachgebietsnr.push(res.id);
+                                                } else {
+                                                    return bookConformed.sachgebietsnr;
+                                                }
+                                            })
+                                        .catch(err => {return console.log(err)});
+                                }
+                            });
+                        } 
+                        
+                        //if the new book already exists in database, don't add it
+                        let checkSql = "SELECT * FROM media_view WHERE titel = ? AND titelnr = 1 AND titeltyp = 0 AND medium = 'Buch'";
+                        let dataToCheck = [bookConformed.titel[0]]; //titel is never null
+                        //handle null values
+                        if (bookConformed.autoren !== null) {
+                            dataToCheck.push(bookConformed.autoren[0]);
+                            dataToCheck.push(bookConformed.autortyp);
+                            checkSql = checkSql.concat(" ", "AND autor = ? AND autortyp = ?");
+                        } else {
+                            checkSql = checkSql.concat(" ", "AND autor IS NULL");
+                        }
+                        if (bookConformed.ort !== null) {
+                            dataToCheck.push(bookConformed.ort);
+                            checkSql = checkSql.concat(" ", "AND ort = ?");
+                        } else {
+                            checkSql = checkSql.concat(" ", "AND ort IS NULL");   
+                        }
+                        if (bookConformed.jahr !== null) {
+                            dataToCheck.push(bookConformed.jahr);
+                            checkSql = checkSql.concat(" ", "AND jahr = ?");
+                        } else {
+                            checkSql = checkSql.concat(" ", "AND jahr IS NULL");   
+                        }
+                        if (bookConformed.band !== null) {
+                            dataToCheck.push(bookConformed.band);
+                            checkSql = checkSql.concat(" ", "AND band = ?");
+                        } else {
+                            checkSql = checkSql.concat(" ", "AND band IS NULL");   
+                        }
+                        if (bookConformed.verlag !== null) {
+                            dataToCheck.push(bookConformed.verlag);
+                            checkSql = checkSql.concat(" ", "AND verlag = ?");
+                        } else {
+                            checkSql = checkSql.concat(" ", "AND verlag IS NULL");   
+                        }
+
+
+                        bookConformed.id = await dbGet(checkSql, dataToCheck)
+                            .then(res => 
+                            {
+                                booksNotAdded.push(" " + rownr); return false;
+                            }).catch(async (err) => 
+                            {
+                                return baseID + rownr;
+                            });
+        
+                        if (bookConformed.id !== false) {
+                            return bookConformed;
+                        } else {
+                            return false;
+                        }
+                    }))
+                    .then(books => {return books.filter(book => {return book !== false})})
+                    .catch(err => {return console.log(err);});
+
+                    let addBookToDB = (pchain, newbook) =>
+                    {
+                        return pchain.then(booksNotAdded => 
+                        {
+                            return new Promise ((resolve) =>
+                            {
+                                let callback = function (boolean)
+                                {
+                                    console.log(boolean);
+                                    if (boolean === false) {
+                                        let rowNotAdded = newbook.id - baseID;
+                                        console.log(newbook.id);
+                                        resolve(booksNotAdded.push(" " + rowNotAdded));
+                                    } else {
+                                        resolve(booksNotAdded);
+                                    }
+                                }
+                                console.log("add new book with id " + newbook.id);
+                                addBook(newbook, callback);
+                            });
+                        });
+                    }
+
+                    await newBooks
+                        .reduce(addBookToDB, Promise.resolve(booksNotAdded))
+                        .then(failedBooks =>
+                        {
+                            if (booksNotAdded.length !== 0) {
+                                warnFld.innerHTML = "Die folgenden Zeilen der csv-Datei wurden nicht in die Datenbank aufgenommen: <br><br>"
+                                    + booksNotAdded.sort((a, b) => a - b).toString();
+                            } 
+                            document.getElementById("myfile").focus();
+                            return true;
+                        }).catch(err => {return console.log(err)});    
+
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        }
+    });
+/*
+        
+        (async function () 
+        {
+            async function aktPfad () 
+            {
+                let ap = await dbGet ("select * from filepath where id=0", []);
+                return document.getElementById("pfad").value = (ap.path == "NULL") ? 
+                    filepathDefault : ap.path;
+            }
+            await aktPfad().catch(err => {return console.log(err)});
+            return document.getElementById("pfad").select();
+
+        })();
+        
+
+        function impCSV ()
+        {
+            let p = strtrim(document.getElementById("pfad").value);
+            let outFld = document.getElementById("outFld");
+            if (p === "") {
+                outFld.innerHTML = "Bitte gib den Pfad zum Verzeichnis der CSV Datei ein, die Du importieren willst";
+                return false;
+            }
+            const fs = require('fs');
+
+            fs.readdir(p, function (err, files) {//process.cwd()
+              if (err) {
+                outFld.innerHTML = "Das Verzeichnis gibt es nicht oder Deine Eingabe ist ungültig";
+                console.log(err);
+                return false;
+              }
+              document.getElementById("outFld").innerHTML = files.join("<br>");
+              return true;
+            });
+        }
+
+
+        document.getElementById("myfile").onkeydown = function (event) 
+        {
+            if (event.keyCode === 13 || event.which === 13) {
+                event.preventDefault();
+                return document.getElementById("myfileBtn").click();
+            }
+        }
+*/
+    </script>
+
+</body>

@@ -33,11 +33,14 @@
         <div class="dropdown-content">
             <a href="standorte.html">Standorte</a>
             <a href="sachgebiete.html">Sachgebiete</a>
+            <a href="listen.html">Listen</a>
+            <a href="csv-import.html">CSV importieren</a>
+            <a href="config.html">Konfiguration</a>
             <a href="doku.html">Dokumentation</a>
         </div>
     </ul>
     <ul class="floatright">
-        <a id="navBeenden" onclick="closeApp()">&#x23FC;</a>
+        <a id="navBeenden" onclick="closeApp()">X</a>
     </ul>    
 </nav>
 
@@ -56,7 +59,7 @@
         <b>Ausgewählte Sachgebiete: </b>
         <div id = "sgInfo" style="margin-top: 1em; height: 2em"></div>
         <p>
-            Liste der aktuellen Sachgebiete <a href="drucken-sachgebiete.php" target="_blank">drucken</a>
+            Liste der aktuellen Sachgebiete <a href="drucken-sachgebiete.html" target="_blank">drucken</a>
         </p>
     </div>
     <!--
@@ -134,7 +137,8 @@
                     //get Array of id's:
                     let offset = limit*c;
                     promises = data.map(datum => {return dbAll(sqlIDFromSG(limit,offset), datum) });
-                    let resolvedPromises = await Promise.all(promises).catch(err=>{return console.error(err)});
+                    let resolvedPromises = await Promise.all(promises)
+                        .catch(err=>{return console.error(err)});
                     if (resolvedPromises === undefined) {
                         if (document.getElementById("arrows").firstElementChild !== null) {
                             return stop = true;
@@ -171,7 +175,7 @@
                     } 
                 }
                 counter = await sgsearchDBRequest(data, counter);
-                if (document.getElementsByName("sgsResultTbl")[0] !== null) {
+                if (document.getElementsByName("sgsResultTbl")[0] !== undefined) {
                     cForwardAndBackwardBtns (document.getElementById("arrows"),
                         function () {return sgsearchDBRequest(data,counter+1)},
                         function () {return sgsearchDBRequest(data,counter-1)});

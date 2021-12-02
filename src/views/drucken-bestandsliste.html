@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Archiv | Bestandsliste</title>
+    <link rel="stylesheet" href="../styles/print.css" type="text/css" media="all"/>
+    <script src="../app/main.js"></script>
+    <script src="../app/findMedia.js"></script>
+    <script src="../app/table.js"></script>
+    <script src="../app/validation.js"></script>
+    <script src="../app/sql.js"></script>
+    <script>
+      function printContent(content_div, printing_div) 
+      {
+        document.getElementById(printing_div).innerHTML = 
+            "<h1>Inventar</h1>"+
+            document.getElementById(content_div).innerHTML;
+        window.print();
+      }
+    </script>
+</head>         
+
+<body name="printFrm" onload="selFrm.reset();">
+<div class="printer forscreen">
+    <input type="button" value="Drucken" 
+        onclick="printContent('content_div_id', 'printing_div_id')" id="printBtn" class="floatright">
+         <h1>Inventar</h1>
+    <form id='selFrm'>
+        <div class='rTable'>
+        <div class='rTableBody'>
+            <div class='rTableRow'>
+                <div class="rTableCell middle">
+                    <label for="standort"> Standort </label><br>
+                    <select id='standort' autofocus>
+                        <option value="" selected="selected" style="color: gray"></option>
+                        <option value="0">n.A.</option>
+                    </select>
+                </div>
+                <div class='rTableCell middle'>
+                    <label for="sachgebiet"> Sachgebiet </label><br>
+                    <input type="text" id="sachgebiet" value="">
+                </div>
+                <div class='rTableCell middle'>
+                    <br>
+                    <input type="button" id="OKBtn" class="btn" value="OK">
+                </div>
+                <div class='rTableCell middle'>
+                    <br>
+                    <input type="button" class="btn" value="Exportieren" onclick="exportTable()">
+                </div>
+            </div>
+        </div>
+        </div>
+        <div id="warnFld" class="warning center"></div>
+        <div class="info center" style="width: 400px">
+            Hier geht es zur Liste der 
+            <a href="drucken-sachgebiete.html" target="_blank">Sachgebiete</a>
+        </div>
+    </form>
+</div>
+
+<div class="article forscreen" id="content_div_id">
+    <div id="outFld"></div>
+    <div id="arrows" class="nop"></div>
+</div>
+
+<div id="printing_div_id" class="forprinter"></div>
+</body> 
+<script src="../app/shortkeys.js"></script>
+<script>
+
+    const standort = document.getElementById("standort");
+    const sachgebiet = document.getElementById("sachgebiet");
+    const warnFld = document.getElementById("warnFld");
+    const outFld = document.getElementById("outFld");
+    let counter = 0;
+    let stop = false;
+
+    cStandorteOptions(document.getElementById("standort"));
+
+    function setStartConditions () 
+    {
+        stop = false;
+        counter = 0;
+        outFld.innerHTML = "";
+        warnFld.innerHTML = "";
+        return document.getElementById("arrows").innerHTML = "";
+    }
+
+    async function sqlRequest (data, limit, offset)
+    {
+        let constraint;
+        let param;
+        let limitToConstraint = (limit === null && offset === null) ? 
+            "" : " LIMIT " + limit + " OFFSET " + offset;
+        if (data[0] === "" && data[1] === "") {
+            constraint = "";
+        } else {
+            if (data[0] === "") {
+                constraint = "relsachgebiet.sachgebietid = " + data[1];
+            } else if (data[1] === "") {
+                constraint = "objekt.standort = " + data[0];
+            } else {
+                constraint = "relsachgebiet.sachgebietid = " + data[1] +" AND objekt.standort = " + data[0];
+            }
+        }
+        let matchingIDs = await dbAll(sqlBestandsliste(constraint, limitToConstraint), [])
+            .catch(err => {console.log(err); return false;});
+        if (matchingIDs === false) { // No entry in DB found or failure
+            return false;
+        } else {
+            matchingIDs = matchingIDs
+                .map((item) => 
+                {
+                    return [item.objektid, item.zeitschriftid, item.buchid, item.aufsatzid].toString(); 
+                })
+                .filter(onlyUnique)
+                .map((item) => {return item.split(",").map(Number)});
+            return findMediaResultArr(matchingIDs);
+        }
+    }
+
+    async function submit () 
+    {
+        let sg = (strtrim(sachgebiet.value) == "") ? "" : Number(strtrim(sachgebiet.value));
+        if (Number.isNaN(sg)) {
+            warnFld.innerHTML = "Die Eingabe ist ungültig";
+            return false;
+        } else {
+            setStartConditions();
+            let data = [standort.value, sg];    
+            async function getResultTable (data, c, elToSel, warnFld) 
+            {
+                if (c<0) {
+                    return counter = 0;
+                }
+                if (c>counter && stop === true) {
+                    return counter;
+                }
+                if (c<counter && stop === true) {
+                    stop = false;
+                }
+                data.push(c);
+                limit = 100;
+                offset = c*limit;
+                let media = await sqlRequest(data,limit,offset)
+                    .catch(err => {return console.log(err)}); 
+                data.pop(c);
+                if (media === false && counter === 0) {
+                    if (document.getElementById("arrows").firstElementChild !== null) {
+                        return stop = true;
+                    } else {
+                        setStartConditions();
+                        return warnFld.innerHTML = "Zu Deiner Anfrage gibt es kein Suchergebnis"; 
+                    }
+                } 
+                if (media === false && counter > 0) {
+                    return stop = true;
+                } 
+                outFld.innerHTML = "";
+                cOutputTbl (outFld, "resultTbl", tblHeaderArr, media, false);
+                let table = outFld.firstElementChild;
+                let div = document.createElement("div");
+                div.id = "sortFld";
+                outFld.insertBefore(div, table);
+                cSortFld(document.getElementById("sortFld"), "sortTbl", sortArr, table);
+                if (c === 0) {
+                    elToSel.focus();
+                }
+                return counter = c;
+            }
+            counter = await getResultTable (data, counter, standort, warnFld);
+            if (document.getElementsByName("resultTbl")[0] !== undefined) {
+                cForwardAndBackwardBtns (document.getElementById("arrows"),
+                    function () {return getResultTable(data,counter+1, standort, warnFld)},
+                    function () {return getResultTable(data,counter-1, standort, warnFld)});
+            }
+        }
+    }
+    
+    async function exportTable() 
+    {
+        console.log("exportTable");
+        let sg = (strtrim(sachgebiet.value) == "") ? "" : Number(strtrim(sachgebiet.value));
+        if (Number.isNaN(sg)) {
+            warnFld.innerHTML = "Die Eingabe ist ungültig";
+            return false;
+        } else {
+            let data = [standort.value, sg];
+            warnFld.innerHTML = "";    
+            let confirm = window.confirm("Bestandsliste im csv-Format exportieren ?");
+            if (confirm) {
+                let result = await sqlRequest (data, null, null)
+                    .catch(err => {return console.log(err)});
+                if (document.getElementById("download") !== null) {
+                    outFld.removeChild(outFld.lastElementChild);
+                }
+                let newRes = result.map(arr => {
+                    if (arr[2].includes("<i>")) {
+                        arr[2] = arr[2].replace("<i>", "").replace("</i>", "");
+                        if (arr[2].includes("<i>")) {
+                            arr[2] = arr[2].replace("<i>", "").replace("</i>", "");
+                        }
+                    }
+                    if (arr[2].includes("<p>")) {
+                        arr[2] = arr[2].replace("<p>"," ").replace("</p>", " ");
+                    }
+                    if (arr[2].includes("<br>")) {
+                        arr[2] = arr[2].replace("<br>"," ");
+                    }
+                    if (arr[2].includes("</a>")) {
+                        let end1 = arr[2].indexOf("</a>");
+                        let start1 = arr[2].indexOf("'atag'>") + 7;
+                        let filename = arr[2].slice(start1, end1);
+                        let start2 = arr[2].indexOf("<a");
+                        let atag = arr[2].slice(start2,end1+4);
+                        arr[2] = arr[2].replace(atag, "|" + filename);
+                        splitarr = arr[2].split("|");
+                        arr[2] = splitarr[0];
+                        arr.push(splitarr[1]);
+                    } else{
+                        arr.push([]);
+                    }
+                    return arr.join("|")
+                });
+                let csvHeader = 
+                    "ID | Autor | Titel und Verweise | Jahr | Typ | Standort | Status | Link \r\n";
+                let csv = newRes.join("\r\n");
+                let csvData = new Blob([csvHeader,csv], { type: 'text/csv' });
+                let csvUrl = URL.createObjectURL(csvData);
+                let link = document.createElement("a");
+                link.href =  csvUrl;
+                link.id = "download";
+                link.download = "bestandsliste.csv";
+                outFld.appendChild(link);
+                link.click();
+                return true;
+            }
+        }    
+    }
+
+    document.getElementById("OKBtn").onclick = function () {return submit();}
+    document.getElementById("sachgebiet").onkeydown = function (event) 
+    {
+        if (event.keyCode === 13 || event.which === 13) {
+            event.preventDefault();
+            return document.getElementById("OKBtn").click();
+        }
+    }
+
+</script>
+
+</html>
