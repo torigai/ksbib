@@ -1,16 +1,10 @@
 # ksbib
-ksbib is a simple library software that you can use for personal purposes or 
-even for small archives. You can handle books, 
-articles, journals, incollections, link them to pdf-files and url's search for 
-media etc, just as you would expect of any library software. The software does 
-not include rental options and user management. If you are interested in that, 
-feel invited to send me a note or to contribute.
+ksbib is a simple library software for personal purposes. You can handle books, articles, 
+journals, incollections, link them to pdf-files and url's, search for media, import and export
+csv-files etc. The software does not include rental options and user management. If you are 
+interested in that, feel invited to contribute.
 
-ksbib is meant as a desktop program for your local computer. For that
-purpose sqlite seemed to be the perfect choice. The security measures 
-(like for instance user roles) that would be appropriate for a public web application 
-are therefore not implemented.
-
+ksbib is a pure desktop application, everything is local on your computer.
 
 ## Installation
 
@@ -31,6 +25,33 @@ To find out the actual version visit https://nwjs.io/)
 ## Try out
 
 `npm run dev`
+
+## Database
+
+After download, an empty database is located here:
+
+`src/db/ksbib.db`
+
+### Create an empty database
+
+If you want to create a fresh database delete the old `ksbib.db` file
+and uncomment the line
+
+`<script src="../db/db_setup.js"></script>`
+
+in `index.html`. Then run your program, close it and uncomment
+the line again. This will create a new `ksbib.db` file.
+
+### Backup database
+
+To make a backup of your database create a dump file as follows:
+
+`echo '.dump' | sqlite3 ksbib.db > old-ksbib.dump`
+
+To create a database from your dump file run:
+
+`cat old-ksbib.dump | sqlite3 ksbib.db`
+
 
 ## Build a desktop app
 
